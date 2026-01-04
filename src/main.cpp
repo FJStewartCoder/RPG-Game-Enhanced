@@ -151,7 +151,7 @@ int main() {
     node_t *cur = &node1;
 
     int res = traverse_node(&cur, NODE_RIGHT);
-    int res2 = traverse_node(&cur, NODE_RIGHT);
+    int res2 = traverse_node(&cur, NODE_LEFT);
 
     std::cout << res << " " << res2 << std::endl;
 
