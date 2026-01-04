@@ -11,13 +11,20 @@ NODE_DATA_TEMPLATE = {
     on_leave = function() end
 }
 
+-- will be expanded to include mod data
 function create_node()
     -- append a new node
-    AVAILIBLE_NODES[#AVAILIBLE_NODES + 1] = NODE_DATA_TEMPLATE
+    return NODE_DATA_TEMPLATE
 end
 
-create_node()
-create_node()
-create_node()
-create_node()
-create_node()
+-- function to add a node to the table
+function add_node(node)
+    AVAILIBLE_NODES[#AVAILIBLE_NODES + 1] = node
+end
+
+node = create_node()
+add_node(node)
+add_node(node)
+add_node(node)
+add_node(node)
+add_node(node)

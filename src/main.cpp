@@ -29,6 +29,26 @@ int check_integrity(sol::state &lua) {
         return 1;
     }
 
+    // ensure that there is at least one available node
+    int avail_len = avail.value().size();
+
+    if ( avail_len == 0 ) {
+        return 1;
+    }
+
+    // ensure that the node template contains the expected values (additional values will not be penalised)
+    sol::optional<sol::table> node_template = lua["NODE_DATA_TEMPLATE"];
+
+    // if it doesn't exist fail
+    if ( !node_template ) {
+        return 1;
+    }
+
+    // check if the table contains the keys "name", "on_land" and "on_leave"
+    if ( node_template["name"] ) {
+        std::cout << "name found\n";
+    }
+
     return 0;
 }
 
