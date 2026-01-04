@@ -7,10 +7,10 @@ node_errors traverse_helper(node_t *node, node_t *next_node) {
     // if NULL, do nothing else set *node to *next_node
     if ( next_node != NULL ) {
         node = next_node;
-        return 0;
+        return NODE_OK;
     }
 
-    return 1;
+    return NODE_ERROR;
 }
 
 // return error code

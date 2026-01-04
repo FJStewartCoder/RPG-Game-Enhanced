@@ -1,16 +1,9 @@
 #ifndef NODES_H
 #define NODES_H
 
-typedef struct {
-    // message that is shown when landing on this node
-    const char *landing_msg;
-
-    // function pointer to the action that is undertaken if landing on this space
-    void (*action)();
-} node_data_t;
-
 typedef struct node_t {
-    node_data_t data;
+    // will be used to link to the data
+    const char *node_type;
 
     // pointers to other nodes for traversal
     struct node_t *left;

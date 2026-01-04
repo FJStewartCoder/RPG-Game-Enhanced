@@ -1,5 +1,8 @@
+CC = gcc
+CPPC = g++
+
 nodes.o: src/nodes.c
-	gcc $^ -Iinclude -c -o $@
+	${CC} $^ -Iinclude -c -o $@
 
 all:
-	gcc src/main.c -Iinclude -Llib -llua54 -lm
+	${CPPC} src/main.cpp -Iinclude -Llib -llua54 -lm
