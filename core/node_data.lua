@@ -22,9 +22,13 @@ function add_node(node)
     AVAILIBLE_NODES[#AVAILIBLE_NODES + 1] = node
 end
 
-node = create_node()
-add_node(node)
-add_node(node)
-add_node(node)
-add_node(node)
-add_node(node)
+function build()
+    node = create_node()
+
+    add_node({name = "1", on_land = function () print("hello") end, on_leave = function () end})
+    add_node({name = "2", on_land = function () end, on_leave = function () end})
+    add_node({name = "3", on_land = function () end, on_leave = function () end})
+    add_node({name = "4", on_land = function () end, on_leave = function () end})
+
+    return 0
+end

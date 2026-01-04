@@ -1,9 +1,11 @@
 #ifndef NODES_H
 #define NODES_H
 
+#include <string>
+
 typedef struct node_t {
     // will be used to link to the data
-    const char *node_type;
+    std::string node_type;
 
     // pointers to other nodes for traversal
     struct node_t *left;
