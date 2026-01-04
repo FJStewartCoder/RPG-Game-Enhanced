@@ -29,7 +29,10 @@ typedef enum {
     NODE_UP,
     NODE_DOWN,
     NODE_NEXT,
-    NODE_PREV
+    NODE_PREV,
+
+    // use as a default
+    NODE_NONE
 } node_directions;
 
 typedef enum {
@@ -39,5 +42,19 @@ typedef enum {
     // error for if you achieve something impossible
     NODE_HOW
 } node_errors;
+
+// node traversal function
+node_errors traverse_node(
+    node_t **node,  // to change where the pointer is pointing, we need ptr to ptr
+    node_directions direction
+);
+
+// function to build a node
+node_t build_node(
+    std::string node_type,
+    node_t *previous_node = nullptr,
+    node_directions relation = NODE_NONE,
+    bool one_way = false  // defines whether or not the new node added should be able to link back to the previous node
+);
 
 #endif // NODES_H

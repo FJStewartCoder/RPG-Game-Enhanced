@@ -2,11 +2,25 @@
 
 // for NULL
 #include <stdio.h>
+#include <vector>
 
-node_errors traverse_helper(node_t *node, node_t *next_node) {
+void node_init(node_t *node) {
+    node->node_type = "";
+
+    // set all directions to null
+    node->left = nullptr;
+    node->right = nullptr;
+    node->up = nullptr;
+    node->down = nullptr;
+    node->forward = nullptr;
+    node->back = nullptr;
+    node->next = nullptr;
+    node->previous = nullptr;
+}
+
+node_errors can_traverse(node_t *node, node_t *next_node) {
     // if NULL, do nothing else set *node to *next_node
-    if ( next_node != NULL ) {
-        node = next_node;
+    if ( next_node != nullptr ) {
         return NODE_OK;
     }
 
@@ -15,40 +29,43 @@ node_errors traverse_helper(node_t *node, node_t *next_node) {
 
 // return error code
 // sets the current node passed in to the new traversed node is no errors occur
-node_errors traverse_node(node_t *node, node_directions direction) {
+node_errors traverse_node(node_t **node, node_directions direction) {
     node_errors res = NODE_OK;
+
+    node_t *cur = *node;
+    node_t *next;
 
     switch (direction) {
         case NODE_LEFT:
-            res = traverse_helper(node, node->left);
+            next = cur->left;
             break;
         
         case NODE_RIGHT:
-            res = traverse_helper(node, node->right);
+            next = cur->right;
             break;
         
         case NODE_UP:
-            res = traverse_helper(node, node->up);
+            next = cur->up;
             break;
         
         case NODE_DOWN:
-            res = traverse_helper(node, node->down);
+            next = cur->down;
             break;
         
         case NODE_FORWARD:
-            res = traverse_helper(node, node->forward);
+            next = cur->forward;
             break;
         
         case NODE_BACK:
-            res = traverse_helper(node, node->back);
+            next = cur->back;
             break;
         
         case NODE_NEXT:
-            res = traverse_helper(node, node->next);
+            next = cur->next;
             break;
         
         case NODE_PREV:
-            res = traverse_helper(node, node->previous);
+            next = cur->previous;
             break;
 
         // literally not even possible
@@ -57,5 +74,89 @@ node_errors traverse_node(node_t *node, node_directions direction) {
             break;
     }
 
+    res = can_traverse(cur, next);
+
+    if ( res == NODE_OK ) {
+        *node = next;
+    }
+
     return res;
-} 
+}
+
+node_t build_node(
+    std::string node_type,
+    node_t *previous_node,
+    node_directions relation,
+    bool one_way  // defines whether or not the new node added should be able to link back to the previous node
+) {
+    node_t new_node;
+    node_init(&new_node);
+
+    // done at this point
+    if ( previous_node == nullptr ) {
+        return new_node;
+    }
+
+    switch (relation) {
+        case NODE_LEFT:
+            previous_node->left = &new_node;
+
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node.right = previous_node; }
+            break;
+        
+        case NODE_RIGHT:
+            previous_node->right = &new_node;
+            
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node.left = previous_node; }
+            break;
+        
+        case NODE_UP:
+            previous_node->up = &new_node;
+            
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node.down = previous_node; }
+            break;
+        
+        case NODE_DOWN:
+            previous_node->down = &new_node;
+            
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node.up = previous_node; }
+            break;
+        
+        case NODE_FORWARD:
+            previous_node->forward = &new_node;
+            
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node.back = previous_node; }
+            break;
+        
+        case NODE_BACK:
+            previous_node->back = &new_node;
+            
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node.forward = previous_node; }
+            break;
+        
+        case NODE_NEXT:
+            previous_node->next = &new_node;
+            
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node.previous = previous_node; }
+            break;
+        
+        case NODE_PREV:
+            previous_node->previous = &new_node;
+            
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node.next = previous_node; }
+            break;
+
+        default:
+            break;
+    }
+
+    return new_node;
+}

@@ -145,5 +145,15 @@ int main() {
         std::cout << node << std::endl;
     }
 
+    node_t node1 = build_node("1");
+    node_t node2 = build_node("1", &node1, NODE_RIGHT, false);
+
+    node_t *cur = &node1;
+
+    int res = traverse_node(&cur, NODE_RIGHT);
+    int res2 = traverse_node(&cur, NODE_RIGHT);
+
+    std::cout << res << " " << res2 << std::endl;
+
     return 0;
 }
