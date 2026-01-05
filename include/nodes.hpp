@@ -4,9 +4,14 @@
 #include <string>
 #include <vector>
 
+#include "sol/sol.hpp"
+
 typedef struct node_t {
     // will be used to link to the data
     std::string node_type;
+
+    // table of data that is unique to this node
+    sol::optional<sol::table> unique_data;
 
     // pointers to other nodes for traversal
     struct node_t *left;
@@ -63,6 +68,7 @@ node_errors traverse_node(
 node_t build_node(
     std::vector<std::string> node_types,
     std::string node_type,
+    sol::table unique_data = sol::table(),
     node_t *previous_node = nullptr,
     node_directions relation = NODE_NONE,
     bool one_way = false  // defines whether or not the new node added should be able to link back to the previous node

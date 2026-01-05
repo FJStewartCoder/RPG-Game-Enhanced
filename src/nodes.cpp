@@ -5,6 +5,9 @@
 void node_init(node_t *node) {
     node->node_type = "";
 
+    // create blank table
+    node->unique_data = sol::table();
+
     // set all directions to null
     node->left = nullptr;
     node->right = nullptr;
@@ -101,6 +104,7 @@ node_errors traverse_node(node_t *(&node), node_directions direction) {
 node_t build_node(
     std::vector<std::string> node_types,
     std::string node_type,
+    sol::table unique_data,
     node_t *previous_node,
     node_directions relation,
     bool one_way  // defines whether or not the new node added should be able to link back to the previous node
@@ -123,6 +127,7 @@ node_t build_node(
 
     // set the name
     new_node.node_type = node_type;
+    new_node.unique_data = unique_data;
 
     // done at this point
     if ( previous_node == nullptr ) {

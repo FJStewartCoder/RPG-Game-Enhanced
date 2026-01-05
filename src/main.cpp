@@ -298,8 +298,7 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
         // if data exists run on land
         if ( cur_node_data ) {
             sol::protected_function on_land = cur_node_data.value()[LUA_NODE_LAND];
-
-            auto res = on_land("player data", cur_node_data.value());
+            auto res = on_land(cur_node->unique_data, cur_node_data.value(), "player data");
 
             if ( !res.valid() ) {
                 log_error("Landing function failed.");
@@ -374,7 +373,7 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
         // if data exists run on leave
         if ( cur_node_data ) {
             sol::protected_function on_leave = cur_node_data.value()[LUA_NODE_LEAVE];
-            auto res = on_leave("player data", cur_node_data.value());
+            auto res = on_leave(cur_node->unique_data, cur_node_data.value(), "player data");
 
             if ( !res.valid() ) {
                 log_error("Leaving function failed.");
@@ -424,8 +423,11 @@ int main() {
         log_trace("Found node with name \"%s\"", node.c_str());
     }
 
-    node_t node1 = build_node(node_types, "Start");
-    node_t node2 = build_node(node_types, "2", &node1, NODE_RIGHT, false);
+    sol::table start_table = lua.create_table();
+    start_table["data1"] = "123";
+
+    node_t node1 = build_node(node_types, "Start", start_table);
+    node_t node2 = build_node(node_types, "2", sol::table(), &node1, NODE_RIGHT, false);
 
     node_t *cur = &node1;
 

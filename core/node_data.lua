@@ -26,11 +26,13 @@ end
 ----------------------------------------------------------------------------
 
 -- gets the player name
-function start(player, node)
+function start(data, node, player)
     print("Hello this is a node type of " ..node.name)
     node.abc = "New thing"
 
     print("New property added ABC with value " ..node.abc)
+
+    print("Got data data1 " ..data.data1)
 end
 
 ----------------------------------------------------------------------------
