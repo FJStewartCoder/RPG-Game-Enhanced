@@ -16,11 +16,27 @@ void node_init(node_t *node) {
     node->previous = nullptr;
 }
 
-node_errors can_traverse(node_t *next_node) {
-    // if NULL, do nothing else set *node to *next_node
-    if ( next_node != nullptr ) {
+node_errors can_traverse_direction(node_t *node) {
+    // check if this direction can be traversed to which would be not a nullptr
+    if ( node != nullptr ) {
         return NODE_OK;
     }
+
+    return NODE_ERROR;
+}
+
+// checks if it is possible to traverse from this node
+node_errors can_traverse(node_t *node) {
+    // check each direction. if not null then it is possible to traverse
+
+    if ( node->left != nullptr ) { return NODE_OK; }
+    if ( node->right != nullptr ) { return NODE_OK; }
+    if ( node->up != nullptr ) { return NODE_OK; }
+    if ( node->down != nullptr ) { return NODE_OK; }
+    if ( node->forward != nullptr ) { return NODE_OK; }
+    if ( node->back != nullptr ) { return NODE_OK; }
+    if ( node->next != nullptr ) { return NODE_OK; }
+    if ( node->previous != nullptr ) { return NODE_OK; }
 
     return NODE_ERROR;
 }
@@ -72,7 +88,7 @@ node_errors traverse_node(node_t *(&node), node_directions direction) {
             break;
     }
 
-    res = can_traverse(next);
+    res = can_traverse_direction(next);
 
     if ( res == NODE_OK ) {
         // deference next for assignment

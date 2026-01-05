@@ -33,7 +33,9 @@ typedef enum {
     NODE_PREV,
 
     // use as a default
-    NODE_NONE
+    NODE_NONE,
+    // quit signal
+    NODE_QUIT
 } node_directions;
 
 typedef enum {
@@ -46,6 +48,10 @@ typedef enum {
 
 // initialises a node
 void node_init(node_t *node);
+
+// checks for if you can traverse a node in a specific direction or generally
+node_errors can_traverse_direction(node_t *node);
+node_errors can_traverse(node_t *node);
 
 // node traversal function
 node_errors traverse_node(

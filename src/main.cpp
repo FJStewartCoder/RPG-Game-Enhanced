@@ -208,6 +208,10 @@ sol::optional<sol::table> get_node_data(sol::state &lua, std::string name) {
     return found_table;
 }
 
+node_directions get_player_input(node_t *node) {
+    return NODE_QUIT;
+}
+
 void gameloop(sol::state &lua, node_t *(&start_node)) {
     // reassign the name
     node_t *cur_node = start_node;
@@ -215,9 +219,16 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
     // the running state
     bool running = true;
 
+    // boolean to silence the stuck message
+    bool silence_stuck = false;
+
+    uint stuck_count = 0;
+    const uint max_stuck_cycles = 100;
+
     // STEPS:
     // get node data
     // on land ( ensures that the start activates )
+    // check if possible to move
     // ask direction ( if we did this first the start would not work )
     // on leave
     // traverse
@@ -241,8 +252,60 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
         // ask direction
         node_directions chosen_direction = NODE_NONE;
 
-        // equivalent to quit
-        if ( chosen_direction == NODE_NONE ) {
+        if ( can_traverse(cur_node) == NODE_ERROR ) {
+            stuck_count++;
+
+            // user input for quitting or not
+            bool will_quit = false;
+
+            if ( stuck_count >= max_stuck_cycles ) {
+                log_info("Exceeded max stuck limit. Automatically exitting.");
+                std::cout << "[ERROR] You have been stuck longer than the stuck limit. Aborting..." << std::endl;
+                
+                // force quit
+                will_quit = true;
+                silence_stuck = true;
+            }
+
+            log_error("Player is stuck. Count: %d/%d", stuck_count, max_stuck_cycles);
+
+            if ( !silence_stuck ) {
+                std::cout << "[ERROR] You may be stuck as you are unable to move. It may be possible that external scripts are handling movement." << std::endl;
+            
+                std::cout << "Type q to quit or s to silence stuck message: ";
+                // get use input
+                std::string input;
+                std::cin >> input;
+
+                for ( const auto &c : input ) {
+                    if ( c == 'q' ) {
+                        will_quit = true;
+                        break;
+                    }
+                    else if ( c == 's' ) {
+                        silence_stuck = true;
+                    }
+                }
+            } 
+            
+            // quit
+            if ( will_quit ) {
+                running = false;
+                break;
+            }
+
+            // will not run any further until can move or quit
+            continue;
+        }
+
+        // if we escape, then reset the stuck counter
+        stuck_count = 0;
+
+        // TODO
+        // chosen_direction = get_player_input();
+
+        // quit if chosen to quit
+        if ( chosen_direction == NODE_QUIT ) {
             running = false;
             break;
         }
@@ -258,7 +321,12 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
         }
 
         // actually traverse
-        traverse_node(cur_node, chosen_direction);
+        node_errors res = traverse_node(cur_node, chosen_direction);
+
+        // if there is an error when attempting to log
+        if ( res == NODE_ERROR ) {
+            log_error("Node traversal failed.");
+        }
     }
 }
 
@@ -292,7 +360,7 @@ int main() {
     }
 
     node_t node1 = build_node(node_types, "Start");
-    node_t node2 = build_node(node_types, "2", &node1, NODE_RIGHT, false);
+    node_t node2 = build_node(node_types, "2", &node1, NODE_RIGHT, true);
 
     node_t *cur = &node1;
 
