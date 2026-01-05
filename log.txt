@@ -1,0 +1,8 @@
+2026-01-05 11:35:40 INFO  src/main.cpp:148: core/node_data.lua is found and opened with no errors.
+2026-01-05 11:35:40 INFO  src/main.cpp:162: core/node_data.lua integrity check success.
+2026-01-05 11:35:40 INFO  src/main.cpp:170: core/node_data.lua build success.
+2026-01-05 11:35:40 TRACE src/main.cpp:292: Found node with name "Start"
+2026-01-05 11:35:40 TRACE src/main.cpp:292: Found node with name "2"
+2026-01-05 11:35:40 TRACE src/main.cpp:292: Found node with name "3"
+2026-01-05 11:35:40 TRACE src/main.cpp:292: Found node with name "4"
+2026-01-05 11:35:40 INFO  src/main.cpp:228: Landed on node with type "Start".

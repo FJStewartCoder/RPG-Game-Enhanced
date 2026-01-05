@@ -6,6 +6,11 @@
 // nodes file
 #include "nodes.hpp"
 
+// include log.h as a C lib
+extern "C" {
+    #include "log/log.h"
+}
+
 // all errors in a namespace
 namespace errors {
     
@@ -44,15 +49,26 @@ const std::string LUA_NODE_LEAVE = "on_leave";
 const std::string LUA_NODE_TEMPLATE = "NODE_DATA_TEMPLATE";
 const std::string LUA_NODE_AVAILABLE = "AVAILIBLE_NODES";
 
+const std::string LUA_CORE_NODE_FILE = "core/node_data.lua";
+
 
 int check_default_node_table(sol::table &table) {
     sol::optional<std::string> name = table[LUA_NODE_NAME];
     sol::optional<sol::function> on_land = table[LUA_NODE_LAND];
     sol::optional<sol::function> on_leave = table[LUA_NODE_LEAVE];
 
-    if ( !name ) { return 1; }
-    else if ( !on_land ) { return 1; }
-    else if ( !on_leave ) { return 1; }
+    if ( !name ) {
+        log_error("Node data does not contain name field.");
+        return 1;
+    }
+    else if ( !on_land ) {
+        log_error("Node with name \"%s\" does not have landing function.", name.value().c_str());
+        return 1;
+    }
+    else if ( !on_leave ) {
+        log_error("Node with name \"%s\" does not have leaving function.", name.value().c_str());
+        return 1;
+    }
 
     return 0;
 }
@@ -63,6 +79,7 @@ int check_integrity(sol::state &lua) {
     
     // if the template does not exist that fail the integrity test
     if ( !avail ) {
+        log_error("Availible nodes array does not exist.");
         return 1;
     }
 
@@ -71,6 +88,7 @@ int check_integrity(sol::state &lua) {
 
     // if it doesn't exist fail
     if ( !node_template ) {
+        log_error("Node template does not exist.");
         return 1;
     }
 
@@ -81,6 +99,7 @@ int check_integrity(sol::state &lua) {
     sol::optional<sol::function> build_func = lua["build"];
 
     if ( !build_func ) {
+        log_error("Build function not found.");
         return 1;
     }
 
@@ -125,23 +144,30 @@ int build(sol::state &lua, std::vector<std::string> &node_types) {
 errors::node::load get_nodes(sol::state &lua, std::vector<std::string> &node_types) {
     // try to get the lua file
     try {
-        lua.safe_script_file("core/node_data.lua");
-        std::cout << "Ok\n";
+        lua.safe_script_file(LUA_CORE_NODE_FILE);
+        log_info("%s is found and opened with no errors.", LUA_CORE_NODE_FILE.c_str());
     }
     catch (const sol::error &e) {
         std::cout << e.what() << std::endl;
+        log_error("%s failed to open.", LUA_CORE_NODE_FILE.c_str());
         return errors::node::load::FILE;
     }
 
     // check integrity of the core lua files
     if ( check_integrity(lua) != 0 ) {
+        log_error("%s integrity check failed.", LUA_CORE_NODE_FILE.c_str());
         return errors::node::load::INTEGRITY;
     }
 
+    log_info("%s integrity check success.", LUA_CORE_NODE_FILE.c_str());
+
     // build and check result
     if ( build(lua, node_types) != 0 ) {
+        log_error("%s build failed.", LUA_CORE_NODE_FILE.c_str());
         return errors::node::load::BUILD;
     }
+
+    log_info("%s build success.", LUA_CORE_NODE_FILE.c_str());
 
     return errors::node::load::OK;
 }
@@ -199,17 +225,16 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
     while ( running ) {
         auto cur_node_data = get_node_data(lua, cur_node->node_type);
 
-        std::cout << cur_node->node_type << std::endl;
+        log_info("Landed on node with type \"%s\".", cur_node->node_type.c_str());
     
         // if data exists run on land
         if ( cur_node_data ) {
-            // TODO: may not even be a function
             sol::protected_function on_land = cur_node_data.value()[LUA_NODE_LAND];
 
             auto res = on_land();
 
             if ( !res.valid() ) {
-                std::cout << "On land function failed\n";
+                log_error("Landing function failed.");
             }
         }
 
@@ -228,7 +253,7 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
             auto res = on_leave();
 
             if ( !res.valid() ) {
-                std::cout << "On leave function failed\n";
+                log_error("Leaving function failed.");
             }
         }
 
@@ -238,6 +263,13 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
 }
 
 int main() {
+    // open the log file
+    FILE *fp = fopen("log.txt", "w");
+
+    // will always log
+    log_add_fp(fp, 0);
+    // log_set_quiet(true);
+
     // vector of strings (allows for expansion)
     std::vector<std::string> node_types;
 
@@ -248,12 +280,15 @@ int main() {
     lua.open_libraries(sol::lib::base, sol::lib::io, sol::lib::table);
 
     if ( get_nodes( lua, node_types ) != errors::node::load::OK ) {
-        std::cout << "An error has occurred when loading. Aborting..." << std::endl;
+        log_fatal("An error has occurred when loading. Aborting...");
+        
+        // premature end
+        fclose(fp);
         return 1;
     }
 
     for ( const auto &node : node_types ) {
-        std::cout << node << std::endl;
+        log_trace("Found node with name \"%s\"", node.c_str());
     }
 
     node_t node1 = build_node(node_types, "Start");
@@ -269,5 +304,7 @@ int main() {
     // the main game loop
     gameloop(lua, cur);
 
+    // close the file
+    fclose(fp);
     return 0;
 }
