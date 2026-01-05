@@ -298,6 +298,8 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
         // if data exists run on land
         if ( cur_node_data ) {
             sol::protected_function on_land = cur_node_data.value()[LUA_NODE_LAND];
+
+            // pass in the unique data, the node data and the player data
             auto res = on_land(cur_node->unique_data, cur_node_data.value(), "player data");
 
             if ( !res.valid() ) {
@@ -373,6 +375,8 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
         // if data exists run on leave
         if ( cur_node_data ) {
             sol::protected_function on_leave = cur_node_data.value()[LUA_NODE_LEAVE];
+
+            // pass in the unique data, the node data and the player data
             auto res = on_leave(cur_node->unique_data, cur_node_data.value(), "player data");
 
             if ( !res.valid() ) {
