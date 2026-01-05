@@ -101,6 +101,8 @@ node_errors traverse_node(node_t *(&node), node_directions direction) {
     return res;
 }
 
+// TODO: prevent building over existing nodes
+
 node_t build_node(
     std::vector<std::string> node_types,
     std::string node_type,

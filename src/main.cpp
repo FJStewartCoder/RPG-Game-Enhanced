@@ -426,8 +426,12 @@ int main() {
     sol::table start_table = lua.create_table();
     start_table["data1"] = "123";
 
+    sol::table start_table2 = lua.create_table();
+    start_table2["data1"] = "234";
+
     node_t node1 = build_node(node_types, "Start", start_table);
     node_t node2 = build_node(node_types, "2", sol::table(), &node1, NODE_RIGHT, false);
+    node_t node3 = build_node(node_types, "Start", start_table2, &node2, NODE_UP, false);
 
     node_t *cur = &node1;
 
