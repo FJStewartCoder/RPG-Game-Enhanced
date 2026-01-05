@@ -208,7 +208,64 @@ sol::optional<sol::table> get_node_data(sol::state &lua, std::string name) {
     return found_table;
 }
 
+template <typename T>
+bool is_in(T item, std::vector<T> array) {
+    for ( const auto &i : array) {
+        if ( i == item ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 node_directions get_player_input(node_t *node) {
+    std::vector<std::string> options;
+
+    // get each option
+    if ( node->left != nullptr ) { options.push_back("left"); }
+    if ( node->right != nullptr ) { options.push_back("right"); }
+    if ( node->up != nullptr ) { options.push_back("up"); }
+    if ( node->down != nullptr ) { options.push_back("down"); }
+    if ( node->forward != nullptr ) { options.push_back("forward"); }
+    if ( node->back != nullptr ) { options.push_back("back"); }
+    if ( node->next != nullptr ) { options.push_back("next"); }
+    if ( node->previous != nullptr ) { options.push_back("previous"); }
+
+    std::cout << "Select an option: ";
+    for ( const auto &item : options ) {
+        std::cout << item << ", ";
+    }
+    std::cout << "quit: ";
+
+    // add the quit option (after the other option for correct punctuation)
+    options.push_back("quit");
+
+    // the user input variable
+    std::string input;
+
+    while ( true ) {
+        // get the user input
+        std::cin >> input;
+
+        if ( !is_in(input, options) ) {
+            std::cout << "Please try again!" << std::endl;
+            continue;
+        }
+
+        break;
+    }
+
+    // if block again for correct return
+    if ( input == "left" ) { return NODE_LEFT; }
+    else if ( input == "right" ) { return NODE_RIGHT; }
+    else if ( input == "up" ) { return NODE_UP; }
+    else if ( input == "down" ) { return NODE_DOWN; }
+    else if ( input == "forward" ) { return NODE_FORWARD; }
+    else if ( input == "back" ) { return NODE_BACK; }
+    else if ( input == "next" ) { return NODE_NEXT; }
+    else if ( input == "previous" ) { return NODE_PREV; }
+
     return NODE_QUIT;
 }
 
@@ -301,8 +358,8 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
         // if we escape, then reset the stuck counter
         stuck_count = 0;
 
-        // TODO
-        // chosen_direction = get_player_input();
+        // get the direction that the player want to move.
+        chosen_direction = get_player_input(cur_node);
 
         // quit if chosen to quit
         if ( chosen_direction == NODE_QUIT ) {
@@ -360,7 +417,7 @@ int main() {
     }
 
     node_t node1 = build_node(node_types, "Start");
-    node_t node2 = build_node(node_types, "2", &node1, NODE_RIGHT, true);
+    node_t node2 = build_node(node_types, "2", &node1, NODE_RIGHT, false);
 
     node_t *cur = &node1;
 
