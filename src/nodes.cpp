@@ -27,43 +27,43 @@ node_errors can_traverse(node_t *next_node) {
 
 // return error code
 // sets the current node passed in to the new traversed node is no errors occur
-node_errors traverse_node(node_t &node, node_directions direction) {
+node_errors traverse_node(node_t *(&node), node_directions direction) {
     node_errors res = NODE_OK;
 
-    node_t cur = node;
-    node_t *next;
+    node_t *cur = node;
+    node_t *next = nullptr;
 
     switch (direction) {
         case NODE_LEFT:
-            next = cur.left;
+            next = cur->left;
             break;
         
         case NODE_RIGHT:
-            next = cur.right;
+            next = cur->right;
             break;
         
         case NODE_UP:
-            next = cur.up;
+            next = cur->up;
             break;
         
         case NODE_DOWN:
-            next = cur.down;
+            next = cur->down;
             break;
         
         case NODE_FORWARD:
-            next = cur.forward;
+            next = cur->forward;
             break;
         
         case NODE_BACK:
-            next = cur.back;
+            next = cur->back;
             break;
         
         case NODE_NEXT:
-            next = cur.next;
+            next = cur->next;
             break;
         
         case NODE_PREV:
-            next = cur.previous;
+            next = cur->previous;
             break;
 
         // literally not even possible
@@ -76,7 +76,7 @@ node_errors traverse_node(node_t &node, node_directions direction) {
 
     if ( res == NODE_OK ) {
         // deference next for assignment
-        node = *next;
+        node = next;
     }
 
     return res;
@@ -104,6 +104,9 @@ node_t build_node(
 
     node_t new_node;
     node_init(&new_node);
+
+    // set the name
+    new_node.node_type = node_type;
 
     // done at this point
     if ( previous_node == nullptr ) {

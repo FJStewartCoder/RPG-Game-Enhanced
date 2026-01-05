@@ -49,7 +49,7 @@ void node_init(node_t *node);
 
 // node traversal function
 node_errors traverse_node(
-    node_t &node,  // to change where the pointer is pointing, we need ptr to ptr
+    node_t *(&node),  // to change where the pointer is pointing, we need reference to ptr
     node_directions direction
 );
 

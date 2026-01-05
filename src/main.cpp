@@ -148,6 +148,7 @@ errors::node::load get_nodes(sol::state &lua, std::vector<std::string> &node_typ
 
 // creates a new player data variable in the lua that stores a copy of the template populated with real data
 errors::player::load get_player_data(sol::state &lua) {
+    // TODO: implement
     return errors::player::load::OK;
 }
 
@@ -181,9 +182,9 @@ sol::optional<sol::table> get_node_data(sol::state &lua, std::string name) {
     return found_table;
 }
 
-void gameloop(sol::state &lua, node_t &start_node) {
+void gameloop(sol::state &lua, node_t *(&start_node)) {
     // reassign the name
-    node_t cur_node = start_node;
+    node_t *cur_node = start_node;
 
     // the running state
     bool running = true;
@@ -196,11 +197,42 @@ void gameloop(sol::state &lua, node_t &start_node) {
     // traverse
 
     while ( running ) {
-        auto cur_node_data = get_node_data(lua, cur_node.node_type);
+        auto cur_node_data = get_node_data(lua, cur_node->node_type);
 
-        if ( !cur_node_data ) {
+        std::cout << cur_node->node_type << std::endl;
+    
+        // if data exists run on land
+        if ( cur_node_data ) {
+            sol::protected_function on_land = cur_node_data.value()[LUA_NODE_LAND];
 
+            auto res = on_land();
+
+            if ( !res.valid() ) {
+                std::cout << "On land function failed\n";
+            }
         }
+
+        // ask direction
+        node_directions chosen_direction = NODE_NONE;
+
+        // equivalent to quit
+        if ( chosen_direction == NODE_NONE ) {
+            running = false;
+            break;
+        }
+
+        // if data exists run on land
+        if ( cur_node_data ) {
+            sol::protected_function on_leave = cur_node_data.value()[LUA_NODE_LEAVE];
+            auto res = on_leave();
+
+            if ( !res.valid() ) {
+                std::cout << "On land function failed\n";
+            }
+        }
+
+        // actually traverse
+        traverse_node(cur_node, chosen_direction);
     }
 }
 
@@ -226,7 +258,7 @@ int main() {
     node_t node1 = build_node(node_types, "Start");
     node_t node2 = build_node(node_types, "2", &node1, NODE_RIGHT, false);
 
-    node_t &cur = node1;
+    node_t *cur = &node1;
 
     int res = traverse_node(cur, NODE_RIGHT);
     int res2 = traverse_node(cur, NODE_LEFT);
