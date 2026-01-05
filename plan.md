@@ -15,3 +15,6 @@ To combine extension and core, we will have a build function somewhere which wil
 Before we run this, we can combine all of the extensions together. Then, the build will be based on a modified template.
 
 TODO: PREVENT DUPLICATE NODE NAMES
+
+TODO: ADD SOME ADDITIONAL DATA WHEN BUILDING A NODE THAT IS PASSED TO ON_LAND AND ON_LEAVE THAT CAN RUN UNIQUE DATA FOR EACH NODE TYPE
+E.G FIGHT can only have one set of data currently but FIGHT can fight anything based on custom data

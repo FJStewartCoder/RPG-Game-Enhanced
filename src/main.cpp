@@ -299,10 +299,14 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
         if ( cur_node_data ) {
             sol::protected_function on_land = cur_node_data.value()[LUA_NODE_LAND];
 
-            auto res = on_land();
+            auto res = on_land("player data", cur_node_data.value());
 
             if ( !res.valid() ) {
                 log_error("Landing function failed.");
+
+                // error details
+                sol::error error = res;
+                log_debug("\n%s", error.what());
             }
         }
 
@@ -370,10 +374,14 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
         // if data exists run on leave
         if ( cur_node_data ) {
             sol::protected_function on_leave = cur_node_data.value()[LUA_NODE_LEAVE];
-            auto res = on_leave();
+            auto res = on_leave("player data", cur_node_data.value());
 
             if ( !res.valid() ) {
                 log_error("Leaving function failed.");
+
+                // error message
+                sol::error error = res;
+                log_debug("\n%s", error.what());
             }
         }
 

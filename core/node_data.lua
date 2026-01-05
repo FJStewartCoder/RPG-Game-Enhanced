@@ -27,7 +27,10 @@ end
 
 -- gets the player name
 function start(player, node)
-    
+    print("Hello this is a node type of " ..node.name)
+    node.abc = "New thing"
+
+    print("New property added ABC with value " ..node.abc)
 end
 
 ----------------------------------------------------------------------------
@@ -35,7 +38,7 @@ end
 function build()
     node = create_node()
 
-    add_node({name = "Start", on_land = function () end, on_leave = function () end})
+    add_node({name = "Start", on_land = start, on_leave = function () end})
     add_node({name = "2", on_land = function () end, on_leave = function () end})
     add_node({name = "3", on_land = function () end, on_leave = function () end})
     add_node({name = "4", on_land = function () end, on_leave = function () end})
