@@ -35,7 +35,7 @@ end
 function build()
     node = create_node()
 
-    add_node({name = "Start", on_land = function () print("hello") end, on_leave = function () end})
+    add_node({name = "Start", on_land = function () end, on_leave = function () end})
     add_node({name = "2", on_land = function () end, on_leave = function () end})
     add_node({name = "3", on_land = function () end, on_leave = function () end})
     add_node({name = "4", on_land = function () end, on_leave = function () end})

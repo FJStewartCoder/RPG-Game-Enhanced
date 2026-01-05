@@ -221,13 +221,13 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
             break;
         }
 
-        // if data exists run on land
+        // if data exists run on leave
         if ( cur_node_data ) {
             sol::protected_function on_leave = cur_node_data.value()[LUA_NODE_LEAVE];
             auto res = on_leave();
 
             if ( !res.valid() ) {
-                std::cout << "On land function failed\n";
+                std::cout << "On leave function failed\n";
             }
         }
 
