@@ -99,7 +99,7 @@ node_t build_node(
     }
 
     if ( !type_exists ) {
-        throw CustomException("This node type does not exist.");
+        throw CustomException("This node type: does not exist or is malformed.");
     }
 
     node_t new_node;

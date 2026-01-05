@@ -203,6 +203,7 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
     
         // if data exists run on land
         if ( cur_node_data ) {
+            // TODO: may not even be a function
             sol::protected_function on_land = cur_node_data.value()[LUA_NODE_LAND];
 
             auto res = on_land();
