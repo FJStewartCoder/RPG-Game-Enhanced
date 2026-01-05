@@ -23,12 +23,32 @@ namespace errors {
 
     };
 
+    // node based errors
+    namespace player {
+
+        // loading errors
+        enum class load {
+            OK
+        };
+
+    };
+
 };
 
+
+// some special constants for names of variables in lua
+const std::string LUA_NODE_NAME = "name";
+const std::string LUA_NODE_LAND = "on_land";
+const std::string LUA_NODE_LEAVE = "on_leave";
+
+const std::string LUA_NODE_TEMPLATE = "NODE_DATA_TEMPLATE";
+const std::string LUA_NODE_AVAILABLE = "AVAILIBLE_NODES";
+
+
 int check_default_node_table(sol::table &table) {
-    sol::optional<std::string> name = table["name"];
-    sol::optional<sol::function> on_land = table["on_land"];
-    sol::optional<sol::function> on_leave = table["on_leave"];
+    sol::optional<std::string> name = table[LUA_NODE_NAME];
+    sol::optional<sol::function> on_land = table[LUA_NODE_LAND];
+    sol::optional<sol::function> on_leave = table[LUA_NODE_LEAVE];
 
     if ( !name ) { return 1; }
     else if ( !on_land ) { return 1; }
@@ -39,7 +59,7 @@ int check_default_node_table(sol::table &table) {
 
 int check_integrity(sol::state &lua) {
     // check if there is an "array" (table) for availible nodes
-    sol::optional<sol::table> avail = lua["AVAILIBLE_NODES"];
+    sol::optional<sol::table> avail = lua[LUA_NODE_AVAILABLE];
     
     // if the template does not exist that fail the integrity test
     if ( !avail ) {
@@ -47,7 +67,7 @@ int check_integrity(sol::state &lua) {
     }
 
     // ensure that the node template contains the expected values (additional values will not be penalised)
-    sol::optional<sol::table> node_template = lua["NODE_DATA_TEMPLATE"];
+    sol::optional<sol::table> node_template = lua[LUA_NODE_TEMPLATE];
 
     // if it doesn't exist fail
     if ( !node_template ) {
@@ -80,7 +100,7 @@ int build(sol::state &lua, std::vector<std::string> &node_types) {
     // if invalid, return
     if ( !res.valid() ) { return 1; }
   
-    sol::table avail = lua["AVAILIBLE_NODES"];
+    sol::table avail = lua[LUA_NODE_AVAILABLE];
 
     // ensure that there are nodes availible
     if ( avail.size() == 0 ) { return 1; }
@@ -95,7 +115,7 @@ int build(sol::state &lua, std::vector<std::string> &node_types) {
         if ( check_default_node_table( node ) == 1 ) { continue; }
 
         // add the node name to the vector
-        node_types.push_back( node["name"] );
+        node_types.push_back( node[LUA_NODE_NAME] );
     }
 
     return 0;
@@ -126,6 +146,64 @@ errors::node::load get_nodes(sol::state &lua, std::vector<std::string> &node_typ
     return errors::node::load::OK;
 }
 
+// creates a new player data variable in the lua that stores a copy of the template populated with real data
+errors::player::load get_player_data(sol::state &lua) {
+    return errors::player::load::OK;
+}
+
+// could return none
+sol::optional<sol::table> get_node_data(sol::state &lua, std::string name) {
+    sol::table node_options = lua[LUA_NODE_AVAILABLE];
+
+    // currently is empty until we find the table
+    sol::optional<sol::table> found_table;
+
+    // iterate the list of nodes and check if the node has the name that we are looking for
+    for ( const auto &node : node_options ) {
+        auto node_table = node.second.as<sol::optional<sol::table>>();
+
+        // skip if the node table does not exist as a table or is not a valid table/
+        if ( !node_table ) {
+            continue;
+        }
+        else if ( check_default_node_table( node_table.value() ) != 0 ) {
+            continue;
+        }
+
+        // if the names match, set found to the current table and break
+        if ( node_table.value()[LUA_NODE_NAME] == name ) {
+            found_table = node_table;
+            break;
+        }
+    }
+
+    // return no matter what is found
+    return found_table;
+}
+
+void gameloop(sol::state &lua, node_t &start_node) {
+    // reassign the name
+    node_t cur_node = start_node;
+
+    // the running state
+    bool running = true;
+
+    // STEPS:
+    // get node data
+    // on land ( ensures that the start activates )
+    // ask direction ( if we did this first the start would not work )
+    // on leave
+    // traverse
+
+    while ( running ) {
+        auto cur_node_data = get_node_data(lua, cur_node.node_type);
+
+        if ( !cur_node_data ) {
+            
+        }
+    }
+}
+
 int main() {
     // vector of strings (allows for expansion)
     std::vector<std::string> node_types;
@@ -145,15 +223,18 @@ int main() {
         std::cout << node << std::endl;
     }
 
-    node_t node1 = build_node("1");
-    node_t node2 = build_node("1", &node1, NODE_RIGHT, false);
+    node_t node1 = build_node(node_types, "1");
+    node_t node2 = build_node(node_types, "1", &node1, NODE_RIGHT, false);
 
-    node_t *cur = &node1;
+    node_t &cur = node1;
 
-    int res = traverse_node(&cur, NODE_RIGHT);
-    int res2 = traverse_node(&cur, NODE_LEFT);
+    int res = traverse_node(cur, NODE_RIGHT);
+    int res2 = traverse_node(cur, NODE_LEFT);
 
     std::cout << res << " " << res2 << std::endl;
+
+    // the main game loop
+    gameloop(lua, cur);
 
     return 0;
 }

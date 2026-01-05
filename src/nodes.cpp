@@ -1,8 +1,8 @@
 #include "nodes.hpp"
 
-// for NULL
-#include <stdio.h>
+#include <iostream>
 #include <vector>
+
 
 void node_init(node_t *node) {
     node->node_type = "";
@@ -18,7 +18,7 @@ void node_init(node_t *node) {
     node->previous = nullptr;
 }
 
-node_errors can_traverse(node_t *node, node_t *next_node) {
+node_errors can_traverse(node_t *next_node) {
     // if NULL, do nothing else set *node to *next_node
     if ( next_node != nullptr ) {
         return NODE_OK;
@@ -29,43 +29,43 @@ node_errors can_traverse(node_t *node, node_t *next_node) {
 
 // return error code
 // sets the current node passed in to the new traversed node is no errors occur
-node_errors traverse_node(node_t **node, node_directions direction) {
+node_errors traverse_node(node_t &node, node_directions direction) {
     node_errors res = NODE_OK;
 
-    node_t *cur = *node;
+    node_t cur = node;
     node_t *next;
 
     switch (direction) {
         case NODE_LEFT:
-            next = cur->left;
+            next = cur.left;
             break;
         
         case NODE_RIGHT:
-            next = cur->right;
+            next = cur.right;
             break;
         
         case NODE_UP:
-            next = cur->up;
+            next = cur.up;
             break;
         
         case NODE_DOWN:
-            next = cur->down;
+            next = cur.down;
             break;
         
         case NODE_FORWARD:
-            next = cur->forward;
+            next = cur.forward;
             break;
         
         case NODE_BACK:
-            next = cur->back;
+            next = cur.back;
             break;
         
         case NODE_NEXT:
-            next = cur->next;
+            next = cur.next;
             break;
         
         case NODE_PREV:
-            next = cur->previous;
+            next = cur.previous;
             break;
 
         // literally not even possible
@@ -74,21 +74,36 @@ node_errors traverse_node(node_t **node, node_directions direction) {
             break;
     }
 
-    res = can_traverse(cur, next);
+    res = can_traverse(next);
 
     if ( res == NODE_OK ) {
-        *node = next;
+        // deference next for assignment
+        node = *next;
     }
 
     return res;
 }
 
 node_t build_node(
+    std::vector<std::string> node_types,
     std::string node_type,
     node_t *previous_node,
     node_directions relation,
     bool one_way  // defines whether or not the new node added should be able to link back to the previous node
 ) {
+    bool type_exists = false;
+
+    for ( const auto &node_name : node_types ) {
+        if ( node_type == node_name ) {
+            type_exists = true;
+            break;
+        }
+    }
+
+    if ( !type_exists ) {
+        throw 1;
+    }
+
     node_t new_node;
     node_init(&new_node);
 

@@ -43,14 +43,18 @@ typedef enum {
     NODE_HOW
 } node_errors;
 
+// initialises a node
+void node_init(node_t *node);
+
 // node traversal function
 node_errors traverse_node(
-    node_t **node,  // to change where the pointer is pointing, we need ptr to ptr
+    node_t &node,  // to change where the pointer is pointing, we need ptr to ptr
     node_directions direction
 );
 
 // function to build a node
 node_t build_node(
+    std::vector<std::string> node_types,
     std::string node_type,
     node_t *previous_node = nullptr,
     node_directions relation = NODE_NONE,
