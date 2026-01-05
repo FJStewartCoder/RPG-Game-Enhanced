@@ -199,7 +199,7 @@ void gameloop(sol::state &lua, node_t &start_node) {
         auto cur_node_data = get_node_data(lua, cur_node.node_type);
 
         if ( !cur_node_data ) {
-            
+
         }
     }
 }
@@ -223,8 +223,8 @@ int main() {
         std::cout << node << std::endl;
     }
 
-    node_t node1 = build_node(node_types, "1");
-    node_t node2 = build_node(node_types, "1", &node1, NODE_RIGHT, false);
+    node_t node1 = build_node(node_types, "Start");
+    node_t node2 = build_node(node_types, "2", &node1, NODE_RIGHT, false);
 
     node_t &cur = node1;
 

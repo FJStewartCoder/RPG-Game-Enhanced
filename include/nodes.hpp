@@ -2,6 +2,7 @@
 #define NODES_H
 
 #include <string>
+#include <vector>
 
 typedef struct node_t {
     // will be used to link to the data

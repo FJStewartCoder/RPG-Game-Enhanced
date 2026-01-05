@@ -1,7 +1,5 @@
 #include "nodes.hpp"
-
-#include <iostream>
-#include <vector>
+#include "custom_exception.hpp"
 
 
 void node_init(node_t *node) {
@@ -101,7 +99,7 @@ node_t build_node(
     }
 
     if ( !type_exists ) {
-        throw 1;
+        throw CustomException("This node type does not exist.");
     }
 
     node_t new_node;
