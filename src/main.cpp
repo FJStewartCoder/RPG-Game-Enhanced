@@ -116,8 +116,8 @@ int build(sol::state &lua, std::vector<std::string> &node_types) {
     // if does not exist
     if ( !build ) { return 1; }
 
-    lua["add_node"] = [&lua](sol::table table) {
-        new_node_type(lua, lua[LUA_NODE_TEMPLATE], table);
+    lua["add_node"] = [](sol::table table) {
+        new_node_type(table);
     };
 
     log_info("Calling build from C++");
@@ -132,6 +132,9 @@ int build(sol::state &lua, std::vector<std::string> &node_types) {
         log_error("\n%s", e.what());
         return 1;
     }
+
+    // once the build script succeeds, build the node queue
+    build_node_queue(lua, lua[LUA_NODE_TEMPLATE]);
   
     sol::table avail = lua[LUA_NODE_AVAILABLE];
 

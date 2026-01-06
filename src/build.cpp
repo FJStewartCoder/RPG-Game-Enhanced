@@ -10,6 +10,10 @@ std::vector<node_t*> environment;
 // map of all node types with key of node name
 // std::unordered_map<std::string, sol::table> all_node_types;
 
+// vector of tables
+// TODO: fix -> freeing vectors of sol::tables causes seg fault on destruction of program
+std::vector<sol::table> node_type_queue;
+
 int free_nodes() {
     for ( const auto &item : environment ) {
         delete item;
@@ -140,7 +144,13 @@ int build_node(
     return environment.size() - 1;
 }
 
-int new_node_type(sol::state &lua, sol::table node_template, sol::table node_table) {
+int new_node_type(sol::table node_table) {
+    node_type_queue.push_back(node_table);
+
+    return 0;
+}
+
+int build_single_node(sol::state &lua, sol::table node_template, sol::table node_table) {
     // create the new table
     sol::table new_table = lua.create_table();
     std::unordered_set<std::string> availible_keys;
@@ -174,6 +184,14 @@ int new_node_type(sol::state &lua, sol::table node_template, sol::table node_tab
 
     // log
     std::cout << "Added new node type with name " << new_table["name"].get<std::string>() << std::endl;
+
+    return 0;
+}
+
+int build_node_queue(sol::state &lua, sol::table node_template) {
+    for ( const auto &table : node_type_queue ) {
+        build_single_node(lua, node_template, table);
+    }
 
     return 0;
 }

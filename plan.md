@@ -22,4 +22,56 @@ If 0 then the C++ manages location. Else, the C++ will move the player to the no
 The "id" will be the index + 1 since we know the 0 is ignore.
 
 TODO:
-The proceduce could be improved such as alternate check times and skipping the move choice if you have been moved. 
+The proceduce could be improved such as alternate check times and skipping the move choice if you have been moved.
+
+LOAD STRUCTURE:
+Create core lua state
+
+Load core node file
+Check integrity of the node file
+
+Load core player file
+Check integrity of the player file
+
+Create extension lua state
+
+For each file in extension dir
+    Inject extension function into state
+
+    Run extension script of this file (combines the core state and extension state)
+
+    Reset the lua state
+end
+
+For each file in extension dir
+    Inject build function into state
+
+    Run build script of this file (create new node types)
+
+    Reset the lua state
+end
+
+Run core node file build script
+
+ALT LOAD STRUCTURE:
+Create core lua state
+
+Load core node file
+Check integrity of the node file
+Run build script and create a C++ queue of sol::tables that could become new node types
+
+Load core player file
+Check integrity of the player file
+
+Create extension lua state
+
+For each file in extension dir
+    Inject extension functions into state
+
+    Run extension script of this file (combines the core state and extension state)
+    Run build script and add the tables to the new queue
+
+    Reset the lua state
+end
+
+Iterate through the build queue and make use of the finished extension to verify which nodes are valid
