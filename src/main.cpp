@@ -83,58 +83,6 @@ int check_default_node_table(sol::table &table) {
     return 0;
 }
 
-
-// builds all of the nodes
-int build(sol::state &lua, std::vector<std::string> &node_types) {
-    sol::protected_function build = lua["build"];
-
-    // if does not exist
-    if ( !build ) { return 1; }
-
-    lua["add_node"] = [](sol::table table) {
-        new_node_type(table);
-    };
-
-    log_info("Calling build from C++");
-
-    // get the result of the function (which should be none)
-    auto res = build();
-
-    // if invalid, return
-    if ( !res.valid() ) { 
-        sol::error e = res;
-
-        log_error("\n%s", e.what());
-        return 1;
-    }
-
-    // once the build script succeeds, build the node queue
-    build_node_queue(lua, lua[LUA_NODE_TEMPLATE]);
-  
-    sol::table avail = lua[LUA_NODE_AVAILABLE];
-
-    // ensure that there are nodes availible
-    if ( avail.size() == 0 ) {
-        log_error("No nodes were found.");
-        return 1;
-    }
-
-    // iterate values and add to the vector
-    for ( const auto &item : avail ) {
-        sol::table node = item.second;
-
-        // if the node is invalid skip
-        if ( !node ) { continue; }
-        // skip if node has no default values
-        if ( check_default_node_table( node ) == 1 ) { continue; }
-
-        // add the node name to the vector
-        node_types.push_back( node[LUA_NODE_NAME] );
-    }
-
-    return 0;
-}
-
 int check_default_player_template(sol::table &table) {
     sol::optional<std::string> name = table[LUA_CORE_PLAYER_NAME];
     sol::optional<int> position = table[LUA_CORE_PLAYER_POSITION];

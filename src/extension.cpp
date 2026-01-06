@@ -37,8 +37,9 @@ int inject_build_tools(sol::state &core_state, sol::state &extension_state) {
     };
 
     // add the add node function
-    extension_state["add_node"] = [](sol::table table) {
-        new_node_type(table);
+    extension_state["add_node"] = [&core_state](sol::table table) {
+        std::cout << "Added new table of size " << table.valid() << std::endl;
+        new_node_type(core_state["NODE_QUEUE"], table);
     };
 
     return 0;
@@ -47,6 +48,8 @@ int inject_build_tools(sol::state &core_state, sol::state &extension_state) {
 // function to build the extensions
 int build_file(sol::state &core_state, std::string file_name) {
     sol::state extension_state;
+
+    extension_state.open_libraries(sol::lib::base, sol::lib::io, sol::lib::table);
 
     try {
         extension_state.safe_script_file(file_name);

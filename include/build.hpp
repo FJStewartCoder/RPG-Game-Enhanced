@@ -20,7 +20,7 @@ node_t *get_node(int id);
 int free_nodes();
 
 // function that is passed to lua to build new nodes
-int new_node_type(sol::table node_table);
+int new_node_type(sol::table node_queue, sol::table node_table);
 
 // function to build the node queue
 int build_node_queue(sol::state &lua, sol::table node_template);
