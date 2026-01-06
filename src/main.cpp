@@ -157,6 +157,14 @@ int build(sol::state &lua, std::vector<std::string> &node_types) {
     return 0;
 }
 
+int build_player_extension() {
+    return 0;
+}
+
+int build_node_extension() {
+    return 0;
+}
+
 // gets all of the node types and verifies the integrity
 errors::node::load get_nodes(sol::state &lua, std::vector<std::string> &node_types) {
     // try to get the lua file
