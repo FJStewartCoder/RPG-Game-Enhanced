@@ -33,7 +33,9 @@ namespace errors {
 
         // loading errors
         enum class load {
-            OK
+            OK,
+            FILE,
+            INTEGRITY
         };
 
     };
@@ -50,6 +52,15 @@ const std::string LUA_NODE_TEMPLATE = "NODE_DATA_TEMPLATE";
 const std::string LUA_NODE_AVAILABLE = "AVAILIBLE_NODES";
 
 const std::string LUA_CORE_NODE_FILE = "core/node_data.lua";
+
+// player constants
+const std::string LUA_CORE_PLAYER_FILE = "core/player_data.lua";
+
+const std::string LUA_CORE_PLAYER_TEMPLATE = "PLAYER_DATA_TEMPLATE";
+const std::string LUA_CORE_PLAYER_DATA = "PLAYER_DATA";
+
+const std::string LUA_CORE_PLAYER_NAME = "name";
+const std::string LUA_CORE_PLAYER_POSITION = "position_id";
 
 
 int check_default_node_table(sol::table &table) {
@@ -172,9 +183,66 @@ errors::node::load get_nodes(sol::state &lua, std::vector<std::string> &node_typ
     return errors::node::load::OK;
 }
 
+int check_default_player_template(sol::table &table) {
+    sol::optional<std::string> name = table[LUA_CORE_PLAYER_NAME];
+    sol::optional<int> position = table[LUA_CORE_PLAYER_POSITION];
+
+    if ( !name ) {
+        log_error("Player data does not contain name field.");
+        return 1;
+    }
+    else if ( !position ) {
+        log_error("Player template does not have position data.");
+        return 1;
+    }
+    
+    return 0;
+}
+
+int check_player_integrity(sol::state &lua) {
+    sol::optional<sol::table> data_table = lua[LUA_CORE_PLAYER_TEMPLATE];
+
+    if ( !data_table ) {
+        log_error("Player data template not found.");
+        return 1;
+    }
+
+    // this will determine the overall outcome if not already returned 1
+    if ( check_default_player_template(data_table.value()) == 1 ) {
+        log_error("Player template does not contain integral data.");
+        return 1;
+    }
+
+    return 0;
+}
+
 // creates a new player data variable in the lua that stores a copy of the template populated with real data
 errors::player::load get_player_data(sol::state &lua) {
-    // TODO: implement
+    try {
+        lua.safe_script_file("core/player_data.lua");
+        log_info("%s is found and opened with no errors.", LUA_CORE_PLAYER_FILE.c_str());
+    }
+    catch (const sol::error &e) {
+        std::cout << e.what() << std::endl;
+        log_error("%s failed to open.", LUA_CORE_NODE_FILE.c_str());
+        return errors::player::load::FILE;
+    }
+
+    if ( check_player_integrity(lua) == 1 ) {
+        log_info("%s integrity check failed.", LUA_CORE_PLAYER_FILE.c_str());
+        return errors::player::load::INTEGRITY;
+    }
+
+    log_info("%s integrity check success.", LUA_CORE_PLAYER_FILE.c_str());
+
+    // create a copy of the template to house the actual player data
+    lua.create_named_table(LUA_CORE_PLAYER_DATA);
+
+    // achieve by copying the data with a for loop
+    for ( const auto &item : lua[LUA_CORE_PLAYER_TEMPLATE].get<sol::table>() ) {
+        lua[LUA_CORE_PLAYER_DATA][item.first] = item.second;
+    }
+
     return errors::player::load::OK;
 }
 
@@ -291,7 +359,11 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
     // traverse
 
     while ( running ) {
+        // get the current node data
         auto cur_node_data = get_node_data(lua, cur_node->node_type);
+
+        // get the player data table
+        sol::table player_data = lua[LUA_CORE_PLAYER_DATA];
 
         log_info("Landed on node with type \"%s\".", cur_node->node_type.c_str());
     
@@ -300,7 +372,7 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
             sol::protected_function on_land = cur_node_data.value()[LUA_NODE_LAND];
 
             // pass in the unique data, the node data and the player data
-            auto res = on_land(cur_node->unique_data, cur_node_data.value(), "player data");
+            auto res = on_land(cur_node->unique_data, cur_node_data.value(), player_data);
 
             if ( !res.valid() ) {
                 log_error("Landing function failed.");
@@ -377,7 +449,7 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
             sol::protected_function on_leave = cur_node_data.value()[LUA_NODE_LEAVE];
 
             // pass in the unique data, the node data and the player data
-            auto res = on_leave(cur_node->unique_data, cur_node_data.value(), "player data");
+            auto res = on_leave(cur_node->unique_data, cur_node_data.value(), player_data);
 
             if ( !res.valid() ) {
                 log_error("Leaving function failed.");
@@ -423,10 +495,31 @@ int main() {
         return 1;
     }
 
+    if ( get_player_data( lua ) != errors::player::load::OK ) {
+        log_fatal("An error has occurred when loading. Aborting...");
+        
+        // premature end
+        fclose(fp);
+        return 1;
+    }
+
+    // test to check the player data copies
+    lua[LUA_CORE_PLAYER_DATA]["name"] = "bob";
+    lua[LUA_CORE_PLAYER_TEMPLATE]["name"] = "template bob";
+
+    std::string name = lua[LUA_CORE_PLAYER_TEMPLATE]["name"];
+
+    // this shows that the var only stores the most recent check to the lua (name is not a reference)
+    lua[LUA_CORE_PLAYER_TEMPLATE]["name"] = "not template bob";
+
+    std::cout << name << " " << lua[LUA_CORE_PLAYER_DATA]["name"].get<std::string>() << std::endl;
+
+    // show nodes
     for ( const auto &node : node_types ) {
         log_trace("Found node with name \"%s\"", node.c_str());
     }
 
+    // build test
     sol::table start_table = lua.create_table();
     start_table["data1"] = "123";
 
@@ -437,6 +530,7 @@ int main() {
     node_t node2 = build_node(node_types, "2", sol::table(), &node1, NODE_RIGHT, false);
     node_t node3 = build_node(node_types, "Start", start_table2, &node2, NODE_UP, false);
 
+    // traversal test
     node_t *cur = &node1;
 
     int res = traverse_node(cur, NODE_RIGHT);

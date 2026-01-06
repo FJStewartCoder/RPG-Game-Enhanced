@@ -16,5 +16,6 @@ Before we run this, we can combine all of the extensions together. Then, the bui
 
 TODO: PREVENT DUPLICATE NODE NAMES
 
-TODO: ADD SOME ADDITIONAL DATA WHEN BUILDING A NODE THAT IS PASSED TO ON_LAND AND ON_LEAVE THAT CAN RUN UNIQUE DATA FOR EACH NODE TYPE
-E.G FIGHT can only have one set of data currently but FIGHT can fight anything based on custom data
+Add a Lua function from C++ that will allow for management of location from scripts.
+Will have a piece of data in the player data that will be the player position as an index / node id.
+If 0 then the C++ manages location. Else, the C++ will move the player to the node with the corresponding ID and set the position back to 0 to continue management.
