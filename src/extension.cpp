@@ -27,20 +27,19 @@ int build_node_extension(sol::state &core, sol::table extension) {
 
 int inject_build_tools(sol::state &core_state, sol::state &extension_state) {
     // add the extend player function
-    extension_state["extend_player"] = [&core_state](sol::table extension) {
+    extension_state.set_function("extend_player", [&core_state](sol::table extension) {
         build_player_extension(core_state, extension);
-    };
+    });
 
     // add the extend node function
-    extension_state["extend_node"] = [&core_state](sol::table extension) {
+    extension_state.set_function("extend_node", [&core_state](sol::table extension) {
         build_node_extension(core_state, extension);
-    };
+    });
 
     // add the add node function
-    extension_state["add_node"] = [&core_state](sol::table table) {
-        std::cout << "Added new table of size " << table.valid() << std::endl;
+    extension_state.set_function("add_node", [&core_state](sol::table table) {
         new_node_type(core_state["NODE_QUEUE"], table);
-    };
+    });
 
     return 0;
 }
@@ -73,6 +72,9 @@ int build_file(sol::state &core_state, std::string file_name) {
 
         if ( !res.valid() ) {
             std::cout << "Build function in file " << file_name << " has run with errors." << std::endl;
+
+            sol::error error = res;
+            std::cout << error.what() << std::endl;
         }
     }
 
@@ -86,6 +88,9 @@ int build_file(sol::state &core_state, std::string file_name) {
 
         if ( !res.valid() ) {
             std::cout << "Extend function in file " << file_name << " has run with errors." << std::endl;
+
+            sol::error error = res;
+            std::cout << error.what() << std::endl;
         }
     }
 

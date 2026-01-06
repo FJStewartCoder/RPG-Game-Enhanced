@@ -141,23 +141,13 @@ int new_node_type(sol::table node_queue, sol::table node_table) {
     // add the node table to the new lua queue
     node_queue.add(node_table);
 
-    std::cout << "Added new table of size " << node_table.size() << std::endl;
-
-    for ( const auto &item : node_table.pairs() ) {
-        std::cout << item.first.as<std::string>() << " " << item.second.as<std::string>() << std::endl;
-    }
-
     return 0;
 }
 
 int build_single_node(sol::state &lua, sol::table node_template, sol::table node_table) {
-    std::cout << "1" << std::endl;
-
     // create the new table
     sol::table new_table = lua.create_table();
     std::unordered_set<std::string> availible_keys;
-
-    std::cout << "1" << std::endl;
 
     // copy the template into the new table
     for ( const auto &pair : node_template ) {
@@ -167,12 +157,8 @@ int build_single_node(sol::state &lua, sol::table node_template, sol::table node
         availible_keys.insert(pair.first.as<std::string>());
     }
 
-    std::cout << "1" << std::endl;
-
     // iterate all of the new pairs
     for ( const auto &new_pair : node_table ) {
-        std::cout << "2" << std::endl;
-
         // if the key already exists in the table, set the value at that key to the new value passed in
         if ( availible_keys.find( new_pair.first.as<std::string>() ) != availible_keys.end() ) {
             new_table[new_pair.first] = new_pair.second;
@@ -204,12 +190,8 @@ int build_node_queue(sol::state &lua, sol::table node_template) {
     std::cout << "Build queue has size " << build_queue.size() << std::endl;
 
     for ( const auto &table : build_queue ) {
-        std::cout << table.second.valid() << std::endl;
-
-        
-
         // second because first is the index
-        build_single_node(lua, node_template, table.second.as<sol::table>());
+        build_single_node(lua, node_template, table.second);
     }
 
     return 0;
