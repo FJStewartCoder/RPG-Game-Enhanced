@@ -35,6 +35,13 @@ function start(data, node, player)
     print("Got data data1 " ..data.data1)
 
     print("The player's name is " ..player.name)
+    
+    
+end
+
+function start_leave(data, node, player)
+    -- manage position from the script
+    player.position_id = 3
 end
 
 ----------------------------------------------------------------------------
@@ -42,7 +49,7 @@ end
 function build()
     node = create_node()
 
-    add_node({name = "Start", on_land = start, on_leave = function () end})
+    add_node({name = "Start", on_land = start, on_leave = start_leave})
     add_node({name = "2", on_land = function () end, on_leave = function () end})
     add_node({name = "3", on_land = function () end, on_leave = function () end})
     add_node({name = "4", on_land = function () end, on_leave = function () end})

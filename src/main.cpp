@@ -365,6 +365,26 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
         // get the player data table
         sol::table player_data = lua[LUA_CORE_PLAYER_DATA];
 
+        // stores the current location of the player
+        int script_player_pos = player_data[LUA_CORE_PLAYER_POSITION];
+
+        // check if the script is attempting to manage the player's position
+        if ( script_player_pos >= 1 ) {
+            try {
+                node_t *new_pos = get_node(script_player_pos - 1);
+
+                // set the current node to be the pointer to the new position
+                cur_node = new_pos;
+            }
+            catch (std::exception &e) {
+                log_info("Script attempted to manage position but the operation failed.");
+            }
+        }
+
+        // regardless of attempt, this should be 0
+        // set the script location to 0 to ensure that we know C++ is managing position
+        player_data[LUA_CORE_PLAYER_POSITION] = 0;
+
         // get the current node data
         auto cur_node_data = get_node_data(lua, cur_node->node_type);
 

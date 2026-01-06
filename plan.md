@@ -19,3 +19,7 @@ TODO: PREVENT DUPLICATE NODE NAMES
 Add a Lua function from C++ that will allow for management of location from scripts.
 Will have a piece of data in the player data that will be the player position as an index / node id.
 If 0 then the C++ manages location. Else, the C++ will move the player to the node with the corresponding ID and set the position back to 0 to continue management.
+The "id" will be the index + 1 since we know the 0 is ignore.
+
+TODO:
+The proceduce could be improved such as alternate check times and skipping the move choice if you have been moved. 
