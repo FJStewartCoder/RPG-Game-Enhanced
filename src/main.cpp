@@ -45,17 +45,6 @@ namespace errors {
 
 };
 
-
-// some special constants for names of variables in lua
-const std::string LUA_NODE_NAME = "name";
-const std::string LUA_NODE_LAND = "on_land";
-const std::string LUA_NODE_LEAVE = "on_leave";
-
-const std::string LUA_NODE_TEMPLATE = "NODE_DATA_TEMPLATE";
-const std::string LUA_NODE_AVAILABLE = "AVAILIBLE_NODES";
-
-const std::string LUA_CORE_NODE_FILE = "core/node_data.lua";
-
 // player constants
 const std::string LUA_CORE_PLAYER_FILE = "core/player_data.lua";
 
@@ -127,16 +116,30 @@ int build(sol::state &lua, std::vector<std::string> &node_types) {
     // if does not exist
     if ( !build ) { return 1; }
 
+    lua["add_node"] = [&lua](sol::table table) {
+        new_node_type(lua, lua[LUA_NODE_TEMPLATE], table);
+    };
+
+    log_info("Calling build from C++");
+
     // get the result of the function (which should be none)
     auto res = build();
 
     // if invalid, return
-    if ( !res.valid() ) { return 1; }
+    if ( !res.valid() ) { 
+        sol::error e = res;
+
+        log_error("\n%s", e.what());
+        return 1;
+    }
   
     sol::table avail = lua[LUA_NODE_AVAILABLE];
 
     // ensure that there are nodes availible
-    if ( avail.size() == 0 ) { return 1; }
+    if ( avail.size() == 0 ) {
+        log_error("No nodes were found.");
+        return 1;
+    }
 
     // iterate values and add to the vector
     for ( const auto &item : avail ) {
@@ -511,7 +514,7 @@ int main() {
     lua.open_libraries(sol::lib::base, sol::lib::io, sol::lib::table);
 
     if ( get_nodes( lua, node_types ) != errors::node::load::OK ) {
-        log_fatal("An error has occurred when loading. Aborting...");
+        log_fatal("An error has occurred when loading nodes. Aborting...");
         
         // premature end
         fclose(fp);
@@ -519,7 +522,7 @@ int main() {
     }
 
     if ( get_player_data( lua ) != errors::player::load::OK ) {
-        log_fatal("An error has occurred when loading. Aborting...");
+        log_fatal("An error has occurred when loading player. Aborting...");
         
         // premature end
         fclose(fp);

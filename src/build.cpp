@@ -1,9 +1,14 @@
 #include "build.hpp"
 
 #include "custom_exception.hpp"
+#include <unordered_set>
+#include "log/log.h"
 
 // the vector which will store all of the nodes
 std::vector<node_t*> environment;
+
+// map of all node types with key of node name
+// std::unordered_map<std::string, sol::table> all_node_types;
 
 int free_nodes() {
     for ( const auto &item : environment ) {
@@ -133,4 +138,42 @@ int build_node(
 
     // return the index of the new node
     return environment.size() - 1;
+}
+
+int new_node_type(sol::state &lua, sol::table node_template, sol::table node_table) {
+    // create the new table
+    sol::table new_table = lua.create_table();
+    std::unordered_set<std::string> availible_keys;
+
+    // copy the template into the new table
+    for ( const auto &pair : node_template ) {
+        new_table[pair.first] = pair.second;
+
+        // add the key to the set
+        availible_keys.insert(pair.first.as<std::string>());
+    }
+
+    // iterate all of the new pairs
+    for ( const auto &new_pair : node_table ) {
+        // if the key already exists in the table, set the value at that key to the new value passed in
+        if ( availible_keys.find( new_pair.first.as<std::string>() ) != availible_keys.end() ) {
+            new_table[new_pair.first] = new_pair.second;
+        }
+        else {
+            // TODO: FIX
+            // log_warn("Script tried to pass key to node with key %s that is not in the template.", new_pair.first.as<std::string>() );
+        }
+    }
+
+    // insert the new element to the node_types
+    // all_node_types[new_table["name"].get<std::string>()] = new_table;
+
+    // insert back into lua
+    auto avail = lua[LUA_NODE_AVAILABLE].get<sol::table>();
+    avail.add(new_table);
+
+    // log
+    std::cout << "Added new node type with name " << new_table["name"].get<std::string>() << std::endl;
+
+    return 0;
 }

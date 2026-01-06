@@ -19,4 +19,7 @@ node_t *get_node(int id);
 
 int free_nodes();
 
+// function that is passed to lua to build new nodes
+int new_node_type(sol::state &lua, sol::table node_template, sol::table node_table);
+
 #endif // BUILD_HPP
