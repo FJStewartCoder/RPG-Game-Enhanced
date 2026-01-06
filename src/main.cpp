@@ -362,11 +362,11 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
     // traverse
 
     while ( running ) {
-        // get the current node data
-        auto cur_node_data = get_node_data(lua, cur_node->node_type);
-
         // get the player data table
         sol::table player_data = lua[LUA_CORE_PLAYER_DATA];
+
+        // get the current node data
+        auto cur_node_data = get_node_data(lua, cur_node->node_type);
 
         log_info("Landed on node with type \"%s\".", cur_node->node_type.c_str());
     
