@@ -38,7 +38,7 @@ int inject_build_tools(sol::state &core_state, sol::state &extension_state) {
 
     // add the add node function
     extension_state.set_function("add_node", [&core_state](sol::table table) {
-        new_node_type(core_state["NODE_QUEUE"], table);
+        new_node_type(core_state, table);
     });
 
     return 0;

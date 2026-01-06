@@ -7,6 +7,7 @@
 // the vector which will store all of the nodes
 std::vector<node_t*> environment;
 
+
 int free_nodes() {
     for ( const auto &item : environment ) {
         delete item;
@@ -137,9 +138,17 @@ int build_node(
     return environment.size() - 1;
 }
 
-int new_node_type(sol::table node_queue, sol::table node_table) {
+int new_node_type(sol::state &core, sol::table node_table) {
+    sol::table new_copy = core.create_table();
+
+    sol::table node_queue = core["NODE_QUEUE"];
+
+    for ( const auto &item : node_table ) {
+        new_copy[item.first] = item.second;
+    }
+
     // add the node table to the new lua queue
-    node_queue.add(node_table);
+    node_queue.add(new_copy);
 
     return 0;
 }
@@ -188,6 +197,12 @@ int build_node_queue(sol::state &lua, sol::table node_template) {
     sol::table build_queue = lua["NODE_QUEUE"];
 
     std::cout << "Build queue has size " << build_queue.size() << std::endl;
+
+     for ( const auto &table : build_queue ) {
+        sol::table t = table.second;
+
+        std::cout << t["name"].get<std::string>() << std::endl;
+    }
 
     for ( const auto &table : build_queue ) {
         // second because first is the index
