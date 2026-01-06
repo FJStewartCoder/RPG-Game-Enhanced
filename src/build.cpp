@@ -7,13 +7,6 @@
 // the vector which will store all of the nodes
 std::vector<node_t*> environment;
 
-// map of all node types with key of node name
-// std::unordered_map<std::string, sol::table> all_node_types;
-
-// vector of tables
-// TODO: fix -> freeing vectors of sol::tables causes seg fault on destruction of program
-std::vector<sol::table> node_type_queue;
-
 int free_nodes() {
     for ( const auto &item : environment ) {
         delete item;
@@ -189,8 +182,15 @@ int build_single_node(sol::state &lua, sol::table node_template, sol::table node
 }
 
 int build_node_queue(sol::state &lua, sol::table node_template) {
+    std::cout << "There are " << lua["NODE_QUEUE"].size() << " nodes in the node queue" << std::endl;
+
     for ( const auto &table : node_type_queue ) {
-        build_single_node(lua, node_template, table);
+        for ( const auto &pair : table.pairs() ) {
+            std::cout << pair.first.as<std::string>() << std::endl;
+        }
+
+        // build_single_node(lua, node_template, table);
+        std::cout << "3" << std::endl;
     }
 
     return 0;

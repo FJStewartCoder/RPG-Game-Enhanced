@@ -5,55 +5,61 @@
 
 // nodes file
 #include "nodes.hpp"
+#include "player.hpp"
 
 // required for the node build scripts
 #include "build.hpp"
 #include "build_help.hpp"
+
+#include "extension.hpp"
 
 // include log.h as a C lib
 extern "C" {
     #include "log/log.h"
 }
 
+#include <filesystem>
+
 // all errors in a namespace
-namespace errors {
-    
-    // node based errors
-    namespace node {
-
-        // loading errors
-        enum class load {
-            OK,
-            FILE,
-            INTEGRITY,
-            BUILD,
-            NO_NODES
-        };
-
-    };
-
-    // node based errors
-    namespace player {
-
-        // loading errors
-        enum class load {
-            OK,
-            FILE,
-            INTEGRITY
-        };
-
-    };
-
+enum class errors {
+    OK,
+    FILE,
+    BUILD,
+    EXTEND
 };
 
-// player constants
-const std::string LUA_CORE_PLAYER_FILE = "core/player_data.lua";
 
-const std::string LUA_CORE_PLAYER_TEMPLATE = "PLAYER_DATA_TEMPLATE";
-const std::string LUA_CORE_PLAYER_DATA = "PLAYER_DATA";
+int inject_core_node_data(sol::state &lua) {
+    // create a new table with the following data
+    lua[LUA_NODE_TEMPLATE] = lua.create_table_with(
+        LUA_NODE_NAME, "Node Name",
+        LUA_NODE_LAND, []() {},
+        LUA_NODE_LEAVE, []() {}
+    );
 
-const std::string LUA_CORE_PLAYER_NAME = "name";
-const std::string LUA_CORE_PLAYER_POSITION = "position_id";
+    // create empty list for the availible nodes
+    lua[LUA_NODE_AVAILABLE] = lua.create_table();
+
+    // persitently keep the new nodes in lua space
+    lua["NODE_QUEUE"] = lua.create_table();
+
+    return 0;
+}
+
+int inject_core_player_data(sol::state &lua) {
+    lua[LUA_CORE_PLAYER_DATA] = lua.create_table_with(
+        LUA_NODE_NAME, "Player Name"
+    );
+
+    return 0;
+}
+
+int inject_core(sol::state &lua) {
+    inject_core_node_data(lua);
+    inject_core_player_data(lua);
+
+    return 0;
+}
 
 
 int check_default_node_table(sol::table &table) {
@@ -77,36 +83,6 @@ int check_default_node_table(sol::table &table) {
     return 0;
 }
 
-int check_integrity(sol::state &lua) {
-    // check if there is an "array" (table) for availible nodes
-    sol::optional<sol::table> avail = lua[LUA_NODE_AVAILABLE];
-    
-    // if the template does not exist that fail the integrity test
-    if ( !avail ) {
-        log_error("Availible nodes array does not exist.");
-        return 1;
-    }
-
-    // ensure that the node template contains the expected values (additional values will not be penalised)
-    sol::optional<sol::table> node_template = lua[LUA_NODE_TEMPLATE];
-
-    // if it doesn't exist fail
-    if ( !node_template ) {
-        log_error("Node template does not exist.");
-        return 1;
-    }
-
-    // check the node template against expected required
-    if ( check_default_node_table( node_template.value() ) == 1 ) { return 1; }
-
-    // finally check for a build function
-    if ( !has_func(lua, "build") ) {
-        log_error("Build function not found.");
-        return 1;
-    }
-
-    return 0;
-}
 
 // builds all of the nodes
 int build(sol::state &lua, std::vector<std::string> &node_types) {
@@ -159,46 +135,6 @@ int build(sol::state &lua, std::vector<std::string> &node_types) {
     return 0;
 }
 
-int build_player_extension() {
-    return 0;
-}
-
-int build_node_extension() {
-    return 0;
-}
-
-// gets all of the node types and verifies the integrity
-errors::node::load get_nodes(sol::state &lua, std::vector<std::string> &node_types) {
-    // try to get the lua file
-    try {
-        lua.safe_script_file(LUA_CORE_NODE_FILE);
-        log_info("%s is found and opened with no errors.", LUA_CORE_NODE_FILE.c_str());
-    }
-    catch (const sol::error &e) {
-        std::cout << e.what() << std::endl;
-        log_error("%s failed to open.", LUA_CORE_NODE_FILE.c_str());
-        return errors::node::load::FILE;
-    }
-
-    // check integrity of the core lua files
-    if ( check_integrity(lua) != 0 ) {
-        log_error("%s integrity check failed.", LUA_CORE_NODE_FILE.c_str());
-        return errors::node::load::INTEGRITY;
-    }
-
-    log_info("%s integrity check success.", LUA_CORE_NODE_FILE.c_str());
-
-    // build and check result
-    if ( build(lua, node_types) != 0 ) {
-        log_error("%s build failed.", LUA_CORE_NODE_FILE.c_str());
-        return errors::node::load::BUILD;
-    }
-
-    log_info("%s build success.", LUA_CORE_NODE_FILE.c_str());
-
-    return errors::node::load::OK;
-}
-
 int check_default_player_template(sol::table &table) {
     sol::optional<std::string> name = table[LUA_CORE_PLAYER_NAME];
     sol::optional<int> position = table[LUA_CORE_PLAYER_POSITION];
@@ -213,53 +149,6 @@ int check_default_player_template(sol::table &table) {
     }
     
     return 0;
-}
-
-int check_player_integrity(sol::state &lua) {
-    sol::optional<sol::table> data_table = lua[LUA_CORE_PLAYER_TEMPLATE];
-
-    if ( !data_table ) {
-        log_error("Player data template not found.");
-        return 1;
-    }
-
-    // this will determine the overall outcome if not already returned 1
-    if ( check_default_player_template(data_table.value()) == 1 ) {
-        log_error("Player template does not contain integral data.");
-        return 1;
-    }
-
-    return 0;
-}
-
-// creates a new player data variable in the lua that stores a copy of the template populated with real data
-errors::player::load get_player_data(sol::state &lua) {
-    try {
-        lua.safe_script_file("core/player_data.lua");
-        log_info("%s is found and opened with no errors.", LUA_CORE_PLAYER_FILE.c_str());
-    }
-    catch (const sol::error &e) {
-        std::cout << e.what() << std::endl;
-        log_error("%s failed to open.", LUA_CORE_NODE_FILE.c_str());
-        return errors::player::load::FILE;
-    }
-
-    if ( check_player_integrity(lua) == 1 ) {
-        log_info("%s integrity check failed.", LUA_CORE_PLAYER_FILE.c_str());
-        return errors::player::load::INTEGRITY;
-    }
-
-    log_info("%s integrity check success.", LUA_CORE_PLAYER_FILE.c_str());
-
-    // create a copy of the template to house the actual player data
-    lua.create_named_table(LUA_CORE_PLAYER_DATA);
-
-    // achieve by copying the data with a for loop
-    for ( const auto &item : lua[LUA_CORE_PLAYER_TEMPLATE].get<sol::table>() ) {
-        lua[LUA_CORE_PLAYER_DATA][item.first] = item.second;
-    }
-
-    return errors::player::load::OK;
 }
 
 // could return none
@@ -523,32 +412,39 @@ int main() {
     // open libs so we have access to print
     lua.open_libraries(sol::lib::base, sol::lib::io, sol::lib::table);
 
-    if ( get_nodes( lua, node_types ) != errors::node::load::OK ) {
-        log_fatal("An error has occurred when loading nodes. Aborting...");
-        
-        // premature end
-        fclose(fp);
-        return 1;
+    // inject core data into the lua state
+    inject_core(lua);
+
+    // test if the data is found from the injection
+    std::cout << lua[LUA_NODE_TEMPLATE]["name"].get<std::string>() << std::endl;
+    std::cout << lua[LUA_CORE_PLAYER_DATA]["name"].get<std::string>() << std::endl;
+
+    // test a function
+    lua[LUA_NODE_TEMPLATE][LUA_NODE_LAND]();
+
+    auto scripts = std::filesystem::directory_iterator("./scripts");
+
+    for ( const auto &fs_item : scripts ) {
+        // currently skipping directories
+        if ( fs_item.is_directory() ) {
+            continue;
+        }
+
+        // ignore all non lua files
+        if ( fs_item.path().extension() != ".lua" ) {
+            continue;
+        }
+
+        log_info("File %s will build next.", fs_item.path().c_str());
+
+        // build file if type is lua
+        build_file(lua, fs_item.path());
     }
 
-    if ( get_player_data( lua ) != errors::player::load::OK ) {
-        log_fatal("An error has occurred when loading player. Aborting...");
-        
-        // premature end
-        fclose(fp);
-        return 1;
-    }
+    log_info("Building files complete.");
 
-    // test to check the player data copies
-    lua[LUA_CORE_PLAYER_DATA]["name"] = "bob";
-    lua[LUA_CORE_PLAYER_TEMPLATE]["name"] = "template bob";
-
-    std::string name = lua[LUA_CORE_PLAYER_TEMPLATE]["name"];
-
-    // this shows that the var only stores the most recent check to the lua (name is not a reference)
-    lua[LUA_CORE_PLAYER_TEMPLATE]["name"] = "not template bob";
-
-    std::cout << name << " " << lua[LUA_CORE_PLAYER_DATA]["name"].get<std::string>() << std::endl;
+    // build the nodes
+    build_node_queue(lua, lua[LUA_NODE_TEMPLATE]);
 
     // show nodes
     for ( const auto &node : node_types ) {

@@ -14,8 +14,6 @@ const std::string LUA_NODE_LEAVE = "on_leave";
 const std::string LUA_NODE_TEMPLATE = "NODE_DATA_TEMPLATE";
 const std::string LUA_NODE_AVAILABLE = "AVAILIBLE_NODES";
 
-const std::string LUA_CORE_NODE_FILE = "core/node_data.lua";
-
 
 typedef struct node_t {
     // will be used to link to the data
