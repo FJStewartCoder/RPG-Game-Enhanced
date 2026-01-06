@@ -6,6 +6,9 @@
 // nodes file
 #include "nodes.hpp"
 
+// required for the node build scripts
+#include "build.hpp"
+
 // include log.h as a C lib
 extern "C" {
     #include "log/log.h"
@@ -526,12 +529,12 @@ int main() {
     sol::table start_table2 = lua.create_table();
     start_table2["data1"] = "234";
 
-    node_t node1 = build_node(node_types, "Start", start_table);
-    node_t node2 = build_node(node_types, "2", sol::table(), &node1, NODE_RIGHT, false);
-    node_t node3 = build_node(node_types, "Start", start_table2, &node2, NODE_UP, false);
+    int node1 = build_node(node_types, "Start", start_table);
+    int node2 = build_node(node_types, "2", sol::table(), node1, NODE_RIGHT, false);
+    int node3 = build_node(node_types, "Start", start_table2, node2, NODE_UP, false);
 
     // traversal test
-    node_t *cur = &node1;
+    node_t *cur = get_node(node1);
 
     int res = traverse_node(cur, NODE_RIGHT);
     int res2 = traverse_node(cur, NODE_LEFT);
@@ -540,6 +543,9 @@ int main() {
 
     // the main game loop
     gameloop(lua, cur);
+
+    // free the nodes
+    free_nodes();
 
     // close the file
     fclose(fp);

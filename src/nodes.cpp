@@ -1,5 +1,4 @@
 #include "nodes.hpp"
-#include "custom_exception.hpp"
 
 
 void node_init(node_t *node) {

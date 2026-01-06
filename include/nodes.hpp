@@ -2,7 +2,6 @@
 #define NODES_H
 
 #include <string>
-#include <vector>
 
 #include "sol/sol.hpp"
 
@@ -62,16 +61,6 @@ node_errors can_traverse(node_t *node);
 node_errors traverse_node(
     node_t *(&node),  // to change where the pointer is pointing, we need reference to ptr
     node_directions direction
-);
-
-// function to build a node
-node_t build_node(
-    std::vector<std::string> node_types,
-    std::string node_type,
-    sol::table unique_data = sol::table(),
-    node_t *previous_node = nullptr,
-    node_directions relation = NODE_NONE,
-    bool one_way = false  // defines whether or not the new node added should be able to link back to the previous node
 );
 
 #endif // NODES_H

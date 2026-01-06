@@ -1,1 +1,136 @@
 #include "build.hpp"
+
+#include "custom_exception.hpp"
+
+// the vector which will store all of the nodes
+std::vector<node_t*> environment;
+
+int free_nodes() {
+    for ( const auto &item : environment ) {
+        delete item;
+    }
+
+    return 0;
+}
+
+node_t *get_node(int id) {
+    if ( id >= environment.size() || id < 0 ) {
+        throw CustomException("The node selected does not exist.");
+    }
+
+    // get the previous node based on the id
+    return environment.at(id);
+}
+
+int build_node(
+    std::vector<std::string> node_types,
+    std::string node_type,
+    sol::table unique_data,
+    int previous_node_id,
+    node_directions relation,
+    bool one_way  // defines whether or not the new node added should be able to link back to the previous node
+) {
+    bool type_exists = false;
+
+    for ( const auto &node_name : node_types ) {
+        if ( node_type == node_name ) {
+            type_exists = true;
+            break;
+        }
+    }
+
+    if ( !type_exists ) {
+        throw CustomException("This node type: does not exist or is malformed.");
+    }
+
+    // allocate heap space for the new node
+    // this is done to ensure that the pointers always point to the same location
+    node_t *new_node = new node_t;
+
+    if ( new_node == NULL ) {
+        std::cout << "Node did not allocate" << std::endl; 
+        return -1;
+    }
+
+    node_init(new_node);
+
+    // add the node to the new environment
+    environment.push_back(new_node);
+
+    // set the name and unique data
+    new_node->node_type = node_type;
+    new_node->unique_data = unique_data;
+
+    // done at this point
+    if ( previous_node_id <= -1 ) {
+        // return the index of the previous node
+        return environment.size() - 1;
+    }
+
+    // get the previous node based on the id
+    node_t *previous_node = get_node(previous_node_id);
+
+    switch (relation) {
+        case NODE_LEFT:
+            previous_node->left = new_node;
+
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node->right = previous_node; }
+            break;
+        
+        case NODE_RIGHT:
+            previous_node->right = new_node;
+            
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node->left = previous_node; }
+            break;
+        
+        case NODE_UP:
+            previous_node->up = new_node;
+            
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node->down = previous_node; }
+            break;
+        
+        case NODE_DOWN:
+            previous_node->down = new_node;
+            
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node->up = previous_node; }
+            break;
+        
+        case NODE_FORWARD:
+            previous_node->forward = new_node;
+            
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node->back = previous_node; }
+            break;
+        
+        case NODE_BACK:
+            previous_node->back = new_node;
+            
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node->forward = previous_node; }
+            break;
+        
+        case NODE_NEXT:
+            previous_node->next = new_node;
+            
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node->previous = previous_node; }
+            break;
+        
+        case NODE_PREV:
+            previous_node->previous = new_node;
+            
+            // only allowing backtracking if not one way
+            if ( !one_way ) { new_node->next = previous_node; }
+            break;
+
+        default:
+            break;
+    }
+
+    // return the index of the new node
+    return environment.size() - 1;
+}
