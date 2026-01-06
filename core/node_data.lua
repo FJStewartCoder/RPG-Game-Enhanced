@@ -20,8 +20,6 @@ function start(data, node, player)
     print("Got data data1 " ..data.data1)
 
     print("The player's name is " ..player.name)
-    
-    
 end
 
 function start_leave(data, node, player)

@@ -8,6 +8,7 @@
 
 // required for the node build scripts
 #include "build.hpp"
+#include "build_help.hpp"
 
 // include log.h as a C lib
 extern "C" {
@@ -99,9 +100,7 @@ int check_integrity(sol::state &lua) {
     if ( check_default_node_table( node_template.value() ) == 1 ) { return 1; }
 
     // finally check for a build function
-    sol::optional<sol::function> build_func = lua["build"];
-
-    if ( !build_func ) {
+    if ( !has_func(lua, "build") ) {
         log_error("Build function not found.");
         return 1;
     }

@@ -25,51 +25,21 @@ TODO:
 The proceduce could be improved such as alternate check times and skipping the move choice if you have been moved.
 
 LOAD STRUCTURE:
-Create core lua state
+Create a lua state
 
-Load core node file
-Check integrity of the node file
-
-Load core player file
-Check integrity of the player file
+Inject hardcoded core data for player and node
+create a C++ queue of sol::tables that could become new node types
 
 Create extension lua state
 
-For each file in extension dir
-    Inject extension function into state
+For each file in scripts dir
+    Inject all building and extension functions into state
 
-    Run extension script of this file (combines the core state and extension state)
+    - check has build function
+    - ...
 
-    Reset the lua state
-end
-
-For each file in extension dir
-    Inject build function into state
-
-    Run build script of this file (create new node types)
-
-    Reset the lua state
-end
-
-Run core node file build script
-
-ALT LOAD STRUCTURE:
-Create core lua state
-
-Load core node file
-Check integrity of the node file
-Run build script and create a C++ queue of sol::tables that could become new node types
-
-Load core player file
-Check integrity of the player file
-
-Create extension lua state
-
-For each file in extension dir
-    Inject extension functions into state
-
-    Run extension script of this file (combines the core state and extension state)
-    Run build script and add the tables to the new queue
+    - check has extend function
+    - ...
 
     Reset the lua state
 end
