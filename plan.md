@@ -55,7 +55,7 @@ Create a lua state
 Inject game API functions
 
 For each file in scripts dir
-    if file == .lua and not "BUILD_FILE"
+    if file == .lua and not "BUILD_FILE" and not "CAMPAIGN FILE"
         Load file
     end if
 end
@@ -65,3 +65,5 @@ Inject hardcoded core data for player and node
 Load "BUILD_FILE"
 
 This time everything remains loaded and there exists only one build and extend function
+
+CAMPAIGN_FILE is where you can make an environment from lua

@@ -4,6 +4,8 @@
 #include <unordered_set>
 #include "log/log.h"
 
+#include "lua_engine_constants.hpp"
+
 // the vector which will store all of the nodes
 std::vector<node_t*> environment;
 
@@ -139,7 +141,7 @@ int build_node(
 
 int new_node_type(sol::state &core, sol::table node_table) {
     // add the node table to the new lua queue
-    core["NODE_QUEUE"].get<sol::table>().add(node_table);
+    core[engine::node::QUEUE].get<sol::table>().add(node_table);
 
     return 0;
 }
@@ -173,17 +175,17 @@ int build_single_node(sol::state &lua, sol::table node_template, sol::table node
     // all_node_types[new_table["name"].get<std::string>()] = new_table;
 
     // insert back into lua
-    sol::table avail = lua[LUA_NODE_AVAILABLE];
+    sol::table avail = lua[engine::node::AVAILABLE];
     avail.add(new_table);
 
     // log
-    std::cout << "Added new node type with name " << new_table["name"].get<std::string>() << std::endl;
+    std::cout << "Added new node type with name " << new_table[engine::node::NAME].get<std::string>() << std::endl;
 
     return 0;
 }
 
 int build_node_queue(sol::state &lua, sol::table node_template) {
-    sol::table node_queue = lua["NODE_QUEUE"];
+    sol::table node_queue = lua[engine::node::QUEUE];
 
     std::cout << "Node queue has length " << node_queue.size() << std::endl;
 

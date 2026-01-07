@@ -18,6 +18,9 @@ extern "C" {
     #include "log/log.h"
 }
 
+// for all of the constants
+#include "lua_engine_constants.hpp"
+
 #include <filesystem>
 
 // all errors in a namespace
@@ -31,25 +34,25 @@ enum class errors {
 
 int inject_core_node_data(sol::state &lua) {
     // create a new table with the following data
-    lua[LUA_NODE_TEMPLATE] = lua.create_table_with(
-        LUA_NODE_NAME, "Node Name",
-        LUA_NODE_LAND, []() {},
-        LUA_NODE_LEAVE, []() {}
+    lua[engine::node::TEMPLATE] = lua.create_table_with(
+        engine::node::NAME, "Node Name",
+        engine::node::LAND, []() {},
+        engine::node::LEAVE, []() {}
     );
 
     // create empty list for the availible nodes
-    lua[LUA_NODE_AVAILABLE] = lua.create_table();
+    lua[engine::node::AVAILABLE] = lua.create_table();
 
     // persitently keep the new nodes in lua space
-    lua["NODE_QUEUE"] = lua.create_table();
+    lua[engine::node::QUEUE] = lua.create_table();
 
     return 0;
 }
 
 int inject_core_player_data(sol::state &lua) {
-    lua[LUA_CORE_PLAYER_DATA] = lua.create_table_with(
-        LUA_CORE_PLAYER_NAME, "Player Name",
-        LUA_CORE_PLAYER_POSITION, 0
+    lua[engine::player::DATA] = lua.create_table_with(
+        engine::player::NAME, "Player Name",
+        engine::player::POSITION, 0
     );
 
     return 0;
@@ -63,9 +66,9 @@ int inject_core(sol::state &lua) {
 }
 
 int check_default_node_table(sol::table &table) {
-    sol::optional<std::string> name = table[LUA_NODE_NAME];
-    sol::optional<sol::function> on_land = table[LUA_NODE_LAND];
-    sol::optional<sol::function> on_leave = table[LUA_NODE_LEAVE];
+    sol::optional<std::string> name = table[engine::node::NAME];
+    sol::optional<sol::function> on_land = table[engine::node::LAND];
+    sol::optional<sol::function> on_leave = table[engine::node::LEAVE];
 
     if ( !name ) {
         log_error("Node data does not contain name field.");
@@ -84,8 +87,8 @@ int check_default_node_table(sol::table &table) {
 }
 
 int check_default_player_template(sol::table &table) {
-    sol::optional<std::string> name = table[LUA_CORE_PLAYER_NAME];
-    sol::optional<int> position = table[LUA_CORE_PLAYER_POSITION];
+    sol::optional<std::string> name = table[engine::player::NAME];
+    sol::optional<int> position = table[engine::player::POSITION];
 
     if ( !name ) {
         log_error("Player data does not contain name field.");
@@ -101,7 +104,7 @@ int check_default_player_template(sol::table &table) {
 
 // could return none
 sol::optional<sol::table> get_node_data(sol::state &lua, std::string name) {
-    sol::table node_options = lua[LUA_NODE_AVAILABLE];
+    sol::table node_options = lua[engine::node::AVAILABLE];
 
     // currently is empty until we find the table
     sol::optional<sol::table> found_table;
@@ -119,7 +122,7 @@ sol::optional<sol::table> get_node_data(sol::state &lua, std::string name) {
         }
 
         // if the names match, set found to the current table and break
-        if ( node_table.value()[LUA_NODE_NAME] == name ) {
+        if ( node_table.value()[engine::node::NAME] == name ) {
             found_table = node_table;
             break;
         }
@@ -213,10 +216,10 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
 
     while ( running ) {
         // get the player data table
-        sol::table player_data = lua[LUA_CORE_PLAYER_DATA];
+        sol::table player_data = lua[engine::player::DATA];
 
         // stores the current location of the player
-        int script_player_pos = player_data[LUA_CORE_PLAYER_POSITION];
+        int script_player_pos = player_data[engine::player::POSITION];
 
         // check if the script is attempting to manage the player's position
         if ( script_player_pos >= 1 ) {
@@ -233,7 +236,7 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
 
         // regardless of attempt, this should be 0
         // set the script location to 0 to ensure that we know C++ is managing position
-        player_data[LUA_CORE_PLAYER_POSITION] = 0;
+        player_data[engine::player::POSITION] = 0;
 
         // get the current node data
         auto cur_node_data = get_node_data(lua, cur_node->node_type);
@@ -242,7 +245,7 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
     
         // if data exists run on land
         if ( cur_node_data ) {
-            sol::protected_function on_land = cur_node_data.value()[LUA_NODE_LAND];
+            sol::protected_function on_land = cur_node_data.value()[engine::node::LAND];
 
             // pass in the unique data, the node data and the player data
             auto res = on_land(cur_node->unique_data, cur_node_data.value(), player_data);
@@ -319,7 +322,7 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
 
         // if data exists run on leave
         if ( cur_node_data ) {
-            sol::protected_function on_leave = cur_node_data.value()[LUA_NODE_LEAVE];
+            sol::protected_function on_leave = cur_node_data.value()[engine::node::LEAVE];
 
             // pass in the unique data, the node data and the player data
             auto res = on_leave(cur_node->unique_data, cur_node_data.value(), player_data);
@@ -360,7 +363,7 @@ int main() {
     // open libs so we have access to print
     lua.open_libraries(sol::lib::base, sol::lib::io, sol::lib::table);
 
-    auto scripts = std::filesystem::directory_iterator("./scripts");
+    auto scripts = std::filesystem::directory_iterator(engine::directories::SCRIPTS);
 
     bool found_build_file = false;
 
@@ -375,7 +378,12 @@ int main() {
             continue;
         }
 
-        if ( fs_item.path().filename() == "BUILD_FILE.lua" ) {
+        if ( fs_item.path().filename() == engine::file::BUILD ) {
+            found_build_file = true;
+            continue;
+        }
+
+        if ( fs_item.path().filename() == engine::file::CAMPAIGN ) {
             found_build_file = true;
             continue;
         }
@@ -400,8 +408,8 @@ int main() {
 
     load_file(lua, "scripts/BUILD_FILE.lua");
 
-    if ( has_func(lua, LUA_EXTEND_FUNC) ) {
-        sol::protected_function extend_func = lua[LUA_EXTEND_FUNC];
+    if ( has_func(lua, engine::func::extension::EXTEND) ) {
+        sol::protected_function extend_func = lua[engine::func::extension::EXTEND];
 
         auto res = extend_func();
         if ( !res.valid() ) {
@@ -417,8 +425,8 @@ int main() {
         return 1;
     }
 
-    if ( has_func(lua, LUA_BUILD_FUNC) ) {
-        sol::protected_function build_func = lua[LUA_BUILD_FUNC];
+    if ( has_func(lua, engine::func::extension::BUILD) ) {
+        sol::protected_function build_func = lua[engine::func::extension::BUILD];
 
         auto res = build_func();
         if ( !res.valid() ) {
@@ -435,24 +443,24 @@ int main() {
     }
 
     // test if the data is found from the injection
-    std::cout << lua[LUA_NODE_TEMPLATE]["name"].get<std::string>() << std::endl;
-    std::cout << lua[LUA_CORE_PLAYER_DATA]["name"].get<std::string>() << std::endl;
+    std::cout << lua[engine::node::TEMPLATE]["name"].get<std::string>() << std::endl;
+    std::cout << lua[engine::player::DATA]["name"].get<std::string>() << std::endl;
 
     // test a function
-    lua[LUA_NODE_TEMPLATE][LUA_NODE_LAND]();
+    lua[engine::node::TEMPLATE][engine::node::LAND]();
 
     log_info("Building files complete.");
 
     // build the nodes
-    build_node_queue(lua, lua[LUA_NODE_TEMPLATE]);
+    build_node_queue(lua, lua[engine::node::TEMPLATE]);
 
     // add all of the names of the node_types to a list
-    for ( const auto &table : lua[LUA_NODE_AVAILABLE].get<sol::table>() ) {
-        node_types.push_back(table.second.as<sol::table>()["name"]);
+    for ( const auto &table : lua[engine::node::AVAILABLE].get<sol::table>() ) {
+        node_types.push_back(table.second.as<sol::table>()[engine::node::NAME]);
     }
 
     // get all keys and values for template debug
-    /* for ( const auto &t : lua[LUA_NODE_TEMPLATE].get<sol::table>() ) {
+    /* for ( const auto &t : lua[engine::node::TEMPLATE].get<sol::table>() ) {
         std::cout << "Node template has " << t.first.as<std::string>() << " with value type " << (int)t.second.get_type() << std::endl;
     } */
 

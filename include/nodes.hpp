@@ -6,15 +6,6 @@
 #include "sol/sol.hpp"
 
 
-// some special constants for names of variables in lua
-const std::string LUA_NODE_NAME = "name";
-const std::string LUA_NODE_LAND = "on_land";
-const std::string LUA_NODE_LEAVE = "on_leave";
-
-const std::string LUA_NODE_TEMPLATE = "NODE_DATA_TEMPLATE";
-const std::string LUA_NODE_AVAILABLE = "AVAILIBLE_NODES";
-
-
 typedef struct node_t {
     // will be used to link to the data
     std::string node_type;

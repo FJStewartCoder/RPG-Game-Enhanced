@@ -5,13 +5,14 @@
 #include "build.hpp"
 
 #include "nodes.hpp"
-#include "player.hpp"
+
+#include "lua_engine_constants.hpp"
 
 int build_player_extension(sol::state &core, sol::table extension) {
     // TODO: add validation to prevent overrighting default properties or properties that already exist
     for ( const auto &item : extension ) {     
         std::cout << "Extend player called with extension " << item.first.as<std::string>() << std::endl; 
-        core[LUA_CORE_PLAYER_DATA][item.first] = item.second;
+        core[engine::player::DATA][item.first] = item.second;
     }
 
     return 0;
@@ -21,7 +22,7 @@ int build_node_extension(sol::state &core, sol::table extension) {
     // TODO: add validation to prevent overrighting default properties or properties that already exist
     for ( const auto &item : extension ) {
         std::cout << "Extend node called with extension " << item.first.as<std::string>() << std::endl;
-        core[LUA_NODE_TEMPLATE][item.first] = item.second;
+        core[engine::node::TEMPLATE][item.first] = item.second;
     }
 
     return 0;
@@ -29,18 +30,18 @@ int build_node_extension(sol::state &core, sol::table extension) {
 
 int inject_build_tools(sol::state &core_state) {
     // add the extend player function
-    core_state.set_function("extend_player", [&core_state](sol::table extension) {
-        build_player_extension(core_state, extension);
+    core_state.set_function(engine::func::api::EXTEND_PLAYER, [&core_state](sol::table extension) {
+        return build_player_extension(core_state, extension);
     });
 
     // add the extend node function
-    core_state.set_function("extend_node", [&core_state](sol::table extension) {
-        build_node_extension(core_state, extension);
+    core_state.set_function(engine::func::api::EXTEND_NODE, [&core_state](sol::table extension) {
+        return build_node_extension(core_state, extension);
     });
 
     // add the add node function
-    core_state.set_function("add_node", [&core_state](sol::table table) {
-        new_node_type(core_state, table);
+    core_state.set_function(engine::func::api::ADD_NODE_TYPE, [&core_state](sol::table table) {
+        return new_node_type(core_state, table);
     });
 
     return 0;
