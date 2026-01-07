@@ -52,6 +52,8 @@ This does not work because things get unloaded.
 NEW LOAD STRUCTURE:
 Create a lua state
 
+Inject game API functions
+
 For each file in scripts dir
     if file == .lua and not "BUILD_FILE"
         Load file
