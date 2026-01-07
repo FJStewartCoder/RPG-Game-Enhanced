@@ -48,7 +48,8 @@ int inject_core_node_data(sol::state &lua) {
 
 int inject_core_player_data(sol::state &lua) {
     lua[LUA_CORE_PLAYER_DATA] = lua.create_table_with(
-        LUA_NODE_NAME, "Player Name"
+        LUA_CORE_PLAYER_NAME, "Player Name",
+        LUA_CORE_PLAYER_POSITION, 0
     );
 
     return 0;
@@ -360,17 +361,9 @@ int main() {
     // open libs so we have access to print
     lua.open_libraries(sol::lib::base, sol::lib::io, sol::lib::table);
 
-    // inject core data into the lua state
-    inject_core(lua);
-
-    // test if the data is found from the injection
-    std::cout << lua[LUA_NODE_TEMPLATE]["name"].get<std::string>() << std::endl;
-    std::cout << lua[LUA_CORE_PLAYER_DATA]["name"].get<std::string>() << std::endl;
-
-    // test a function
-    lua[LUA_NODE_TEMPLATE][LUA_NODE_LAND]();
-
     auto scripts = std::filesystem::directory_iterator("./scripts");
+
+    bool found_build_file = false;
 
     for ( const auto &fs_item : scripts ) {
         // currently skipping directories
@@ -383,16 +376,70 @@ int main() {
             continue;
         }
 
+        if ( fs_item.path().filename() == "BUILD_FILE.lua" ) {
+            found_build_file = true;
+            continue;
+        }
+
         log_info("File %s will build next.", fs_item.path().c_str());
 
         // build file if type is lua
-        build_file(lua, fs_item.path());
+        load_file(lua, fs_item.path());
     }
+
+    if ( !found_build_file ) {
+        log_fatal("No build file found.");
+
+        fclose(fp);
+        return 1;
+    }
+
+    // inject core data into the lua state
+    inject_core(lua);
+    // inject build tools
+    inject_build_tools(lua);
+
+    load_file(lua, "scripts/BUILD_FILE.lua");
+
+    if ( has_func(lua, LUA_EXTEND_FUNC) ) {
+        sol::protected_function extend_func = lua[LUA_EXTEND_FUNC];
+
+        extend_func();
+    }
+    else {
+        log_fatal("No extend function found.");
+
+        fclose(fp);
+        return 1;
+    }
+
+    if ( has_func(lua, LUA_BUILD_FUNC) ) {
+        sol::protected_function build_func = lua[LUA_BUILD_FUNC];
+
+        build_func();
+    }
+    else {
+        log_fatal("No build function found.");
+
+        fclose(fp);
+        return 1;
+    }
+
+    // test if the data is found from the injection
+    std::cout << lua[LUA_NODE_TEMPLATE]["name"].get<std::string>() << std::endl;
+    std::cout << lua[LUA_CORE_PLAYER_DATA]["name"].get<std::string>() << std::endl;
+
+    // test a function
+    lua[LUA_NODE_TEMPLATE][LUA_NODE_LAND]();
 
     log_info("Building files complete.");
 
     // build the nodes
     build_node_queue(lua, lua[LUA_NODE_TEMPLATE]);
+
+    for ( const auto &table : lua["NODE_QUEUE"].get<sol::table>() ) {
+        node_types.push_back(table.second.as<sol::table>()["name"]);
+    }
 
     // show nodes
     for ( const auto &node : node_types ) {

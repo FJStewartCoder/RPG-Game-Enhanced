@@ -8,7 +8,9 @@
 const std::string LUA_BUILD_FUNC = "build";
 const std::string LUA_EXTEND_FUNC = "extend";
 
+int inject_build_tools(sol::state &core_state);
+
 // function to build the extensions
-int build_file(sol::state &core_state, std::string file_name);
+int load_file(sol::state &lua, std::string file_name);
 
 #endif // EXTENSION_HPP

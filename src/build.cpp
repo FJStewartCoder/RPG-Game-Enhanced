@@ -149,7 +149,7 @@ int new_node_type(sol::state &core, sol::table node_table) {
     }
 
     // add the node table to the new lua queue
-    // core["NODE_QUEUE"].get<sol::table>().add(table_buffer);
+    core["NODE_QUEUE"].get<sol::table>().add(node_table);
 
     return 0;
 }
@@ -197,9 +197,11 @@ int build_single_node(sol::state &lua, sol::table node_template, sol::table node
 int build_node_queue(sol::state &lua, sol::table node_template) {
     std::cout << node_queue.size() << std::endl;
 
-    for ( const auto &table : node_queue ) {
+    sol::table q = lua["NODE_QUEUE"];
+
+    for ( const auto &table : q ) {
         // second because first is the index
-        build_single_node(lua, node_template, table);
+        build_single_node(lua, node_template, table.second);
     }
 
     return 0;
