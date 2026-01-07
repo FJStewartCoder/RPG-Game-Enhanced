@@ -9,8 +9,9 @@
 
 int build_player_extension(sol::state &core, sol::table extension) {
     // TODO: add validation to prevent overrighting default properties or properties that already exist
-    for ( const auto &item : extension ) {
-        core[LUA_NODE_TEMPLATE][item.first] = item.second;
+    for ( const auto &item : extension ) {     
+        std::cout << "Extend player called with extension " << item.first.as<std::string>() << std::endl; 
+        core[LUA_CORE_PLAYER_DATA][item.first] = item.second;
     }
 
     return 0;
@@ -19,7 +20,8 @@ int build_player_extension(sol::state &core, sol::table extension) {
 int build_node_extension(sol::state &core, sol::table extension) {
     // TODO: add validation to prevent overrighting default properties or properties that already exist
     for ( const auto &item : extension ) {
-        core[LUA_CORE_PLAYER_DATA][item.first] = item.second;
+        std::cout << "Extend node called with extension " << item.first.as<std::string>() << std::endl;
+        core[LUA_NODE_TEMPLATE][item.first] = item.second;
     }
 
     return 0;

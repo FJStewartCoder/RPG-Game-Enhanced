@@ -8,4 +8,5 @@ function build()
 end
 
 function extend()
+    extend_node({bob = "abc"})
 end

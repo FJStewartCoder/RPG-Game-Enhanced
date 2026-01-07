@@ -7,12 +7,6 @@
 // the vector which will store all of the nodes
 std::vector<node_t*> environment;
 
-std::vector<sol::table> node_queue;
-
-std::vector<sol::table> &get_queue() {
-    return node_queue;
-};
-
 int free_nodes() {
     for ( const auto &item : environment ) {
         delete item;
@@ -144,10 +138,6 @@ int build_node(
 }
 
 int new_node_type(sol::state &core, sol::table node_table) {
-    for ( const auto &item : node_table ) {
-        std::cout << item.first.as<std::string>() << " " << (int)item.second.get_type() << std::endl;
-    }
-
     // add the node table to the new lua queue
     core["NODE_QUEUE"].get<sol::table>().add(node_table);
 
@@ -179,13 +169,11 @@ int build_single_node(sol::state &lua, sol::table node_template, sol::table node
         }
     }
 
-    std::cout << "1" << std::endl;
-
     // insert the new element to the node_types
     // all_node_types[new_table["name"].get<std::string>()] = new_table;
 
     // insert back into lua
-    auto avail = lua[LUA_NODE_AVAILABLE].get<sol::table>();
+    sol::table avail = lua[LUA_NODE_AVAILABLE];
     avail.add(new_table);
 
     // log
@@ -195,11 +183,11 @@ int build_single_node(sol::state &lua, sol::table node_template, sol::table node
 }
 
 int build_node_queue(sol::state &lua, sol::table node_template) {
-    std::cout << node_queue.size() << std::endl;
+    sol::table node_queue = lua["NODE_QUEUE"];
 
-    sol::table q = lua["NODE_QUEUE"];
+    std::cout << "Node queue has length " << node_queue.size() << std::endl;
 
-    for ( const auto &table : q ) {
+    for ( const auto &table : node_queue ) {
         // second because first is the index
         build_single_node(lua, node_template, table.second);
     }

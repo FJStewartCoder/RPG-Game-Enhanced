@@ -62,7 +62,6 @@ int inject_core(sol::state &lua) {
     return 0;
 }
 
-
 int check_default_node_table(sol::table &table) {
     sol::optional<std::string> name = table[LUA_NODE_NAME];
     sol::optional<sol::function> on_land = table[LUA_NODE_LAND];
@@ -404,7 +403,12 @@ int main() {
     if ( has_func(lua, LUA_EXTEND_FUNC) ) {
         sol::protected_function extend_func = lua[LUA_EXTEND_FUNC];
 
-        extend_func();
+        auto res = extend_func();
+        if ( !res.valid() ) {
+            sol::error e = res;
+
+            std::cout << e.what() << std::endl;
+        }
     }
     else {
         log_fatal("No extend function found.");
@@ -416,7 +420,12 @@ int main() {
     if ( has_func(lua, LUA_BUILD_FUNC) ) {
         sol::protected_function build_func = lua[LUA_BUILD_FUNC];
 
-        build_func();
+        auto res = build_func();
+        if ( !res.valid() ) {
+            sol::error e = res;
+
+            std::cout << e.what() << std::endl;
+        }
     }
     else {
         log_fatal("No build function found.");
@@ -437,9 +446,15 @@ int main() {
     // build the nodes
     build_node_queue(lua, lua[LUA_NODE_TEMPLATE]);
 
-    for ( const auto &table : lua["NODE_QUEUE"].get<sol::table>() ) {
+    // add all of the names of the node_types to a list
+    for ( const auto &table : lua[LUA_NODE_AVAILABLE].get<sol::table>() ) {
         node_types.push_back(table.second.as<sol::table>()["name"]);
     }
+
+    // get all keys and values for template debug
+    /* for ( const auto &t : lua[LUA_NODE_TEMPLATE].get<sol::table>() ) {
+        std::cout << "Node template has " << t.first.as<std::string>() << " with value type " << (int)t.second.get_type() << std::endl;
+    } */
 
     // show nodes
     for ( const auto &node : node_types ) {
