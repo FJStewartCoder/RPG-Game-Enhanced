@@ -443,8 +443,8 @@ int main() {
     }
 
     // test if the data is found from the injection
-    std::cout << lua[engine::node::TEMPLATE]["name"].get<std::string>() << std::endl;
-    std::cout << lua[engine::player::DATA]["name"].get<std::string>() << std::endl;
+    std::cout << lua[engine::node::TEMPLATE][engine::node::NAME].get<std::string>() << std::endl;
+    std::cout << lua[engine::player::DATA][engine::player::NAME].get<std::string>() << std::endl;
 
     // test a function
     lua[engine::node::TEMPLATE][engine::node::LAND]();

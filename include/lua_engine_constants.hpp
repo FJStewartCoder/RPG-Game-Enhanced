@@ -27,9 +27,14 @@ namespace engine {
         };
 
         namespace api {
+            // functions to extend the functionalities
             const std::string ADD_NODE_TYPE = "add_node";
             const std::string EXTEND_NODE = "extend_node";
             const std::string EXTEND_PLAYER = "extend_player";
+            
+            // functions to environment creation
+            const std::string NEW_CAMPAIGN = "new_campaign";
+            const std::string BUILD_NODE = "build_node";
         }
     };
 
