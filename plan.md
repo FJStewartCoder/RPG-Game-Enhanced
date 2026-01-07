@@ -45,3 +45,21 @@ For each file in scripts dir
 end
 
 Iterate through the build queue and make use of the finished extension to verify which nodes are valid
+
+This does not work because things get unloaded.
+
+
+NEW LOAD STRUCTURE:
+Create a lua state
+
+For each file in scripts dir
+    if file == .lua and not "BUILD_FILE"
+        Load file
+    end if
+end
+
+Inject hardcoded core data for player and node
+
+Load "BUILD_FILE"
+
+This time everything remains loaded and there exists only one build and extend function

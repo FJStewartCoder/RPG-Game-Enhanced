@@ -4,6 +4,8 @@
 #include "nodes.hpp"
 #include <vector>
 
+std::vector<sol::table> &get_queue();
+
 // function to build a node
 int build_node(
     std::vector<std::string> node_types,
