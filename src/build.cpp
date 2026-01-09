@@ -141,7 +141,8 @@ int build_node(
 
 int inject_environment_tools(sol::state &lua) {
     lua.set_function(engine::func::api::BUILD_NODE, []() {
-
+        std::cout << "Called build function" << std::endl;
+        // return build_node();
     });
 
     return 0;
