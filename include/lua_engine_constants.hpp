@@ -22,8 +22,12 @@ namespace engine {
 
     namespace func {
         namespace extension {
+            // function that is called that should contain the add_nodes
             const std::string BUILD = "build";
+            // function that is called that should extend the player or node
             const std::string EXTEND = "extend";
+            // function that is called that should create the environment
+            const std::string ENVIRONMENT = "environment";
         };
 
         namespace api {

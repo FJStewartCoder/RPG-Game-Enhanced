@@ -406,6 +406,7 @@ int main() {
     // inject build tools
     inject_build_tools(lua);
 
+    // LOAD BUILD_FILE ----------------------------------------------------------------
     load_file(lua, "scripts/BUILD_FILE.lua");
 
     if ( has_func(lua, engine::func::extension::EXTEND) ) {
@@ -441,6 +442,31 @@ int main() {
         fclose(fp);
         return 1;
     }
+
+    // LOAD CAMPAIGN_FILE ----------------------------------------------------------------
+
+    load_file(lua, "scripts/CAMPAIGN_FILE.lua");
+
+    inject_environment_tools(lua);
+
+    if ( has_func(lua, engine::func::extension::ENVIRONMENT) ) {
+        sol::protected_function environment_func = lua[engine::func::extension::ENVIRONMENT];
+
+        auto res = environment_func();
+        if ( !res.valid() ) {
+            sol::error e = res;
+
+            std::cout << e.what() << std::endl;
+        }
+    }
+    else {
+        log_fatal("No environment function found.");
+
+        fclose(fp);
+        return 1;
+    }
+
+    // -----------------------------------------------------------------------------------
 
     // test if the data is found from the injection
     std::cout << lua[engine::node::TEMPLATE][engine::node::NAME].get<std::string>() << std::endl;

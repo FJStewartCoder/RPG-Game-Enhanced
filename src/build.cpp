@@ -139,6 +139,14 @@ int build_node(
     return environment.size() - 1;
 }
 
+int inject_environment_tools(sol::state &lua) {
+    lua.set_function(engine::func::api::BUILD_NODE, []() {
+
+    });
+
+    return 0;
+} 
+
 int new_node_type(sol::state &core, sol::table node_table) {
     // add the node table to the new lua queue
     core[engine::node::QUEUE].get<sol::table>().add(node_table);

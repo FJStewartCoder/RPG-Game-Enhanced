@@ -25,4 +25,7 @@ int new_node_type(sol::state &core, sol::table node_table);
 // function to build the node queue
 int build_node_queue(sol::state &lua, sol::table node_template);
 
+// function to inject the environment tools
+int inject_environment_tools(sol::state &lua);
+
 #endif // BUILD_HPP
