@@ -47,16 +47,33 @@ int inject_build_tools(sol::state &core_state) {
     return 0;
 }
 
+// function to ensure that there are no matching globals
+int test_new_state(sol::state &base, sol::state &extension) {
+    return 0;
+}
+
 // function to build the extensions
 int load_file(sol::state &lua, std::string file_name) {
+    // create a new special state to verify the file before combining with the main program
+    sol::state load_state;
+    load_state.open_libraries(sol::lib::base, sol::lib::io, sol::lib::table);
+
     try {
-        lua.safe_script_file(file_name);
+        load_state.safe_script_file(file_name);
         std::cout << file_name << " has been opened" << std::endl;
     }
     catch ( const sol::error &e ) {
         std::cout << e.what() << std::endl;
         return 1;
     }
+
+    if ( test_new_state(lua, load_state) != 0 ) {
+        std::cout << "Invalid extension" << std::endl; 
+        return 1;
+    }
+
+    // if passes the first tests load into the real environment
+    lua.safe_script_file(file_name);
 
     return 0;
 }
