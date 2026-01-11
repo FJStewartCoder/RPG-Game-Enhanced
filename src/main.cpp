@@ -228,6 +228,9 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
 
                 // set the current node to be the pointer to the new position
                 cur_node = new_pos;
+
+                // message to inform me the script moved the player
+                log_info("Script moved player to node ID: %d.", cur_node->id);
             }
             catch (std::exception &e) {
                 log_info("Script attempted to manage position but the operation failed.");
