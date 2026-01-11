@@ -10,6 +10,9 @@ typedef struct node_t {
     // will be used to link to the data
     std::string node_type;
 
+    // essentially just the index in the array
+    int id;
+
     // table of data that is unique to this node
     sol::optional<sol::table> unique_data;
 

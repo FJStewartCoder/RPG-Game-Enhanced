@@ -5,7 +5,7 @@ function start(data, node, player)
 
     print("New property added ABC with value " ..node.abc)
 
-    print("Got data data1 " ..data.data1)
+    -- print("Got data data1 " ..data.data1)
 
     print("The player's name is " ..player.name)
 end

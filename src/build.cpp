@@ -26,12 +26,27 @@ node_t *get_node(int id) {
     return environment.at(id);
 }
 
+node_directions str_to_direction(std::string dir) {
+    if ( dir == "left" || dir == "l" ) { return NODE_LEFT; }
+    if ( dir == "right" || dir == "r" ) { return NODE_RIGHT; }
+    if ( dir == "up" || dir == "u" ) { return NODE_UP; }
+    if ( dir == "down" || dir == "d" ) { return NODE_DOWN; }
+
+    if ( dir == "forward" || dir == "f" ) { return NODE_FORWARD; }
+    if ( dir == "back" || dir == "b" ) { return NODE_BACK; }
+    if ( dir == "next" || dir == "l" ) { return NODE_NEXT; }
+    if ( dir == "previous" || dir == "prev" || dir == "p" ) { return NODE_PREV; }
+
+    // if nothing
+    return NODE_NONE;
+}
+
 int build_node(
     std::vector<std::string> node_types,
     std::string node_type,
     sol::table unique_data,
     int previous_node_id,
-    node_directions relation,
+    std::string relation,
     bool one_way  // defines whether or not the new node added should be able to link back to the previous node
 ) {
     bool type_exists = false;
@@ -64,6 +79,7 @@ int build_node(
     // set the name and unique data
     new_node->node_type = node_type;
     new_node->unique_data = unique_data;
+    new_node->id = environment.size() - 1;
 
     // done at this point
     if ( previous_node_id <= -1 ) {
@@ -74,7 +90,10 @@ int build_node(
     // get the previous node based on the id
     node_t *previous_node = get_node(previous_node_id);
 
-    switch (relation) {
+    // get the direction of the node by string
+    node_directions direction = str_to_direction(relation);
+
+    switch (direction) {
         case NODE_LEFT:
             previous_node->left = new_node;
 
@@ -139,11 +158,21 @@ int build_node(
     return environment.size() - 1;
 }
 
-int inject_environment_tools(sol::state &lua) {
-    lua.set_function(engine::func::api::BUILD_NODE, []() {
-        std::cout << "Called build function" << std::endl;
-        // return build_node();
-    });
+int inject_environment_tools(sol::state &lua, std::vector<std::string> &node_types) {
+    lua.set_function(
+        engine::func::api::BUILD_NODE,
+
+        [&node_types](
+            std::string node_type,
+            sol::table unique_data,
+            int previous_node_id,
+            std::string relation,
+            bool one_way 
+        ) {
+            std::cout << "Called build function" << std::endl;
+            return build_node(node_types, node_type, unique_data, previous_node_id, relation, one_way);
+        }
+    );
 
     return 0;
 } 

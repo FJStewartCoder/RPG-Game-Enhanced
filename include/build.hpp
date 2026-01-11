@@ -10,7 +10,7 @@ int build_node(
     std::string node_type,
     sol::table unique_data = sol::table(),
     int previous_node = -1,
-    node_directions relation = NODE_NONE,
+    std::string relation = "",  // "" == NODE_NODE
     bool one_way = false  // defines whether or not the new node added should be able to link back to the previous node
 );
 
@@ -26,6 +26,6 @@ int new_node_type(sol::state &core, sol::table node_table);
 int build_node_queue(sol::state &lua, sol::table node_template);
 
 // function to inject the environment tools
-int inject_environment_tools(sol::state &lua);
+int inject_environment_tools(sol::state &lua, std::vector<std::string> &node_types);
 
 #endif // BUILD_HPP

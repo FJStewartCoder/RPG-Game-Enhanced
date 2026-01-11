@@ -241,7 +241,7 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
         // get the current node data
         auto cur_node_data = get_node_data(lua, cur_node->node_type);
 
-        log_info("Landed on node with type \"%s\".", cur_node->node_type.c_str());
+        log_info("Landed on node with type: \"%s\", with ID: %d", cur_node->node_type.c_str(), cur_node->id);
     
         // if data exists run on land
         if ( cur_node_data ) {
@@ -269,7 +269,7 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
             bool will_quit = false;
 
             if ( stuck_count >= max_stuck_cycles ) {
-                log_info("Exceeded max stuck limit. Automatically exitting.");
+                log_info("Exceeded max stuck limit. Automatically exiting.");
                 std::cout << "[ERROR] You have been stuck longer than the stuck limit. Aborting..." << std::endl;
                 
                 // force quit
@@ -443,11 +443,21 @@ int main() {
         return 1;
     }
 
+    // ITERMEDIATE STEPS BEFORE CAMPAIGN FILE -------------------------------------------
+
+    // build the nodes
+    build_node_queue(lua, lua[engine::node::TEMPLATE]);
+
+    // add all of the names of the node_types to a list
+    for ( const auto &table : lua[engine::node::AVAILABLE].get<sol::table>() ) {
+        node_types.push_back(table.second.as<sol::table>()[engine::node::NAME]);
+    }
+
     // LOAD CAMPAIGN_FILE ----------------------------------------------------------------
 
     load_file(lua, "scripts/CAMPAIGN_FILE.lua");
 
-    inject_environment_tools(lua);
+    inject_environment_tools(lua, node_types);
 
     if ( has_func(lua, engine::func::extension::ENVIRONMENT) ) {
         sol::protected_function environment_func = lua[engine::func::extension::ENVIRONMENT];
@@ -477,14 +487,6 @@ int main() {
 
     log_info("Building files complete.");
 
-    // build the nodes
-    build_node_queue(lua, lua[engine::node::TEMPLATE]);
-
-    // add all of the names of the node_types to a list
-    for ( const auto &table : lua[engine::node::AVAILABLE].get<sol::table>() ) {
-        node_types.push_back(table.second.as<sol::table>()[engine::node::NAME]);
-    }
-
     // get all keys and values for template debug
     /* for ( const auto &t : lua[engine::node::TEMPLATE].get<sol::table>() ) {
         std::cout << "Node template has " << t.first.as<std::string>() << " with value type " << (int)t.second.get_type() << std::endl;
@@ -502,6 +504,7 @@ int main() {
     sol::table start_table2 = lua.create_table();
     start_table2["data1"] = "234";
 
+    /*
     int node1 = build_node(node_types, "Start", start_table);
     int node2 = build_node(node_types, "2", sol::table(), node1, NODE_RIGHT, false);
     int node3 = build_node(node_types, "Start", start_table2, node2, NODE_UP, false);
@@ -513,6 +516,9 @@ int main() {
     int res2 = traverse_node(cur, NODE_LEFT);
 
     std::cout << res << " " << res2 << std::endl;
+    */
+
+    node_t *cur = get_node(0);
 
     // the main game loop
     gameloop(lua, cur);
