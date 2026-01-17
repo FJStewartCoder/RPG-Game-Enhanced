@@ -5,7 +5,6 @@
 
 // nodes file
 #include "nodes.hpp"
-#include "player.hpp"
 
 // required for the node build scripts
 #include "build.hpp"

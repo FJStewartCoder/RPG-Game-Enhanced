@@ -13,9 +13,6 @@ build.o: src/build.cpp
 log.o:
 	${CC} src/log/log.c -Iinclude/log -c -o $@
 
-player.o: src/player.cpp
-	${CPPC} $^ -Iinclude -c -o $@
-
 nodes.o: src/nodes.cpp
 	${CPPC} $^ -Iinclude -c -o $@
 
