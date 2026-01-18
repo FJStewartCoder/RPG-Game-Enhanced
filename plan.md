@@ -70,6 +70,8 @@ CAMPAIGN_FILE is where you can make an environment from lua
 
 SOL ENVIRONMENTS COULD HELP WITH SOME OF THE DIFFERENT FILE THINGS
 
+
+
 AIMS:
 Have a clean base state that all other environments use for fallback globals
 
@@ -79,9 +81,40 @@ Place all of the loaded files into a seperate environment that can all interact 
 This state will have fallback to the API state so that we can access the API
 
 Have a seperate environment for build and campaign file which houses their special scripts
-This environment will also have fallback to the loaded file state so that it can access those functions 
+This environment will also have fallback to the loaded file state so that it can access those functions
+
+There is potential to also need a core environement where the player data and node data is stored
+
+
 
 NEW DIFFERENT LOAD THING AGAIN:
 Create base lua state
-Inject base API functions into this state
+
+Create core environment
+Inject core data into core
+
+Create loaded files environment with access to base
+Inject API functions into load files environment
+<!-- This is because the loaded files need the API and do not need to be seperated from the others -->
+<!-- build needs a seperate env, whereas, because the loaded files CAN NOT have access to the build functions -->
+
+Create build environment
+Inject build functions into build
+
+For each file in scripts dir
+    if file == .lua and not "BUILD_FILE" and not "CAMPAIGN FILE"
+        Load file into test environment
+        Test file to ensure it has no globals with the same names as anything in build or already loaded files
+        ( Technically can have same names as core because core is abstracted away into another environment )
+
+        if success
+            load file into loaded files environment
+        else
+            fail or throw error
+        end if
+    end if
+end
+
+Load BUILD_FILE ... as before
+Load CAMPAIGN_FILE ... as before
 
