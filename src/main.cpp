@@ -520,11 +520,6 @@ int main() {
     std::cout << res << " " << res2 << std::endl;
     */
 
-    // gets globals data ( GOOD FOR CHECKING IF THINGS EXIST OR NOT YET )
-    for ( const auto &item : lua.globals() ) {
-        std::cout << item.first.as<std::string>() << " " << (int)item.second.get_type() << std::endl;
-    }
-
     node_t *cur = get_node(0);
 
     // the main game loop

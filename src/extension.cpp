@@ -48,18 +48,36 @@ int inject_build_tools(sol::state &core_state) {
 }
 
 // function to ensure that there are no matching globals
-int test_new_state(sol::state &base, sol::state &extension) {
+int test_new_state(sol::state &base, sol::environment extension) {   
+    // iterate each global in the extension state. If there is a matching one in base, we throw an error
+    for ( const auto &item : extension.globals() ) {
+        const std::string key = item.first.as<std::string>();
+
+        // DEBUG PRINT
+        // std::cout << key << " " << (int)item.second.get_type() << std::endl;
+
+        // for base to have key, it is not nil
+        const bool base_has_key = base[key] != sol::nil;
+
+        std::cout << key << " " << base_global_has_key << " " << base_has_key << " " << (!base_global_has_key && base_has_key) << std::endl;
+
+        // error is base global does not have key (user created) and is in the base
+        if ( base_has_key ) {
+            std::cout << "Error " << item.first.as<std::string>() << std::endl;
+            return 1;
+        }
+    }
+
     return 0;
 }
 
 // function to build the extensions
 int load_file(sol::state &lua, std::string file_name) {
     // create a new special state to verify the file before combining with the main program
-    sol::state load_state;
-    load_state.open_libraries(sol::lib::base, sol::lib::io, sol::lib::table);
+    sol::environment load_env(lua, sol::create);
 
     try {
-        load_state.safe_script_file(file_name);
+        lua.safe_script_file(file_name, load_env);
         std::cout << file_name << " has been opened" << std::endl;
     }
     catch ( const sol::error &e ) {
@@ -67,7 +85,7 @@ int load_file(sol::state &lua, std::string file_name) {
         return 1;
     }
 
-    if ( test_new_state(lua, load_state) != 0 ) {
+    if ( test_new_state(lua, load_env) != 0 ) {
         std::cout << "Invalid extension" << std::endl; 
         return 1;
     }

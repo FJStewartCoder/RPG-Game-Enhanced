@@ -67,3 +67,5 @@ Load "BUILD_FILE"
 This time everything remains loaded and there exists only one build and extend function
 
 CAMPAIGN_FILE is where you can make an environment from lua
+
+SOL ENVIRONMENTS COULD HELP WITH SOME OF THE DIFFERENT FILE THINGS
