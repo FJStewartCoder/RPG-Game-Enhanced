@@ -48,9 +48,9 @@ int inject_build_tools(sol::state &core_state) {
 }
 
 // function to ensure that there are no matching globals
-int test_new_state(sol::state &base, sol::environment extension) {   
+int test_new_state(sol::state &base, sol::environment extension) {
     // iterate each global in the extension state. If there is a matching one in base, we throw an error
-    for ( const auto &item : extension.globals() ) {
+    for ( const auto &item : extension.pairs() ) {
         const std::string key = item.first.as<std::string>();
 
         // DEBUG PRINT
@@ -59,11 +59,12 @@ int test_new_state(sol::state &base, sol::environment extension) {
         // for base to have key, it is not nil
         const bool base_has_key = base[key] != sol::nil;
 
-        std::cout << key << " " << base_global_has_key << " " << base_has_key << " " << (!base_global_has_key && base_has_key) << std::endl;
+        // DEBUG PRINT
+        // std::cout << key << " " << base_has_key << std::endl;
 
         // error is base global does not have key (user created) and is in the base
         if ( base_has_key ) {
-            std::cout << "Error " << item.first.as<std::string>() << std::endl;
+            std::cout << "Error; some other file has key: " << item.first.as<std::string>() << std::endl;
             return 1;
         }
     }

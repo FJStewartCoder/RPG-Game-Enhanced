@@ -69,3 +69,19 @@ This time everything remains loaded and there exists only one build and extend f
 CAMPAIGN_FILE is where you can make an environment from lua
 
 SOL ENVIRONMENTS COULD HELP WITH SOME OF THE DIFFERENT FILE THINGS
+
+AIMS:
+Have a clean base state that all other environments use for fallback globals
+
+Hide all of the API functions in an API environment
+
+Place all of the loaded files into a seperate environment that can all interact with each other
+This state will have fallback to the API state so that we can access the API
+
+Have a seperate environment for build and campaign file which houses their special scripts
+This environment will also have fallback to the loaded file state so that it can access those functions 
+
+NEW DIFFERENT LOAD THING AGAIN:
+Create base lua state
+Inject base API functions into this state
+
