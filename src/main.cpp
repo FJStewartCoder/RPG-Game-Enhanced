@@ -356,9 +356,6 @@ int main() {
     log_add_fp(fp, 0);
     // log_set_quiet(true);
 
-    // vector of strings (allows for expansion)
-    std::vector<std::string> node_types;
-
     // create lua interpreter
     sol::state lua;
 
@@ -464,16 +461,11 @@ int main() {
     // build the nodes
     build_node_queue(core_env, core_env[engine::node::TEMPLATE]);
 
-    // add all of the names of the node_types to a list
-    for ( const auto &table : core_env[engine::node::AVAILABLE].get<sol::table>() ) {
-        node_types.push_back(table.second.as<sol::table>()[engine::node::NAME]);
-    }
-
     // LOAD CAMPAIGN_FILE ----------------------------------------------------------------
 
     load_file(lua, build_env, "scripts/CAMPAIGN_FILE.lua");
 
-    inject_environment_tools(build_env, node_types);
+    inject_environment_tools(build_env);
 
     if ( has_func(build_env, engine::func::extension::ENVIRONMENT) ) {
         sol::protected_function environment_func = build_env[engine::func::extension::ENVIRONMENT];
@@ -509,7 +501,7 @@ int main() {
     } */
 
     // show nodes
-    for ( const auto &node : node_types ) {
+    for ( const auto &node : get_all_node_types() ) {
         log_trace("Found node with name \"%s\"", node.c_str());
     }
 
@@ -521,9 +513,9 @@ int main() {
     start_table2["data1"] = "234";
 
     /*
-    int node1 = build_node(node_types, "Start", start_table);
-    int node2 = build_node(node_types, "2", sol::table(), node1, NODE_RIGHT, false);
-    int node3 = build_node(node_types, "Start", start_table2, node2, NODE_UP, false);
+    int node1 = build_node("Start", start_table);
+    int node2 = build_node("2", sol::table(), node1, NODE_RIGHT, false);
+    int node3 = build_node("Start", start_table2, node2, NODE_UP, false);
 
     // traversal test
     node_t *cur = get_node(node1);

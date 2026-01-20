@@ -3,10 +3,10 @@
 
 #include "nodes.hpp"
 #include <vector>
+#include <unordered_set>
 
 // function to build a node
 int build_node(
-    std::vector<std::string> node_types,
     std::string node_type,
     sol::table unique_data = sol::table(),
     int previous_node = -1,
@@ -26,6 +26,8 @@ int new_node_type(sol::environment &core_env, sol::table node_table);
 int build_node_queue(sol::environment &core_env, sol::table node_template);
 
 // function to inject the environment tools
-int inject_environment_tools(sol::environment &build_env, std::vector<std::string> &node_types);
+int inject_environment_tools(sol::environment &build_env);
+
+std::unordered_set<std::string> &get_all_node_types();
 
 #endif // BUILD_HPP

@@ -1,4 +1,4 @@
-function start(data, node, player)
+function start2(data, node, player)
     print("Hello this is a node type of " ..node.name)
     node.abc = "New thing"
 

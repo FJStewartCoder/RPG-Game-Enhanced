@@ -1,7 +1,6 @@
 #include "build.hpp"
 
 #include "custom_exception.hpp"
-#include <unordered_set>
 
 #include "lua_engine_constants.hpp"
 
@@ -11,6 +10,9 @@ extern "C" {
 
 // the vector which will store all of the nodes
 std::vector<node_t*> environment;
+
+// all of the types of nodes which can be used for validation 
+std::unordered_set<std::string> all_node_types;
 
 int free_nodes() {
     for ( const auto &item : environment ) {
@@ -45,21 +47,13 @@ node_directions str_to_direction(std::string dir) {
 }
 
 int build_node(
-    std::vector<std::string> node_types,
     std::string node_type,
     sol::table unique_data,
     int previous_node_id,
     std::string relation,
     bool one_way  // defines whether or not the new node added should be able to link back to the previous node
 ) {
-    bool type_exists = false;
-
-    for ( const auto &node_name : node_types ) {
-        if ( node_type == node_name ) {
-            type_exists = true;
-            break;
-        }
-    }
+    bool type_exists = all_node_types.find(node_type) != all_node_types.end();
 
     if ( !type_exists ) {
         throw CustomException("This node type: does not exist or is malformed.");
@@ -161,19 +155,19 @@ int build_node(
     return environment.size() - 1;
 }
 
-int inject_environment_tools(sol::environment &build_env, std::vector<std::string> &node_types) {
+int inject_environment_tools(sol::environment &build_env) {
     build_env.set_function(
         engine::func::api::BUILD_NODE,
 
-        [&node_types](
+        [](
             std::string node_type,
             sol::table unique_data,
             int previous_node_id,
             std::string relation,
-            bool one_way 
+            bool one_way
         ) {
             log_debug("Called build function");
-            return build_node(node_types, node_type, unique_data, previous_node_id, relation, one_way);
+            return build_node(node_type, unique_data, previous_node_id, relation, one_way);
         }
     );
 
@@ -213,7 +207,16 @@ int build_single_node(sol::environment &core_env, sol::table node_template, sol:
     }
 
     // insert the new element to the node_types
-    // all_node_types[new_table["name"].get<std::string>()] = new_table;
+    const std::string node_name = new_table["name"].get<std::string>();
+    const bool node_name_found = all_node_types.find(node_name) != all_node_types.end();
+
+    if ( node_name_found ) {
+        log_error("Node \"%s\" already exists", node_name.c_str());
+        return 1;
+    }
+    
+    // add the new node_name into the node_types list
+    all_node_types.insert(node_name);
 
     // insert back into lua
     sol::table avail = core_env[engine::node::AVAILABLE];
@@ -236,4 +239,9 @@ int build_node_queue(sol::environment &core_env, sol::table node_template) {
     }
 
     return 0;
+}
+
+// simple getter
+std::unordered_set<std::string> &get_all_node_types() {
+    return all_node_types;
 }
