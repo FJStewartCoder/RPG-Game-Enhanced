@@ -144,41 +144,22 @@ bool is_in(T item, std::vector<T> array) {
 }
 
 node_directions get_player_input(node_t *node) {
-    std::vector<std::string> options;
+    menu_t menu = create_menu("", "Select a direction");
 
     // get each option
-    if ( node->left != nullptr ) { options.push_back("left"); }
-    if ( node->right != nullptr ) { options.push_back("right"); }
-    if ( node->up != nullptr ) { options.push_back("up"); }
-    if ( node->down != nullptr ) { options.push_back("down"); }
-    if ( node->forward != nullptr ) { options.push_back("forward"); }
-    if ( node->back != nullptr ) { options.push_back("back"); }
-    if ( node->next != nullptr ) { options.push_back("next"); }
-    if ( node->previous != nullptr ) { options.push_back("previous"); }
+    if ( node->left != nullptr ) { add_menu_item(&menu, "left", false); }
+    if ( node->right != nullptr ) { add_menu_item(&menu, "right", false); }
+    if ( node->up != nullptr ) { add_menu_item(&menu, "up", false); }
+    if ( node->down != nullptr ) { add_menu_item(&menu, "down", false); }
+    if ( node->forward != nullptr ) { add_menu_item(&menu, "forward", false); }
+    if ( node->back != nullptr ) { add_menu_item(&menu, "back", false); }
+    if ( node->next != nullptr ) { add_menu_item(&menu, "next", false); }
+    if ( node->previous != nullptr ) { add_menu_item(&menu, "previous", false); }
 
-    std::cout << "Select an option: ";
-    for ( const auto &item : options ) {
-        std::cout << item << ", ";
-    }
-    std::cout << "quit: ";
-
-    // add the quit option (after the other option for correct punctuation)
-    options.push_back("quit");
-
-    // the user input variable
-    std::string input;
-
-    while ( true ) {
-        // get the user input
-        std::cin >> input;
-
-        if ( !is_in(input, options) ) {
-            std::cout << "Please try again!" << std::endl;
-            continue;
-        }
-
-        break;
-    }
+    add_menu_item(&menu, "quit", false);
+    
+    menu_return_t int_choice = show_menu(&menu, STANDARD);
+    const char *input = int_choice.str;
 
     // if block again for correct return
     if ( input == "left" ) { return NODE_LEFT; }

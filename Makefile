@@ -19,7 +19,7 @@ log.o:
 nodes.o: src/nodes.cpp
 	${CPPC} $^ -Iinclude -c -o $@
 
-all: src/main.cpp nodes.o log.o build.o build_help.o extension.o
+all: src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o
 	${CPPC} $^ -Iinclude -Llib -llua54 -lm -g
 
 clean:
