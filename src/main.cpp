@@ -31,25 +31,25 @@ enum class errors {
 };
 
 
-int inject_core_node_data(sol::state &lua) {
+int inject_core_node_data(sol::environment &env) {
     // create a new table with the following data
-    lua[engine::node::TEMPLATE] = lua.create_table_with(
+    env[engine::node::TEMPLATE] = env.create_with(
         engine::node::NAME, "Node Name",
         engine::node::LAND, []() {},
         engine::node::LEAVE, []() {}
     );
 
     // create empty list for the availible nodes
-    lua[engine::node::AVAILABLE] = lua.create_table();
+    env[engine::node::AVAILABLE] = env.create();
 
     // persitently keep the new nodes in lua space
-    lua[engine::node::QUEUE] = lua.create_table();
+    env[engine::node::QUEUE] = env.create();
 
     return 0;
 }
 
-int inject_core_player_data(sol::state &lua) {
-    lua[engine::player::DATA] = lua.create_table_with(
+int inject_core_player_data(sol::environment &env) {
+    env[engine::player::DATA] = env.create_with(
         engine::player::NAME, "Player Name",
         engine::player::POSITION, 0
     );
@@ -57,9 +57,9 @@ int inject_core_player_data(sol::state &lua) {
     return 0;
 }
 
-int inject_core(sol::state &lua) {
-    inject_core_node_data(lua);
-    inject_core_player_data(lua);
+int inject_core(sol::environment &env) {
+    inject_core_node_data(env);
+    inject_core_player_data(env);
 
     return 0;
 }
@@ -102,8 +102,8 @@ int check_default_player_template(sol::table &table) {
 }
 
 // could return none
-sol::optional<sol::table> get_node_data(sol::state &lua, std::string name) {
-    sol::table node_options = lua[engine::node::AVAILABLE];
+sol::optional<sol::table> get_node_data(sol::environment &core_env, std::string name) {
+    sol::table node_options = core_env[engine::node::AVAILABLE];
 
     // currently is empty until we find the table
     sol::optional<sol::table> found_table;
@@ -192,7 +192,7 @@ node_directions get_player_input(node_t *node) {
     return NODE_QUIT;
 }
 
-void gameloop(sol::state &lua, node_t *(&start_node)) {
+void gameloop(sol::environment &core_env, node_t *(&start_node)) {
     // reassign the name
     node_t *cur_node = start_node;
 
@@ -215,7 +215,7 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
 
     while ( running ) {
         // get the player data table
-        sol::table player_data = lua[engine::player::DATA];
+        sol::table player_data = core_env[engine::player::DATA];
 
         // stores the current location of the player
         int script_player_pos = player_data[engine::player::POSITION];
@@ -241,7 +241,7 @@ void gameloop(sol::state &lua, node_t *(&start_node)) {
         player_data[engine::player::POSITION] = 0;
 
         // get the current node data
-        auto cur_node_data = get_node_data(lua, cur_node->node_type);
+        auto cur_node_data = get_node_data(core_env, cur_node->node_type);
 
         log_info("Landed on node with type: \"%s\", with ID: %d", cur_node->node_type.c_str(), cur_node->id);
     
@@ -365,6 +365,19 @@ int main() {
     // open libs so we have access to print
     lua.open_libraries(sol::lib::base, sol::lib::io, sol::lib::table);
 
+    // create seperate environments
+
+    // TODO: fallbacks need adding
+    sol::environment core_env(lua, sol::create);  // TODO: may need fallbacks to base
+    sol::environment scripts_env(lua, sol::create, lua.globals());  // NEEDS LUA GLOBALS
+
+    const sol::basic_reference scripts_fallback = scripts_env;
+    sol::environment build_env(lua, sol::create, scripts_fallback);  // NEEDS THE FUNCTIONS FROM SCRIPTS SO SET AS FALLBACK 
+
+    // inject functions and data into relevant environments
+    inject_core(core_env);
+    inject_build_tools(build_env, core_env);
+
     auto scripts = std::filesystem::directory_iterator(engine::directories::SCRIPTS);
 
     bool found_build_file = false;
@@ -393,7 +406,7 @@ int main() {
         log_info("File %s will build next.", fs_item.path().c_str());
 
         // build file if type is lua
-        load_file(lua, fs_item.path());
+        load_file(lua, scripts_env, fs_item.path());
     }
 
     if ( !found_build_file ) {
@@ -403,16 +416,11 @@ int main() {
         return 1;
     }
 
-    // inject core data into the lua state
-    inject_core(lua);
-    // inject build tools
-    inject_build_tools(lua);
-
     // LOAD BUILD_FILE ----------------------------------------------------------------
-    load_file(lua, "scripts/BUILD_FILE.lua");
+    load_file(lua, build_env, "scripts/BUILD_FILE.lua");
 
-    if ( has_func(lua, engine::func::extension::EXTEND) ) {
-        sol::protected_function extend_func = lua[engine::func::extension::EXTEND];
+    if ( has_func(build_env, engine::func::extension::EXTEND) ) {
+        sol::protected_function extend_func = build_env[engine::func::extension::EXTEND];
 
         auto res = extend_func();
         if ( !res.valid() ) {
@@ -428,8 +436,8 @@ int main() {
         return 1;
     }
 
-    if ( has_func(lua, engine::func::extension::BUILD) ) {
-        sol::protected_function build_func = lua[engine::func::extension::BUILD];
+    if ( has_func(build_env, engine::func::extension::BUILD) ) {
+        sol::protected_function build_func = build_env[engine::func::extension::BUILD];
 
         auto res = build_func();
         if ( !res.valid() ) {
@@ -448,21 +456,21 @@ int main() {
     // ITERMEDIATE STEPS BEFORE CAMPAIGN FILE -------------------------------------------
 
     // build the nodes
-    build_node_queue(lua, lua[engine::node::TEMPLATE]);
+    build_node_queue(core_env, core_env[engine::node::TEMPLATE]);
 
     // add all of the names of the node_types to a list
-    for ( const auto &table : lua[engine::node::AVAILABLE].get<sol::table>() ) {
+    for ( const auto &table : core_env[engine::node::AVAILABLE].get<sol::table>() ) {
         node_types.push_back(table.second.as<sol::table>()[engine::node::NAME]);
     }
 
     // LOAD CAMPAIGN_FILE ----------------------------------------------------------------
 
-    load_file(lua, "scripts/CAMPAIGN_FILE.lua");
+    load_file(lua, build_env, "scripts/CAMPAIGN_FILE.lua");
 
-    inject_environment_tools(lua, node_types);
+    inject_environment_tools(build_env, node_types);
 
-    if ( has_func(lua, engine::func::extension::ENVIRONMENT) ) {
-        sol::protected_function environment_func = lua[engine::func::extension::ENVIRONMENT];
+    if ( has_func(build_env, engine::func::extension::ENVIRONMENT) ) {
+        sol::protected_function environment_func = build_env[engine::func::extension::ENVIRONMENT];
 
         auto res = environment_func();
         if ( !res.valid() ) {
@@ -481,11 +489,11 @@ int main() {
     // -----------------------------------------------------------------------------------
 
     // test if the data is found from the injection
-    std::cout << lua[engine::node::TEMPLATE][engine::node::NAME].get<std::string>() << std::endl;
-    std::cout << lua[engine::player::DATA][engine::player::NAME].get<std::string>() << std::endl;
+    std::cout << core_env[engine::node::TEMPLATE][engine::node::NAME].get<std::string>() << std::endl;
+    std::cout << core_env[engine::player::DATA][engine::player::NAME].get<std::string>() << std::endl;
 
     // test a function
-    lua[engine::node::TEMPLATE][engine::node::LAND]();
+    core_env[engine::node::TEMPLATE][engine::node::LAND]();
 
     log_info("Building files complete.");
 
@@ -523,7 +531,7 @@ int main() {
     node_t *cur = get_node(0);
 
     // the main game loop
-    gameloop(lua, cur);
+    gameloop(core_env, cur);
 
     // free the nodes
     free_nodes();

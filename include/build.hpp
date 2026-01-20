@@ -20,12 +20,12 @@ node_t *get_node(int id);
 int free_nodes();
 
 // function that is passed to lua to build new nodes
-int new_node_type(sol::state &core, sol::table node_table);
+int new_node_type(sol::environment &core_env, sol::table node_table);
 
 // function to build the node queue
-int build_node_queue(sol::state &lua, sol::table node_template);
+int build_node_queue(sol::environment &core_env, sol::table node_template);
 
 // function to inject the environment tools
-int inject_environment_tools(sol::state &lua, std::vector<std::string> &node_types);
+int inject_environment_tools(sol::environment &build_env, std::vector<std::string> &node_types);
 
 #endif // BUILD_HPP

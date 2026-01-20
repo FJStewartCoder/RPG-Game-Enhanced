@@ -158,8 +158,8 @@ int build_node(
     return environment.size() - 1;
 }
 
-int inject_environment_tools(sol::state &lua, std::vector<std::string> &node_types) {
-    lua.set_function(
+int inject_environment_tools(sol::environment &build_env, std::vector<std::string> &node_types) {
+    build_env.set_function(
         engine::func::api::BUILD_NODE,
 
         [&node_types](
@@ -177,16 +177,16 @@ int inject_environment_tools(sol::state &lua, std::vector<std::string> &node_typ
     return 0;
 } 
 
-int new_node_type(sol::state &core, sol::table node_table) {
+int new_node_type(sol::environment &core_env, sol::table node_table) {
     // add the node table to the new lua queue
-    core[engine::node::QUEUE].get<sol::table>().add(node_table);
+    core_env[engine::node::QUEUE].get<sol::table>().add(node_table);
 
     return 0;
 }
 
-int build_single_node(sol::state &lua, sol::table node_template, sol::table node_table) {
+int build_single_node(sol::environment &core_env, sol::table node_template, sol::table node_table) {
     // create the new table
-    sol::table new_table = lua.create_table();
+    sol::table new_table = core_env.create();
     std::unordered_set<std::string> availible_keys;
 
     // copy the template into the new table
@@ -213,7 +213,7 @@ int build_single_node(sol::state &lua, sol::table node_template, sol::table node
     // all_node_types[new_table["name"].get<std::string>()] = new_table;
 
     // insert back into lua
-    sol::table avail = lua[engine::node::AVAILABLE];
+    sol::table avail = core_env[engine::node::AVAILABLE];
     avail.add(new_table);
 
     // log
@@ -222,14 +222,14 @@ int build_single_node(sol::state &lua, sol::table node_template, sol::table node
     return 0;
 }
 
-int build_node_queue(sol::state &lua, sol::table node_template) {
-    sol::table node_queue = lua[engine::node::QUEUE];
+int build_node_queue(sol::environment &core_env, sol::table node_template) {
+    sol::table node_queue = core_env[engine::node::QUEUE];
 
     std::cout << "Node queue has length " << node_queue.size() << std::endl;
 
     for ( const auto &table : node_queue ) {
         // second because first is the index
-        build_single_node(lua, node_template, table.second);
+        build_single_node(core_env, node_template, table.second);
     }
 
     return 0;

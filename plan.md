@@ -96,7 +96,7 @@ Inject core data into core
 Create loaded files environment with access to base
 Inject API functions into load files environment
 <!-- This is because the loaded files need the API and do not need to be seperated from the others -->
-<!-- build needs a seperate env, whereas, because the loaded files CAN NOT have access to the build functions -->
+<!-- whereas, build needs a seperate env because the loaded files CAN NOT have access to the build functions -->
 
 Create build environment
 Inject build functions into build

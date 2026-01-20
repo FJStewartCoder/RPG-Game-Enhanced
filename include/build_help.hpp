@@ -4,6 +4,6 @@
 #include "sol/sol.hpp"
 
 // checks if a lua state has a build function
-bool has_func(sol::state &lua, std::string func_name);
+bool has_func(sol::environment &env, std::string func_name);
 
 #endif // BUILD_HELP_HPP
