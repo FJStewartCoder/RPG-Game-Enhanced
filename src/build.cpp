@@ -2,9 +2,12 @@
 
 #include "custom_exception.hpp"
 #include <unordered_set>
-#include "log/log.h"
 
 #include "lua_engine_constants.hpp"
+
+extern "C" {
+    #include "log/log.h"
+}
 
 // the vector which will store all of the nodes
 std::vector<node_t*> environment;
@@ -67,7 +70,7 @@ int build_node(
     node_t *new_node = new node_t;
 
     if ( new_node == NULL ) {
-        std::cout << "Node did not allocate" << std::endl; 
+        log_error("Node did not allocate"); 
         return -1;
     }
 
@@ -169,7 +172,7 @@ int inject_environment_tools(sol::environment &build_env, std::vector<std::strin
             std::string relation,
             bool one_way 
         ) {
-            std::cout << "Called build function" << std::endl;
+            log_debug("Called build function");
             return build_node(node_types, node_type, unique_data, previous_node_id, relation, one_way);
         }
     );
@@ -217,7 +220,7 @@ int build_single_node(sol::environment &core_env, sol::table node_template, sol:
     avail.add(new_table);
 
     // log
-    std::cout << "Added new node type with name " << new_table[engine::node::NAME].get<std::string>() << std::endl;
+    log_info("Added new node type with name %s", new_table[engine::node::NAME].get<std::string>().c_str());
 
     return 0;
 }
@@ -225,7 +228,7 @@ int build_single_node(sol::environment &core_env, sol::table node_template, sol:
 int build_node_queue(sol::environment &core_env, sol::table node_template) {
     sol::table node_queue = core_env[engine::node::QUEUE];
 
-    std::cout << "Node queue has length " << node_queue.size() << std::endl;
+    log_debug("Node queue has length %d", node_queue.size());
 
     for ( const auto &table : node_queue ) {
         // second because first is the index

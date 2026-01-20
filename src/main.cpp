@@ -432,7 +432,7 @@ int main() {
         if ( !res.valid() ) {
             sol::error e = res;
 
-            std::cout << e.what() << std::endl;
+            log_fatal("Extend function ran with error:\n%s", e.what());
         }
     }
     else {
@@ -449,7 +449,7 @@ int main() {
         if ( !res.valid() ) {
             sol::error e = res;
 
-            std::cout << e.what() << std::endl;
+            log_fatal("Build function ran with error:\n%s", e.what());
         }
     }
     else {
@@ -482,7 +482,7 @@ int main() {
         if ( !res.valid() ) {
             sol::error e = res;
 
-            std::cout << e.what() << std::endl;
+            log_fatal("Environment function ran with error:\n%s", e.what());
         }
     }
     else {

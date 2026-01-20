@@ -8,10 +8,15 @@
 
 #include "lua_engine_constants.hpp"
 
+extern "C" {
+    #include "log/log.h"
+}
+
+
 int build_player_extension(sol::environment &env, sol::table extension) {
     // TODO: add validation to prevent overrighting default properties or properties that already exist
     for ( const auto &item : extension ) {     
-        std::cout << "Extend player called with extension " << item.first.as<std::string>() << std::endl; 
+        log_info("Extend player called with extension: \"%s\"", item.first.as<std::string>().c_str());
         env[engine::player::DATA][item.first] = item.second;
     }
 
@@ -21,7 +26,7 @@ int build_player_extension(sol::environment &env, sol::table extension) {
 int build_node_extension(sol::environment &env, sol::table extension) {
     // TODO: add validation to prevent overrighting default properties or properties that already exist
     for ( const auto &item : extension ) {
-        std::cout << "Extend node called with extension " << item.first.as<std::string>() << std::endl;
+        log_info("Extend node called with extension: \"%s\"", item.first.as<std::string>().c_str());
         env[engine::node::TEMPLATE][item.first] = item.second;
     }
 
@@ -64,7 +69,7 @@ int test_new_state(sol::environment &load_env, sol::environment extension) {
 
         // error is base global does not have key (user created) and is in the base
         if ( base_has_key ) {
-            std::cout << "Error; some other file has key: " << item.first.as<std::string>() << std::endl;
+            log_error("Another file has key \"%s\"", item.first.as<std::string>().c_str());
             return 1;
         }
     }
@@ -79,15 +84,15 @@ int load_file(sol::state &lua, sol::environment &load_env, std::string file_name
 
     try {
         lua.safe_script_file(file_name, test_env);
-        std::cout << file_name << " has been opened" << std::endl;
+        log_info("%s has been opened", file_name.c_str());
     }
     catch ( const sol::error &e ) {
-        std::cout << e.what() << std::endl;
+        log_error("File %s open with error\n%s", file_name.c_str(), e.what());
         return 1;
     }
 
     if ( test_new_state(load_env, test_env) != 0 ) {
-        std::cout << "Invalid extension" << std::endl; 
+        log_error("Invalid extension with file name: %s", file_name.c_str()); 
         return 1;
     }
 
