@@ -406,7 +406,13 @@ int main() {
         log_info("File %s will build next.", fs_item.path().c_str());
 
         // build file if type is lua
-        load_file(lua, scripts_env, fs_item.path());
+        int res = load_file(lua, scripts_env, fs_item.path());
+        if ( res != 0 ) {
+            log_error("File %s has errors. Aborting...", fs_item.path().c_str());
+
+            fclose(fp);
+            return 1;
+        }
     }
 
     if ( !found_build_file ) {
