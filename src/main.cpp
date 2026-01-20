@@ -15,6 +15,7 @@
 // include log.h as a C lib
 extern "C" {
     #include "log/log.h"
+    #include "menus/menus.h"
 }
 
 // for all of the constants

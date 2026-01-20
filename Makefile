@@ -1,6 +1,9 @@
 CC = gcc
 CPPC = g++
 
+menus.o: src/menus/menus.c
+	${CC} $^ -Iinclude/menus -c -o $@
+
 extension.o: src/extension.cpp
 	${CPPC} $^ -Iinclude -c -o $@
 
