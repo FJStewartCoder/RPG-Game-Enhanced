@@ -23,6 +23,12 @@ extern "C" {
 
 #include <filesystem>
 
+// inject headers
+#include "inject/inject_api.hpp"
+#include "inject/inject_core.hpp"
+#include "inject/inject_build.hpp"
+
+
 // all errors in a namespace
 enum class errors {
     OK,

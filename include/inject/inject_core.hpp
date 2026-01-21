@@ -1,0 +1,6 @@
+#ifndef INJECT_CORE_HPP
+#define INJECT_CORE_HPP
+
+
+
+#endif // INJECT_CORE_HPP

@@ -118,3 +118,13 @@ end
 Load BUILD_FILE ... as before
 Load CAMPAIGN_FILE ... as before
 
+
+**INJECTS:**
+CORE:
+player and node data
+
+API:
+all functions that can be called by scripts
+
+BUILD:
+all functions required to build nodes types and campaigns
