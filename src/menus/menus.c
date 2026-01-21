@@ -1,6 +1,73 @@
 #include "menus.h"
 
 
+// HELPER FUNCTIONS -------------------------------------------------------------------------------------------------------
+
+
+bool menu_has_default(const menu_t *menu) {
+    return menu->default_ptr != NULL;
+}
+
+int get_default_index(const menu_t *menu) {
+    // get the index by getting the size difference from the start of the array and divide by item size
+    return menu->default_ptr - menu->options;
+}
+
+int str_to_lower(char *str) {
+    const int a_diff = 'A' - 'a';
+
+    // iterate each character and set to lowercase
+    for ( int i = 0; i < strlen(str); i++ ) {
+        char cur_char = str[i];
+
+        // if the character can be lowercase in english alphabet
+        if ( cur_char >= 'A' && cur_char <= 'Z' ) {
+            str[i] = cur_char - a_diff;
+        }
+    }
+
+    return 0;
+}
+
+int str_to_upper(char *str) {
+    const int a_diff = 'A' - 'a';
+
+    // iterate each character and set to lowercase
+    for ( int i = 0; i < strlen(str); i++ ) {
+        char cur_char = str[i];
+
+        // if the character can be lowercase in english alphabet
+        if ( cur_char >= 'a' && cur_char <= 'z' ) {
+            str[i] = cur_char + a_diff;
+        }
+    }
+
+    return 0;
+}
+
+int read_from_stdin(char *buf, size_t buf_size) {
+    int i = 0;
+    char c;
+
+    // the max number of characters to read
+    const int read_until = buf_size - 1;
+
+    // read until new line ( which is when user pressed enter )
+    while ( (c = fgetc(stdin)) != '\n' ) {
+        // add characters to buffer until we fill all but one char
+        // DON'T BREAK BECAUSE WE NEED TO READ INTO NO WHERE TO REMOVE NEXT INPUT
+        if ( i < read_until ) {
+            // set buf character and increment i
+            buf[i++] = c;
+        }
+    }
+
+    // set the end of the string with null terminator
+    buf[i] = '\0';
+
+    return 0;
+}
+
 // INITIALISATION FUNCTIONS -----------------------------------------------------------------------------------------------
 
 
@@ -10,7 +77,10 @@ menu_t create_menu(char *name, char *message) {
     
     // this must be set to 0 otherwise we will have segfault
     menu.num_options = 0;
-    menu.is_valid = true;
+
+    // initialise booleans
+    menu.is_valid = true;   
+    menu.default_ptr = NULL;
 
     // copy the strings into the memory
     if ( strlen(name) > MAX_MENU_NAME_LENGTH ) {
@@ -46,19 +116,32 @@ menu_item_t *add_menu_item(menu_t *menu, char *name, bool is_default) {
 
     // initialise its values
     new_item.name = name;
-    new_item.is_default = is_default;
 
+    if ( menu_has_default(menu) ) {
+        // set default status to false
+        is_default = false;
+    }
+
+    // set default to is default ( will be false if already has default or whatever the user selects otherwise )
+    new_item.is_default = is_default;
+    
     // add the item and increment the size count
     menu->options[menu->num_options] = new_item;
+
+    // create a pointer to the current item ( needed for default ptr and return value )
+    menu_item_t *option_ptr = &menu->options[menu->num_options];
+
+    // if the current item is default then set the default ptr to this item
+    if ( is_default ) {
+        menu->default_ptr = option_ptr;
+    }
+
+    // increment option count
     menu->num_options = menu->num_options + 1;
     
     // return a pointer to the new item
-    return &menu->options[menu->num_options - 1];
+    return option_ptr;
 }
-
-
-// HELPER FUNCTIONS -------------------------------------------------------------------------------------------------------
-
 
 
 // STANDARD MENU FUNCTIONS ------------------------------------------------------------------------------------------------
@@ -82,19 +165,27 @@ menu_return_t standard_menu(const menu_t *menu) {
     const int message_exists = strlen(menu->message) != 0;
     if ( message_exists == 1 ) { printf("%s\n", menu->message); }
 
-    while ( 1 ) {
+    // read buffer
+    char buf[10];
+
+    while ( true ) {
         printf(">>> ");
 
         int option;
-        int res = scanf("%d", &option);
 
-        const int option_is_valid = option >= 1 && option <= menu_options_length;
+        read_from_stdin(buf, sizeof(buf));
+        int res = sscanf(buf, "%d", &option);
 
-        if ( option_is_valid ) {
-            return_val.idx = option - 1;
-            return_val.str = menu->options[option - 1].name;
+        // if sscanf is successful, process the data, else try again
+        if ( res == 1 ) {
+            const int option_is_valid = option >= 1 && option <= menu_options_length;
 
-            return return_val;
+            if ( option_is_valid ) {
+                return_val.idx = option - 1;
+                return_val.str = menu->options[option - 1].name;
+
+                return return_val;
+            }
         }
 
         printf("Please try again\n");
@@ -252,14 +343,19 @@ menu_return_t text_menu(const menu_t *menu) {
     const unsigned int buf_size = sizeof(char) * (longest_str + 2);
 
     // allocate some memory and set all chars to null terminators
-    // TODO: fix buffer overflow
     char *buf = malloc( buf_size );
     memset(buf, '\0', buf_size);
 
     int return_idx = -1;
 
-    while ( 1 ) {
-        scanf("%s", buf);
+    while ( true ) {
+        read_from_stdin(buf, buf_size);
+
+        const bool buf_is_empty = strcmp(buf, "") == 0;
+
+        if ( buf_is_empty && menu_has_default(menu) ) {
+            return_idx = get_default_index(menu);
+        }
 
         for (int i = 0; i < menu_options_length; i++) {
             if ( strcmp(option_alias[i].alias, buf) == 0 ) {

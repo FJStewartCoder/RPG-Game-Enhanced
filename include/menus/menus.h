@@ -23,6 +23,7 @@ typedef struct {
     menu_item_t options[MAX_MENU_ITEMS];
     unsigned int num_options;
 
+    menu_item_t *default_ptr;
     bool is_valid;
 } menu_t;
 
