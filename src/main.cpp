@@ -317,10 +317,9 @@ int main() {
     // open libs so we have access to print
     lua.open_libraries(sol::lib::base, sol::lib::io, sol::lib::table);
 
-    // create seperate environments
+    // create and configure environments  --------------------------------------------------------------------------------------------
 
-    // TODO: fallbacks need adding
-    sol::environment core_env(lua, sol::create);  // TODO: may need fallbacks to base
+    sol::environment core_env(lua, sol::create);
     sol::environment scripts_env(lua, sol::create, lua.globals());  // NEEDS LUA GLOBALS
 
     const sol::basic_reference scripts_fallback = scripts_env;
@@ -330,6 +329,8 @@ int main() {
     inject_core(core_env);
     inject_build_tools(build_env, core_env);
     inject_api(scripts_env);
+
+    // -------------------------------------------------------------------------------------------------------------------------------
 
     auto scripts = std::filesystem::directory_iterator(engine::directories::SCRIPTS);
 
@@ -375,7 +376,8 @@ int main() {
         return 1;
     }
 
-    // LOAD BUILD_FILE ----------------------------------------------------------------
+    // LOAD BUILD_FILE ---------------------------------------------------------------------------------------------------------------
+
     load_file(lua, build_env, "scripts/BUILD_FILE.lua");
 
     if ( has_func(build_env, engine::func::extension::EXTEND) ) {
@@ -412,12 +414,12 @@ int main() {
         return 1;
     }
 
-    // ITERMEDIATE STEPS BEFORE CAMPAIGN FILE -------------------------------------------
+    // ITERMEDIATE STEPS BEFORE CAMPAIGN FILE ----------------------------------------------------------------------------------------
 
     // build the nodes
     build_node_queue(core_env, core_env[engine::node::TEMPLATE]);
 
-    // LOAD CAMPAIGN_FILE ----------------------------------------------------------------
+    // LOAD CAMPAIGN_FILE ------------------------------------------------------------------------------------------------------------
 
     load_file(lua, build_env, "scripts/CAMPAIGN_FILE.lua");
 
@@ -438,7 +440,7 @@ int main() {
         return 1;
     }
 
-    // -----------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------------------------------------------------------
 
     // test if the data is found from the injection
     std::cout << core_env[engine::node::TEMPLATE][engine::node::NAME].get<std::string>() << std::endl;
