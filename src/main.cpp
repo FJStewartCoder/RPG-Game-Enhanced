@@ -158,7 +158,7 @@ node_directions get_player_input(node_t *node) {
 
     add_menu_item(&menu, "quit", false);
     
-    menu_return_t int_choice = show_menu(&menu, STANDARD);
+    menu_return_t int_choice = show_menu(&menu, TEXT);
     const char *input = int_choice.str;
 
     // if block again for correct return

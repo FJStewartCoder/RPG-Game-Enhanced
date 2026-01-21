@@ -7,31 +7,35 @@
 menu_t create_menu(char *name, char *message) {
     // create a new menu
     menu_t menu;
-
+    
+    // this must be set to 0 otherwise we will have segfault
+    menu.num_options = 0;
     menu.is_valid = true;
 
     // copy the strings into the memory
-    if ( strlen(name) + 1 <= MAX_MENU_NAME_LENGTH ) {
-        strcpy(menu.name, name);
+    if ( strlen(name) > MAX_MENU_NAME_LENGTH ) {
+        menu.is_valid = false;
+        return menu;
     }
-    else {
+
+    // copy the name into the name
+    strcpy(menu.name, name);
+    
+    if ( strlen(message) > MAX_MENU_MESSAGE_LENGTH ) {
         menu.is_valid = false;
         return menu;
     }
     
-    if ( strlen(message) + 1 <= MAX_MENU_MESSAGE_LENGTH ) {
-        strcpy(menu.message, message);
-    }
-    else {
-        menu.is_valid = false;
-        return menu;
-    }
+    // copy the message into the message field
+    strcpy(menu.message, message);
 
     // return the menu
     return menu;
 }
 
 menu_item_t *add_menu_item(menu_t *menu, char *name, bool is_default) {
+    // printf("Add new item called\n");
+
     // basic validation
     if ( menu->num_options >= MAX_MENU_ITEMS ) {
         return NULL;
@@ -42,7 +46,7 @@ menu_item_t *add_menu_item(menu_t *menu, char *name, bool is_default) {
 
     // initialise its values
     new_item.name = name;
-    new_item.is_default;
+    new_item.is_default = is_default;
 
     // add the item and increment the size count
     menu->options[menu->num_options] = new_item;
