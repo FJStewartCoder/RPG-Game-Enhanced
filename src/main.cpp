@@ -303,6 +303,43 @@ void gameloop(sol::environment &core_env, node_t *(&start_node)) {
     }
 }
 
+
+int main_menu() {
+    menu_t menu = create_menu("Main Menu", "Welcome to the game!");
+
+    add_menu_item(&menu, "New Campaign", false);
+    add_menu_item(&menu, "Load Campaign", false);
+    add_menu_item(&menu, "Quit", false);
+
+    menu_return_t res = show_menu(&menu, STANDARD);
+
+    // log the option the user chose
+    log_trace("User selected %s in %s", res.str, menu.name);
+
+    // switch the selection
+    switch (res.idx) {
+        // NEW CAMPAIGN
+        case 0:
+            break;
+
+        // LOAD CAMPAIGN
+        case 1:
+            break;
+        
+        // QUIT
+        case 2:
+            break;
+
+        // BAD CODE
+        default:
+            log_fatal("Whoever wrote the code to allow this is bad.");
+            break;
+    }
+
+    return 0;
+}
+
+
 int main() {
     // open the log file
     FILE *fp = fopen("log.txt", "w");
@@ -481,6 +518,8 @@ int main() {
 
     std::cout << res << " " << res2 << std::endl;
     */
+
+    main_menu();
 
     node_t *cur = get_node(0);
 
