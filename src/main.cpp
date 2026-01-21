@@ -38,39 +38,6 @@ enum class errors {
 };
 
 
-int inject_core_node_data(sol::environment &env) {
-    // create a new table with the following data
-    env[engine::node::TEMPLATE] = env.create_with(
-        engine::node::NAME, "Node Name",
-        engine::node::LAND, []() {},
-        engine::node::LEAVE, []() {}
-    );
-
-    // create empty list for the availible nodes
-    env[engine::node::AVAILABLE] = env.create();
-
-    // persitently keep the new nodes in lua space
-    env[engine::node::QUEUE] = env.create();
-
-    return 0;
-}
-
-int inject_core_player_data(sol::environment &env) {
-    env[engine::player::DATA] = env.create_with(
-        engine::player::NAME, "Player Name",
-        engine::player::POSITION, 0
-    );
-
-    return 0;
-}
-
-int inject_core(sol::environment &env) {
-    inject_core_node_data(env);
-    inject_core_player_data(env);
-
-    return 0;
-}
-
 int check_default_node_table(sol::table &table) {
     sol::optional<std::string> name = table[engine::node::NAME];
     sol::optional<sol::function> on_land = table[engine::node::LAND];
@@ -362,6 +329,7 @@ int main() {
     // inject functions and data into relevant environments
     inject_core(core_env);
     inject_build_tools(build_env, core_env);
+    inject_api(scripts_env);
 
     auto scripts = std::filesystem::directory_iterator(engine::directories::SCRIPTS);
 
@@ -452,8 +420,6 @@ int main() {
     // LOAD CAMPAIGN_FILE ----------------------------------------------------------------
 
     load_file(lua, build_env, "scripts/CAMPAIGN_FILE.lua");
-
-    inject_environment_tools(build_env);
 
     if ( has_func(build_env, engine::func::extension::ENVIRONMENT) ) {
         sol::protected_function environment_func = build_env[engine::func::extension::ENVIRONMENT];

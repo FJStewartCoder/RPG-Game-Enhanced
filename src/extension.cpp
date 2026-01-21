@@ -12,46 +12,6 @@ extern "C" {
     #include "log/log.h"
 }
 
-
-int build_player_extension(sol::environment &env, sol::table extension) {
-    // TODO: add validation to prevent overrighting default properties or properties that already exist
-    for ( const auto &item : extension ) {     
-        log_info("Extend player called with extension: \"%s\"", item.first.as<std::string>().c_str());
-        env[engine::player::DATA][item.first] = item.second;
-    }
-
-    return 0;
-}
-
-int build_node_extension(sol::environment &env, sol::table extension) {
-    // TODO: add validation to prevent overrighting default properties or properties that already exist
-    for ( const auto &item : extension ) {
-        log_info("Extend node called with extension: \"%s\"", item.first.as<std::string>().c_str());
-        env[engine::node::TEMPLATE][item.first] = item.second;
-    }
-
-    return 0;
-}
-
-int inject_build_tools(sol::environment &build_env, sol::environment &core) {
-    // add the extend player function
-    build_env.set_function(engine::func::api::EXTEND_PLAYER, [&core](sol::table extension) {
-        return build_player_extension(core, extension);
-    });
-
-    // add the extend node function
-    build_env.set_function(engine::func::api::EXTEND_NODE, [&core](sol::table extension) {
-        return build_node_extension(core, extension);
-    });
-
-    // add the add node function
-    build_env.set_function(engine::func::api::ADD_NODE_TYPE, [&core](sol::table table) {
-        return new_node_type(core, table);
-    });
-
-    return 0;
-}
-
 // function to ensure that there are no matching globals
 int test_new_state(sol::environment &load_env, sol::environment extension) {
     // iterate each global in the extension state. If there is a matching one in base, we throw an error

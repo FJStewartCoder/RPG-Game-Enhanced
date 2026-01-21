@@ -1,6 +1,20 @@
 CC = gcc
 CPPC = g++
 
+
+inject_api.o: src/inject/inject_api.cpp
+	${CPPC} $^ -Iinclude/inject -Iinclude -c -o $@
+
+inject_build.o: src/inject/inject_build.cpp
+	${CPPC} $^ -Iinclude/inject -Iinclude -c -o $@
+
+inject_core.o: src/inject/inject_core.cpp
+	${CPPC} $^ -Iinclude/inject -Iinclude -c -o $@
+
+
+INJECT = inject_api.o inject_build.o inject_core.o
+
+
 menus.o: src/menus/menus.c
 	${CC} $^ -Iinclude/menus -c -o $@
 
@@ -19,7 +33,7 @@ log.o:
 nodes.o: src/nodes.cpp
 	${CPPC} $^ -Iinclude -c -o $@
 
-all: src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o
+all: src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o ${INJECT}
 	${CPPC} $^ -Iinclude -Llib -llua54 -lm -g
 
 clean:

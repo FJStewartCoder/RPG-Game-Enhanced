@@ -155,25 +155,6 @@ int build_node(
     return environment.size() - 1;
 }
 
-int inject_environment_tools(sol::environment &build_env) {
-    build_env.set_function(
-        engine::func::api::BUILD_NODE,
-
-        [](
-            std::string node_type,
-            sol::table unique_data,
-            int previous_node_id,
-            std::string relation,
-            bool one_way
-        ) {
-            log_debug("Called build function");
-            return build_node(node_type, unique_data, previous_node_id, relation, one_way);
-        }
-    );
-
-    return 0;
-} 
-
 int new_node_type(sol::environment &core_env, sol::table node_table) {
     // add the node table to the new lua queue
     core_env[engine::node::QUEUE].get<sol::table>().add(node_table);
