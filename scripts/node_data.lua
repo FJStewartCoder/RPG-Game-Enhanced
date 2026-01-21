@@ -8,6 +8,9 @@ function start(data, node, player)
     -- print("Got data data1 " ..data.data1)
 
     print("The player's name is " ..player.name)
+
+    selection = alt_menu("ABC", "ADSKJDAHS", {"ABC", "ABC2", "ABC3"})
+    print(selection)
 end
 
 function start_leave(data, node, player)

@@ -40,6 +40,12 @@ namespace engine {
             const std::string NEW_CAMPAIGN = "new_campaign";
             const std::string BUILD_NODE = "build_node";
         }
+
+        namespace scripts_api {
+            // functions bound to menu creation
+            const std::string BASIC_MENU = "basic_menu";
+            const std::string ALTERNATE_MENU = "alt_menu";
+        }
     };
 
     namespace player {
