@@ -83,7 +83,7 @@ menu_t create_menu(char *name, char *message) {
     menu.default_ptr = NULL;
 
     // copy the strings into the memory
-    if ( strlen(name) > MAX_MENU_NAME_LENGTH ) {
+    if ( strlen(name) >= MAX_MENU_NAME_LENGTH ) {
         menu.is_valid = false;
         return menu;
     }
@@ -91,7 +91,7 @@ menu_t create_menu(char *name, char *message) {
     // copy the name into the name
     strcpy(menu.name, name);
     
-    if ( strlen(message) > MAX_MENU_MESSAGE_LENGTH ) {
+    if ( strlen(message) >= MAX_MENU_MESSAGE_LENGTH ) {
         menu.is_valid = false;
         return menu;
     }
@@ -115,7 +115,12 @@ menu_item_t *add_menu_item(menu_t *menu, char *name, bool is_default) {
     menu_item_t new_item;
 
     // initialise its values
-    new_item.name = name;
+    if ( strlen(name) >= MAX_MENU_ITEM_NAME_LENGTH ) {
+        return NULL;
+    }
+    
+    // copy the name into the new name buffer
+    strcpy(new_item.name, name);
 
     if ( menu_has_default(menu) ) {
         // set default status to false
@@ -147,7 +152,7 @@ menu_item_t *add_menu_item(menu_t *menu, char *name, bool is_default) {
 // STANDARD MENU FUNCTIONS ------------------------------------------------------------------------------------------------
 
 
-menu_return_t standard_menu(const menu_t *menu) {
+menu_return_t standard_menu(menu_t *menu) {
     menu_return_t return_val;
 
     // if 0, then they match
@@ -220,6 +225,7 @@ int idx_sort(const void *a, const void *b) {
 
 typedef struct {
     // long line of memory storing the aliases
+    // the size of this will never be longer than the number of full menu item names
     char *alias_string;
 
     // to show if errors have occured
@@ -231,11 +237,7 @@ aliases_t get_aliases(reorder_item_t option_aliases[MAX_MENU_ITEMS], unsigned in
     
     // allocate a size of memory required to store all of the aliases as a single long line in the worst case
     // this is sum of length of each string + total number of aliases ( for \0 ) 
-    unsigned int mem_size = 0;
-
-    for ( int i = 0; i < length; i++ ) {
-        mem_size += strlen(option_aliases[i].str) + 1;
-    }
+    unsigned int mem_size = MAX_MENU_ITEM_NAME_LENGTH * MAX_MENU_ITEMS;
 
     // allocate memory
     aliases.alias_string = malloc(mem_size * sizeof(char));
@@ -249,7 +251,7 @@ aliases_t get_aliases(reorder_item_t option_aliases[MAX_MENU_ITEMS], unsigned in
     // a pointer to the start of the current string
     char *cur_ptr = aliases.alias_string;
 
-    // iterate each option
+    // iterate each menu option
     for (int i = 0; i < length; i++) {
         // get the current string option
         const char *option = option_aliases[i].str;
@@ -263,6 +265,10 @@ aliases_t get_aliases(reorder_item_t option_aliases[MAX_MENU_ITEMS], unsigned in
         for (int j = 0; j < strlen(option); j++) {
             alias[j] = option[j];
             alias[j + 1] = '\0';
+
+            // convert the new alias to lowercase
+            // ENSURES THAT WHEN COMPARING THE NEW ALIAS IS LOWERCASE
+            str_to_lower(alias);
 
             int valid = 1;
 
@@ -294,7 +300,7 @@ int free_aliases(aliases_t *aliases) {
     return 0;
 }
 
-menu_return_t text_menu(const menu_t *menu) {
+menu_return_t text_menu(menu_t *menu) {
     menu_return_t res;
 
     const int message_exists = strlen(menu->message) != 0;
@@ -306,7 +312,7 @@ menu_return_t text_menu(const menu_t *menu) {
         printf("Select an option: ");
     }
 
-    // array of pointers to items
+    // array of items used to reorder the set
     reorder_item_t option_alias[MAX_MENU_ITEMS];
 
     const int menu_options_length = menu->num_options;
@@ -315,15 +321,14 @@ menu_return_t text_menu(const menu_t *menu) {
     for (int i = 0; i < menu_options_length; i++) {
         option_alias[i].idx = i;
         option_alias[i].str = menu->options[i].name;
+        option_alias[i].alias = NULL;
     }
 
-    // sort in ascending order of length
+    // sort in the reorder items in ascending order of length
     qsort(option_alias, menu_options_length, sizeof(reorder_item_t), len_sort);
 
     // create all of the aliases and find the length of the longest string
     aliases_t aliases = get_aliases(option_alias, menu_options_length);
-    // required to malloc memory to store the use input in
-    const int longest_str = strlen(option_alias[menu_options_length - 1].str);
 
     qsort(option_alias, menu_options_length, sizeof(reorder_item_t), idx_sort);
 
@@ -337,10 +342,25 @@ menu_return_t text_menu(const menu_t *menu) {
             template = "(%s)%s: ";
         }
 
-        printf(template, option_alias[i].alias, option_alias[i].str + strlen(option_alias[i].alias));
+        // buffer to allow printing in upper and lowercase as needed
+        char name_buf[MAX_MENU_ITEM_NAME_LENGTH];
+        char alias_buf[MAX_MENU_ITEM_NAME_LENGTH];
+
+        strcpy(alias_buf, option_alias[i].alias);
+        str_to_lower(alias_buf);
+
+        if ( menu_has_default(menu) && ( i == get_default_index(menu) ) ) {
+            str_to_upper(alias_buf);
+        }
+
+        strcpy(name_buf, option_alias[i].str);
+        str_to_lower(name_buf);
+        
+        printf(template, alias_buf, name_buf + strlen(option_alias[i].alias));
     }
 
-    const unsigned int buf_size = sizeof(char) * (longest_str + 2);
+    // buffer is size of string 2 longer than the longest menu item name length
+    const unsigned int buf_size = sizeof(char) * (MAX_MENU_ITEM_NAME_LENGTH + 2);
 
     // allocate some memory and set all chars to null terminators
     char *buf = malloc( buf_size );
@@ -351,14 +371,20 @@ menu_return_t text_menu(const menu_t *menu) {
     while ( true ) {
         read_from_stdin(buf, buf_size);
 
+        // ensure that the check item is in the same case as all of the aliases
+        str_to_lower(buf);
+
         const bool buf_is_empty = strcmp(buf, "") == 0;
 
         if ( buf_is_empty && menu_has_default(menu) ) {
             return_idx = get_default_index(menu);
+            break;
         }
 
         for (int i = 0; i < menu_options_length; i++) {
-            if ( strcmp(option_alias[i].alias, buf) == 0 ) {
+            const char *alias = option_alias[i].alias;
+
+            if ( strcmp(alias, buf) == 0 ) {
                 return_idx = i;
                 break;
             }
@@ -371,8 +397,8 @@ menu_return_t text_menu(const menu_t *menu) {
         printf("Please try again\n");
     }
 
-    free_aliases(&aliases);
     free(buf);
+    free_aliases(&aliases);
 
     res.idx = return_idx;
     res.str = menu->options[return_idx].name;
@@ -384,7 +410,7 @@ menu_return_t text_menu(const menu_t *menu) {
 // SHOW MENU FUNCTIONS ----------------------------------------------------------------------------------------------------
 
 
-menu_return_t show_menu(const menu_t *menu, menu_type_t menu_type) {
+menu_return_t show_menu(menu_t *menu, menu_type_t menu_type) {
     menu_return_t res = { 0, "" };
 
     switch ( menu_type ) {

@@ -10,8 +10,10 @@
 #define MAX_MENU_NAME_LENGTH 20
 #define MAX_MENU_MESSAGE_LENGTH 100
 
+#define MAX_MENU_ITEM_NAME_LENGTH 20
+
 typedef struct {
-    char *name;
+    char name[MAX_MENU_ITEM_NAME_LENGTH];
     bool is_default;
 } menu_item_t;
 
@@ -42,7 +44,7 @@ menu_t create_menu(char *name, char *message);
 
 menu_item_t *add_menu_item(menu_t *menu, char *name, bool is_default);
 
-menu_return_t show_menu(const menu_t *menu, menu_type_t menu_type);
+menu_return_t show_menu(menu_t *menu, menu_type_t menu_type);
 
 
 #endif // MENUS_H
