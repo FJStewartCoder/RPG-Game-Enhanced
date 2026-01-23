@@ -15,8 +15,8 @@ inject_core.o: src/inject/inject_core.cpp
 INJECT = inject_api.o inject_build.o inject_core.o
 
 
-menus.o: src/menus/menus.c
-	${CC} $^ -Iinclude/menus -c -o $@
+menus.o: src/menus/menus.cpp
+	${CPPC} $^ -Iinclude/menus -c -o $@
 
 extension.o: src/extension.cpp
 	${CPPC} $^ -Iinclude -c -o $@

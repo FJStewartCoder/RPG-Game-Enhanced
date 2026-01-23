@@ -15,8 +15,9 @@
 // include log.h as a C lib
 extern "C" {
     #include "log/log.h"
-    #include "menus/menus.h"
 }
+
+#include "menus/menus.hpp"
 
 // for all of the constants
 #include "lua_engine_constants.hpp"
@@ -117,22 +118,23 @@ bool is_in(T item, std::vector<T> array) {
 }
 
 node_directions get_player_input(node_t *node) {
-    menu_t menu = create_menu("", "Select a direction");
+    Menu menu("", "Select a direction");
 
     // get each option
-    if ( node->left != nullptr ) { add_menu_item(&menu, "left", false); }
-    if ( node->right != nullptr ) { add_menu_item(&menu, "right", false); }
-    if ( node->up != nullptr ) { add_menu_item(&menu, "up", false); }
-    if ( node->down != nullptr ) { add_menu_item(&menu, "down", false); }
-    if ( node->forward != nullptr ) { add_menu_item(&menu, "forward", false); }
-    if ( node->back != nullptr ) { add_menu_item(&menu, "back", false); }
-    if ( node->next != nullptr ) { add_menu_item(&menu, "next", false); }
-    if ( node->previous != nullptr ) { add_menu_item(&menu, "previous", false); }
+    if ( node->left != nullptr ) { menu.AddItem("left"); }
+    if ( node->right != nullptr ) { menu.AddItem("right"); }
+    if ( node->up != nullptr ) { menu.AddItem("up"); }
+    if ( node->down != nullptr ) { menu.AddItem("down"); }
+    if ( node->forward != nullptr ) { menu.AddItem("forward"); }
+    if ( node->back != nullptr ) { menu.AddItem("back"); }
+    if ( node->next != nullptr ) { menu.AddItem("next"); }
+    if ( node->previous != nullptr ) { menu.AddItem("previous"); }
 
-    add_menu_item(&menu, "quit", false);
+    menu.AddItem("quit");
     
-    menu_return_t int_choice = show_menu(&menu, TEXT);
-    const char *input = int_choice.str;
+    std::string input = menu.ShowAlt();
+
+    log_debug("Menu returned: %s.", input.c_str());
 
     // if block again for correct return
     if ( input == "left" ) { return NODE_LEFT; }
@@ -305,35 +307,29 @@ void gameloop(sol::environment &core_env, node_t *(&start_node)) {
 
 
 int main_menu() {
-    menu_t menu = create_menu("Main Menu", "Welcome to the game!");
+    Menu menu("Main Menu", "Welcome to the game!");
 
-    add_menu_item(&menu, "New Campaign", false);
-    add_menu_item(&menu, "Load Campaign", false);
-    add_menu_item(&menu, "Quit", false);
+    menu.AddItem("New Campaign");
+    menu.AddItem("Load Campaign");
+    menu.AddItem("Quit");
 
-    menu_return_t res = show_menu(&menu, STANDARD);
+    std::string res = menu.ShowStandard();
 
     // log the option the user chose
-    log_trace("User selected %s in %s", res.str, menu.name);
+    log_trace("User selected %s.", res.c_str());
 
-    // switch the selection
-    switch (res.idx) {
-        // NEW CAMPAIGN
-        case 0:
-            break;
+    // NEW CAMPAIGN
+    if ( res == "New Campaign" ) {
 
-        // LOAD CAMPAIGN
-        case 1:
-            break;
-        
-        // QUIT
-        case 2:
-            break;
+    }
+    else if ( res == "Load Campaign" ) {
 
-        // BAD CODE
-        default:
-            log_fatal("Whoever wrote the code to allow this is bad.");
-            break;
+    }
+    else if ( res == "Quit" ){
+
+    }
+    else {
+        log_fatal("Whoever wrote the code to allow this is bad.");
     }
 
     return 0;
