@@ -128,3 +128,54 @@ all functions that can be called by scripts
 
 BUILD:
 all functions required to build nodes types and campaigns
+
+New Directory Load System:
+Have one directory that stores all of the campaigns
+Have a special directory that stores scripts that are loaded regardless of campaign
+( Toggled by settings in init file )
+Each directory will have a single init file ( replaces BUILD_FILE and CAMPAIGN_FILE )
+It will be a combination of both files + settings
+
+Each directory in the campaign dir will be its own campaign. The dir name will be the name of the campaign unless specified otherwise in the init file.
+
+Each campaign will be recursively searched up to some specified depth for all .lua files.
+Only the initial directory should have an init file. Others will be ignored.
+
+Each campaign name will be saved in a map in the C++ which will allow you to select which one to play.
+
+INIT FILE:
+- Build function ( build )
+- Extend function ( extend )
+- Environment function ( environment )
+
+- Campaign Name ( CAMPAIGN_NAME = string )
+- Use Generic Functions ( USE_GENERIC = bool ) ( to either enable or disable the use of the campaignless nodes )
+
+Psuedo Psuedo Code:
+map of string to string ( name to directory )
+
+For each file/folder in campaigns dir
+    if is file then
+        skip or throw error
+    end if
+
+    // must be dir
+    if dir does not have init file
+        fail/skip or throw error
+    end if
+
+    if init file has campaign name
+        add campaign name to map with dir
+    else
+        add directory name to map with dir
+    end if
+end for
+
+campaign_to_play = Ask user for which campaign to play / load a random one for testing
+
+if campaign_to_play still exists
+    load process
+else
+    fail or error
+end if
+
