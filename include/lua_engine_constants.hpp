@@ -59,9 +59,19 @@ namespace engine {
     namespace file {
         const std::string BUILD = "BUILD_FILE.lua";
         const std::string CAMPAIGN = "CAMPAIGN_FILE.lua";
+
+        const std::string INIT = "INIT.lua";
     };
 
+    namespace settings {
+        const std::string CAMPAIGN_NAME = "CAMPAIGN_NAME";
+        const std::string USE_GENERIC = "USE_GENERIC";
+    }
+
     namespace directories {
+        const std::string CAMPAIGNS = "campaigns";
+        const std::string GENERIC = "campaignless";
+
         const std::string SCRIPTS = "scripts";
     }
 };

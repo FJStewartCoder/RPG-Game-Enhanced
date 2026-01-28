@@ -1,0 +1,1 @@
+CAMPAIGN_NAME = "Hello123"

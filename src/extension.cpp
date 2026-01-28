@@ -38,6 +38,23 @@ int test_new_state(sol::environment &load_env, sol::environment extension) {
 }
 
 // function to build the extensions
+int load_file(sol::state &lua, std::string file_name) {
+    // create a new special state to verify the file before combining with the main program
+    sol::environment test_env(lua, sol::create);
+
+    try {
+        lua.safe_script_file(file_name);
+        log_info("%s has been opened", file_name.c_str());
+    }
+    catch ( const sol::error &e ) {
+        log_error("File %s open with error\n%s", file_name.c_str(), e.what());
+        return 1;
+    }
+
+    return 0;
+}
+
+// function to build the extensions
 int load_file(sol::state &lua, sol::environment &load_env, std::string file_name) {
     // create a new special state to verify the file before combining with the main program
     sol::environment test_env(lua, sol::create);

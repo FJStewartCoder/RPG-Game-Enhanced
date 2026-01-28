@@ -335,6 +335,83 @@ int main_menu() {
     return 0;
 }
 
+// gets all of the campaign names and directories
+// returns a map of campaign names : directory location
+std::unordered_map<std::string, std::string> get_campaigns() {
+    std::unordered_map<std::string, std::string> campaigns;
+
+    // ignore typename
+    std::filesystem::__cxx11::directory_iterator campaigns_dir;
+
+    try {
+        campaigns_dir = std::filesystem::directory_iterator(engine::directories::CAMPAIGNS);
+    }
+    catch ( const std::filesystem::__cxx11::filesystem_error &error ) {
+        log_error("Campaigns file does not exist.");
+        return campaigns;
+    }
+
+    log_info("Campaigns file found.");
+
+    for ( const auto &item : campaigns_dir ) {
+        if ( !item.is_directory() ) {
+            log_info("%s is not a directory", item.path().filename().c_str());
+            continue;
+        }
+
+        const std::string init_file_path = item.path().generic_string() + "/" + engine::file::INIT;
+
+        log_debug("Searching for init file: %s", init_file_path.c_str());
+
+        const bool campaign_has_init = std::filesystem::exists(init_file_path);
+
+        // the current campaign name is the name of the directory
+        std::string campaign_name = item.path().filename();
+
+        if ( campaign_has_init ) {
+            log_info("Campaign has init file.");
+
+            sol::state lua;
+
+            int res = load_file(lua, init_file_path);
+
+            const bool file_success = res == 0;
+
+            // jump out of the if statement since the file is broken
+            if ( !file_success ) {
+                log_info("init file is not valid.");
+                goto add_file;
+            }
+
+            sol::optional<std::string> check_name = lua[engine::settings::CAMPAIGN_NAME];
+
+            // if the name exists
+            if ( check_name ) {
+                log_info("init file has campaign name.");
+                campaign_name = check_name.value();
+            }
+        }
+
+        // goto for escaping the if block
+        add_file:
+
+        const bool campaign_exists = campaigns.find(campaign_name) != campaigns.end();
+
+        // if the campaign does not already exist, add it to the map
+        // else show error message
+        if ( !campaign_exists ) {
+            log_info("Adding campaign with name: %s", campaign_name.c_str());
+            
+            // map the campaign name to the full file path to the directory
+            campaigns[campaign_name] = std::filesystem::canonical(item.path());
+        }
+        else {
+            log_error("Can not add this campaign; another campaign already has this name.");
+        }
+    }
+
+    return campaigns;
+}
 
 int main() {
     // open the log file
@@ -343,6 +420,8 @@ int main() {
     // will always log
     log_add_fp(fp, 0);
     // log_set_quiet(true);
+
+    get_campaigns();
 
     // create lua interpreter
     sol::state lua;
