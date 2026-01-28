@@ -179,3 +179,6 @@ else
     fail or error
 end if
 
+We could use a campaign class to manage all of the correct states for us
+We could also just make a struct and initialisers.
+...

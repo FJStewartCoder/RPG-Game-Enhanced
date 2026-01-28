@@ -306,35 +306,6 @@ void gameloop(sol::environment &core_env, node_t *(&start_node)) {
 }
 
 
-int main_menu() {
-    Menu menu("Main Menu", "Welcome to the game!");
-
-    menu.AddItem("New Campaign");
-    menu.AddItem("Load Campaign");
-    menu.AddItem("Quit");
-
-    std::string res = menu.ShowStandard();
-
-    // log the option the user chose
-    log_trace("User selected %s.", res.c_str());
-
-    // NEW CAMPAIGN
-    if ( res == "New Campaign" ) {
-
-    }
-    else if ( res == "Load Campaign" ) {
-
-    }
-    else if ( res == "Quit" ){
-
-    }
-    else {
-        log_fatal("Whoever wrote the code to allow this is bad.");
-    }
-
-    return 0;
-}
-
 // gets all of the campaign names and directories
 // returns a map of campaign names : directory location
 std::unordered_map<std::string, std::string> get_campaigns() {
@@ -413,6 +384,58 @@ std::unordered_map<std::string, std::string> get_campaigns() {
     return campaigns;
 }
 
+
+void new_campaign() {
+    Menu menu("Campaign Selection");
+
+    auto campaigns = get_campaigns();
+
+    const bool empty = campaigns.size() == 0;
+
+    // if there are no campaigns return to main menu
+    if ( empty ) {
+        log_error("No campaigns availible.");
+        return;
+    }
+
+    for ( const auto &item : campaigns ) {
+        menu.AddItem(item.first);
+    }
+
+    menu.ShowStandard();
+}
+
+
+int main_menu() {
+    Menu menu("Main Menu", "Welcome to the game!");
+
+    menu.AddItem("New Campaign");
+    menu.AddItem("Load Campaign");
+    menu.AddItem("Quit");
+
+    std::string res = menu.ShowStandard();
+
+    // log the option the user chose
+    log_trace("User selected %s.", res.c_str());
+
+    // NEW CAMPAIGN
+    if ( res == "New Campaign" ) {
+        new_campaign();
+    }
+    else if ( res == "Load Campaign" ) {
+
+    }
+    else if ( res == "Quit" ){
+
+    }
+    else {
+        log_fatal("Whoever wrote the code to allow this is bad.");
+    }
+
+    return 0;
+}
+
+
 int main() {
     // open the log file
     FILE *fp = fopen("log.txt", "w");
@@ -420,8 +443,6 @@ int main() {
     // will always log
     log_add_fp(fp, 0);
     // log_set_quiet(true);
-
-    get_campaigns();
 
     // create lua interpreter
     sol::state lua;
