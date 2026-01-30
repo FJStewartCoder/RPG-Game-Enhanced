@@ -162,6 +162,28 @@ int new_node_type(sol::environment &core_env, sol::table node_table) {
     return 0;
 }
 
+// checks to see if a node table is valid
+int check_default_node_table(sol::table &table) {
+    sol::optional<std::string> name = table[engine::node::NAME];
+    sol::optional<sol::function> on_land = table[engine::node::LAND];
+    sol::optional<sol::function> on_leave = table[engine::node::LEAVE];
+
+    if ( !name ) {
+        log_error("Node data does not contain name field.");
+        return 1;
+    }
+    else if ( !on_land ) {
+        log_error("Node with name \"%s\" does not have landing function.", name.value().c_str());
+        return 1;
+    }
+    else if ( !on_leave ) {
+        log_error("Node with name \"%s\" does not have leaving function.", name.value().c_str());
+        return 1;
+    }
+
+    return 0;
+}
+
 int build_single_node(sol::environment &core_env, sol::table node_template, sol::table node_table) {
     // create the new table
     sol::table new_table = core_env.create();
@@ -185,6 +207,18 @@ int build_single_node(sol::environment &core_env, sol::table node_template, sol:
             // TODO: FIX
             // log_warn("Script tried to pass key to node with key %s that is not in the template.", new_pair.first.as<std::string>() );
         }
+    }
+
+    // validation of the default node table
+
+    // FIXES BELOW ERROR:
+    //     could experience an error where the node_table that is passed in overrights default parameters with other invalid types
+    //     ensure that when the node table is passed in, all integral data is of the correct type.
+
+    const bool default_table_invalid = check_default_node_table(new_table) != 0;
+
+    if ( default_table_invalid ) {
+        return 1;
     }
 
     // insert the new element to the node_types

@@ -39,42 +39,205 @@ enum class errors {
 };
 
 
-int check_default_node_table(sol::table &table) {
-    sol::optional<std::string> name = table[engine::node::NAME];
-    sol::optional<sol::function> on_land = table[engine::node::LAND];
-    sol::optional<sol::function> on_leave = table[engine::node::LEAVE];
+class Campaign {
+    private:
+        // create lua interpreter
+        sol::state lua;
 
-    if ( !name ) {
-        log_error("Node data does not contain name field.");
-        return 1;
-    }
-    else if ( !on_land ) {
-        log_error("Node with name \"%s\" does not have landing function.", name.value().c_str());
-        return 1;
-    }
-    else if ( !on_leave ) {
-        log_error("Node with name \"%s\" does not have leaving function.", name.value().c_str());
-        return 1;
-    }
+        // create and configure environments  --------------------------------------------------------------------------------------------
+        sol::environment core_env;
+        sol::environment scripts_env;
+        sol::environment build_env;  
 
-    return 0;
-}
+        // settings ----------------------------------------------------------------------------------------------------------------------
 
-int check_default_player_template(sol::table &table) {
-    sol::optional<std::string> name = table[engine::player::NAME];
-    sol::optional<int> position = table[engine::player::POSITION];
+        // just the name
+        std::string CAMPAIGN_NAME = "";
 
-    if ( !name ) {
-        log_error("Player data does not contain name field.");
-        return 1;
-    }
-    else if ( !position ) {
-        log_error("Player template does not have position data.");
-        return 1;
-    }
+        // whether or not use the generic directory
+        bool USE_GENERIC = false;
+
+        // -------------------------------------------------------------------------------------------------------------------------------
+
+        bool initExists(std::string campaignPath) {
+            const std::string initPath = campaignPath + "/" + engine::file::INIT;
+            return std::filesystem::exists(initPath);
+        }
+
+        // function that check for the existance of the init file in a directory
+        // if it exists, reads and loads the init file of a campaign dir
+        // loads into a new lua state to prevent issues with running init files
+
+        // campaignPath -> the path to the campaign
+
+        // returns 0 for good or 1 for bad result
+        int LoadInitSettings(std::string campaignPath) {
+            sol::state initFileState;
+
+            const std::string initPath = campaignPath + "/" + engine::file::INIT;
+
+            if ( !initExists(campaignPath) ) {
+                return 1;
+            }
+
+            // load the file into the new state
+            load_file(initFileState, initPath);
+
+            // extract data out of the init file
+        }
+
+        // function that checks for the expected functions and runs them
+        // this then deletes the reference to the function to allow more inits to be run
+
+        // campaignDir -> a directory iterator
+
+        // returns 0 for good or 1 for bad result
+        int RunInit(std::filesystem::__cxx11::directory_iterator campaignDir) {
+
+        }
+
+        // recursive function that loads a directory into the lua states and environments
+        // then, builds this directory based on the init file in the directory
+
+        // campaignDir -> a directory iterator
+
+        // returns 0 for good or 1 for bad result
+        int LoadDirectory(std::filesystem::__cxx11::directory_iterator campaignDir) {
+
+        }
+
+    public:
+        // gets all of the campaign names and directories
+        // returns a map of campaign names : directory location
+        static std::unordered_map<std::string, std::string> GetCampaigns() {
+            std::unordered_map<std::string, std::string> campaigns;
+
+            // ignore typename
+            std::filesystem::__cxx11::directory_iterator campaigns_dir;
+
+            try {
+                campaigns_dir = std::filesystem::directory_iterator(engine::directories::CAMPAIGNS);
+            }
+            catch ( const std::filesystem::__cxx11::filesystem_error &error ) {
+                log_error("Campaigns file does not exist.");
+                return campaigns;
+            }
+
+            log_info("Campaigns file found.");
+
+            for ( const auto &item : campaigns_dir ) {
+                if ( !item.is_directory() ) {
+                    log_info("%s is not a directory", item.path().filename().c_str());
+                    continue;
+                }
+
+                const std::string init_file_path = item.path().generic_string() + "/" + engine::file::INIT;
+
+                log_debug("Searching for init file: %s", init_file_path.c_str());
+
+                const bool campaign_has_init = std::filesystem::exists(init_file_path);
+
+                // the current campaign name is the name of the directory
+                std::string campaign_name = item.path().filename();
+
+                if ( campaign_has_init ) {
+                    log_info("Campaign has init file.");
+
+                    sol::state lua;
+
+                    int res = load_file(lua, init_file_path);
+
+                    const bool file_success = res == 0;
+
+                    // jump out of the if statement since the file is broken
+                    if ( !file_success ) {
+                        log_info("init file is not valid.");
+                        goto add_file;
+                    }
+
+                    sol::optional<std::string> check_name = lua[engine::settings::CAMPAIGN_NAME];
+
+                    // if the name exists
+                    if ( check_name ) {
+                        log_info("init file has campaign name.");
+                        campaign_name = check_name.value();
+                    }
+                }
+
+                // goto for escaping the if block
+                add_file:
+
+                const bool campaign_exists = campaigns.find(campaign_name) != campaigns.end();
+
+                // if the campaign does not already exist, add it to the map
+                // else show error message
+                if ( !campaign_exists ) {
+                    log_info("Adding campaign with name: %s", campaign_name.c_str());
+                    
+                    // map the campaign name to the full file path to the directory
+                    campaigns[campaign_name] = std::filesystem::canonical(item.path());
+                }
+                else {
+                    log_error("Can not add this campaign; another campaign already has this name.");
+                }
+            }
+
+            return campaigns;
+        }
+
+        int LoadCampaign(std::string campaignName) {
+            auto campaigns = GetCampaigns();
+            
+            const bool campaignExists = campaigns.find(campaignName) != campaigns.end();
+            if ( !campaignExists ) {
+                return 1;
+            }
+
+            const std::string campaignPath = campaigns[campaignName];
     
-    return 0;
-}
+            // recursively search that directory to load all of the data in to the environements
+            const auto campaignDir = std::filesystem::directory_iterator(campaignPath);
+
+            // load the main campaign dir
+            LoadInitSettings( campaignPath );
+
+            // if we want to use the generic functions, load them in
+            if ( USE_GENERIC ) {
+                // TODO: implement
+                // LoadDirectory( scripts );
+            }
+
+            LoadDirectory( campaignDir );
+        }
+
+        // constructor
+        Campaign() {
+            // open libs so we have access to print --------------------------------------------------------------------------------------
+
+            lua.open_libraries(sol::lib::base, sol::lib::io, sol::lib::table);
+
+            // initialise the environments -----------------------------------------------------------------------------------------------
+
+            core_env = sol::environment(lua, sol::create);
+            scripts_env = sol::environment(lua, sol::create, lua.globals());  // NEEDS LUA GLOBALS
+
+            const sol::basic_reference scripts_fallback = scripts_env;
+            build_env = sol::environment(lua, sol::create, scripts_fallback);  // NEEDS THE FUNCTIONS FROM SCRIPTS SO SET AS FALLBACK
+
+            // inject functions and data into relevant environments  ---------------------------------------------------------------------
+
+            inject_core(core_env);
+            inject_build_tools(build_env, core_env);
+            inject_api(scripts_env);
+
+            // ---------------------------------------------------------------------------------------------------------------------------
+        }
+
+        // destructor
+        ~Campaign() {
+
+        }
+};
 
 // could return none
 sol::optional<sol::table> get_node_data(sol::environment &core_env, std::string name) {
@@ -91,9 +254,6 @@ sol::optional<sol::table> get_node_data(sol::environment &core_env, std::string 
         if ( !node_table ) {
             continue;
         }
-        else if ( check_default_node_table( node_table.value() ) != 0 ) {
-            continue;
-        }
 
         // if the names match, set found to the current table and break
         if ( node_table.value()[engine::node::NAME] == name ) {
@@ -104,17 +264,6 @@ sol::optional<sol::table> get_node_data(sol::environment &core_env, std::string 
 
     // return no matter what is found
     return found_table;
-}
-
-template <typename T>
-bool is_in(T item, std::vector<T> array) {
-    for ( const auto &i : array) {
-        if ( i == item ) {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 node_directions get_player_input(node_t *node) {
@@ -306,89 +455,10 @@ void gameloop(sol::environment &core_env, node_t *(&start_node)) {
 }
 
 
-// gets all of the campaign names and directories
-// returns a map of campaign names : directory location
-std::unordered_map<std::string, std::string> get_campaigns() {
-    std::unordered_map<std::string, std::string> campaigns;
-
-    // ignore typename
-    std::filesystem::__cxx11::directory_iterator campaigns_dir;
-
-    try {
-        campaigns_dir = std::filesystem::directory_iterator(engine::directories::CAMPAIGNS);
-    }
-    catch ( const std::filesystem::__cxx11::filesystem_error &error ) {
-        log_error("Campaigns file does not exist.");
-        return campaigns;
-    }
-
-    log_info("Campaigns file found.");
-
-    for ( const auto &item : campaigns_dir ) {
-        if ( !item.is_directory() ) {
-            log_info("%s is not a directory", item.path().filename().c_str());
-            continue;
-        }
-
-        const std::string init_file_path = item.path().generic_string() + "/" + engine::file::INIT;
-
-        log_debug("Searching for init file: %s", init_file_path.c_str());
-
-        const bool campaign_has_init = std::filesystem::exists(init_file_path);
-
-        // the current campaign name is the name of the directory
-        std::string campaign_name = item.path().filename();
-
-        if ( campaign_has_init ) {
-            log_info("Campaign has init file.");
-
-            sol::state lua;
-
-            int res = load_file(lua, init_file_path);
-
-            const bool file_success = res == 0;
-
-            // jump out of the if statement since the file is broken
-            if ( !file_success ) {
-                log_info("init file is not valid.");
-                goto add_file;
-            }
-
-            sol::optional<std::string> check_name = lua[engine::settings::CAMPAIGN_NAME];
-
-            // if the name exists
-            if ( check_name ) {
-                log_info("init file has campaign name.");
-                campaign_name = check_name.value();
-            }
-        }
-
-        // goto for escaping the if block
-        add_file:
-
-        const bool campaign_exists = campaigns.find(campaign_name) != campaigns.end();
-
-        // if the campaign does not already exist, add it to the map
-        // else show error message
-        if ( !campaign_exists ) {
-            log_info("Adding campaign with name: %s", campaign_name.c_str());
-            
-            // map the campaign name to the full file path to the directory
-            campaigns[campaign_name] = std::filesystem::canonical(item.path());
-        }
-        else {
-            log_error("Can not add this campaign; another campaign already has this name.");
-        }
-    }
-
-    return campaigns;
-}
-
-
 void new_campaign() {
     Menu menu("Campaign Selection");
 
-    auto campaigns = get_campaigns();
+    auto campaigns = Campaign::GetCampaigns();
 
     const bool empty = campaigns.size() == 0;
 
