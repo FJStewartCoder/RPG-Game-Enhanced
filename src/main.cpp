@@ -148,6 +148,33 @@ class Campaign {
             return 0;
         }
 
+        int RunFunctionIfExists(sol::environment &env, std::string funcName) {
+            log_debug("Checking for function \"%s\"", funcName.c_str());
+
+            // run process
+            if ( has_func(env, funcName) ) {
+                log_trace("Function \"%s\" exists", funcName.c_str());
+
+                sol::protected_function func = env[funcName];
+
+                auto res = func();
+                if ( !res.valid() ) {
+                    // print error and continue to failure
+                    sol::error e = res;
+                    log_error("%s function ran with error:\n%s", funcName.c_str(), e.what());
+
+                    return 1;
+                }               
+            }
+            else {
+                log_error("Function does not exists \"%s\"", funcName.c_str());
+                return 1;
+            }
+
+            log_trace("Function \"%s\" ran successfully", funcName.c_str());
+            return 0;
+        }
+
         // function that checks for the expected functions and runs them
         // this then deletes the reference to the function to allow more inits to be run
 
@@ -185,33 +212,31 @@ class Campaign {
                 engine::func::extension::ENVIRONMENT
             };
 
-            // run all of the required functions
-            for ( const auto &funcName : requiredFuncs ) {
-                log_debug("Checking for function \"%s\"", funcName.c_str());
+            res = RunFunctionIfExists(build_env, engine::func::extension::EXTEND);
+            if ( res != 0 ) {
+                log_error("Extend function failed");
 
-                // run process
-                if ( has_func(build_env, funcName) ) {
-                    log_trace("Function exists \"%s\"", funcName.c_str());
+                deleteInit();
+                return 1;
+            }
 
-                    sol::protected_function func = build_env[funcName];
+            res = RunFunctionIfExists(build_env, engine::func::extension::BUILD);
+            if ( res != 0 ) {
+                log_error("Build function failed");
 
-                    auto res = func();
-                    if ( res.valid() ) {
-                        log_trace("Function \"%s\" ran successfully", funcName.c_str());
+                deleteInit();
+                return 1;
+            }
 
-                        // if valid, continue looping
-                        continue;
-                    }
+            // build the nodes
+            // MUST BE PERFORMED BEFORE RUNNING THE ENVIRONMENT FUNCTION
+            log_trace("Building node queue");
+            build_node_queue(core_env, core_env[engine::node::TEMPLATE]);
 
-                    // print error and continue to failure
-                    sol::error e = res;
-                    log_error("%s function ran with error:\n%s", funcName.c_str(), e.what());
-                }
-                else {
-                    log_error("Function does not exists \"%s\"", funcName.c_str());
-                }
+            res = RunFunctionIfExists(build_env, engine::func::extension::ENVIRONMENT);
+            if ( res != 0 ) {
+                log_error("Environment function failed");
 
-                // error result
                 deleteInit();
                 return 1;
             }
@@ -510,6 +535,10 @@ class Campaign {
         // destructor
         ~Campaign() {
             log_trace("Destructing campaign");
+
+            log_trace("Freeing the node array");
+            // free the nodes
+            free_nodes();
         }
 };
 
@@ -788,160 +817,18 @@ int main() {
     log_add_fp(fp, 0);
     // log_set_quiet(true);
 
-
-
     Campaign campaign;
 
     campaign.LoadCampaign( "test_campaign" );
 
-
-
-    fclose(fp);
-    return 0;
-
-
-
-    // create lua interpreter
-    sol::state lua;
-
-    // open libs so we have access to print
-    lua.open_libraries(sol::lib::base, sol::lib::io, sol::lib::table);
-
-    // create and configure environments  --------------------------------------------------------------------------------------------
-
-    sol::environment core_env(lua, sol::create);
-    sol::environment scripts_env(lua, sol::create, lua.globals());  // NEEDS LUA GLOBALS
-
-    const sol::basic_reference scripts_fallback = scripts_env;
-    sol::environment build_env(lua, sol::create, scripts_fallback);  // NEEDS THE FUNCTIONS FROM SCRIPTS SO SET AS FALLBACK 
-
-    // inject functions and data into relevant environments
-    inject_core(core_env);
-    inject_build_tools(build_env, core_env);
-    inject_api(scripts_env);
-
-    // -------------------------------------------------------------------------------------------------------------------------------
-
-    auto scripts = std::filesystem::directory_iterator(engine::directories::SCRIPTS);
-
-    bool found_build_file = false;
-
-    for ( const auto &fs_item : scripts ) {
-        // currently skipping directories
-        if ( fs_item.is_directory() ) {
-            continue;
-        }
-
-        // ignore all non lua files
-        if ( fs_item.path().extension() != ".lua" ) {
-            continue;
-        }
-
-        if ( fs_item.path().filename() == engine::file::BUILD ) {
-            found_build_file = true;
-            continue;
-        }
-
-        if ( fs_item.path().filename() == engine::file::CAMPAIGN ) {
-            found_build_file = true;
-            continue;
-        }
-
-        log_info("File %s will build next.", fs_item.path().c_str());
-
-        // build file if type is lua
-        int res = load_file(lua, scripts_env, fs_item.path());
-        if ( res != 0 ) {
-            log_error("File %s has errors. Aborting...", fs_item.path().c_str());
-
-            fclose(fp);
-            return 1;
-        }
-    }
-
-    if ( !found_build_file ) {
-        log_fatal("No build file found.");
-
-        fclose(fp);
-        return 1;
-    }
-
-    // LOAD BUILD_FILE ---------------------------------------------------------------------------------------------------------------
-
-    load_file(lua, build_env, "scripts/BUILD_FILE.lua");
-
-    if ( has_func(build_env, engine::func::extension::EXTEND) ) {
-        sol::protected_function extend_func = build_env[engine::func::extension::EXTEND];
-
-        auto res = extend_func();
-        if ( !res.valid() ) {
-            sol::error e = res;
-
-            log_fatal("Extend function ran with error:\n%s", e.what());
-        }
-    }
-    else {
-        log_fatal("No extend function found.");
-
-        fclose(fp);
-        return 1;
-    }
-
-    if ( has_func(build_env, engine::func::extension::BUILD) ) {
-        sol::protected_function build_func = build_env[engine::func::extension::BUILD];
-
-        auto res = build_func();
-        if ( !res.valid() ) {
-            sol::error e = res;
-
-            log_fatal("Build function ran with error:\n%s", e.what());
-        }
-    }
-    else {
-        log_fatal("No build function found.");
-
-        fclose(fp);
-        return 1;
-    }
-
-    // ITERMEDIATE STEPS BEFORE CAMPAIGN FILE ----------------------------------------------------------------------------------------
-
-    // TODO: implement this in the Campaign class
-
-    // build the nodes
-    build_node_queue(core_env, core_env[engine::node::TEMPLATE]);
-
-    // LOAD CAMPAIGN_FILE ------------------------------------------------------------------------------------------------------------
-
-    load_file(lua, build_env, "scripts/CAMPAIGN_FILE.lua");
-
-    if ( has_func(build_env, engine::func::extension::ENVIRONMENT) ) {
-        sol::protected_function environment_func = build_env[engine::func::extension::ENVIRONMENT];
-
-        auto res = environment_func();
-        if ( !res.valid() ) {
-            sol::error e = res;
-
-            log_fatal("Environment function ran with error:\n%s", e.what());
-        }
-    }
-    else {
-        log_fatal("No environment function found.");
-
-        fclose(fp);
-        return 1;
-    }
-
     // -------------------------------------------------------------------------------------------------------------------------------
 
     // test if the data is found from the injection
-    std::cout << core_env[engine::node::TEMPLATE][engine::node::NAME].get<std::string>() << std::endl;
-    std::cout << core_env[engine::player::DATA][engine::player::NAME].get<std::string>() << std::endl;
+    std::cout << campaign.core_env[engine::node::TEMPLATE][engine::node::NAME].get<std::string>() << std::endl;
+    std::cout << campaign.core_env[engine::player::DATA][engine::player::NAME].get<std::string>() << std::endl;
 
     // test a function
-    core_env[engine::node::TEMPLATE][engine::node::LAND]();
-
-    log_info("Building files complete.");
+    campaign.core_env[engine::node::TEMPLATE][engine::node::LAND]();
 
     // get all keys and values for template debug
     /* for ( const auto &t : lua[engine::node::TEMPLATE].get<sol::table>() ) {
@@ -954,11 +841,13 @@ int main() {
     }
 
     // build test
+    /*
     sol::table start_table = lua.create_table();
     start_table["data1"] = "123";
 
     sol::table start_table2 = lua.create_table();
     start_table2["data1"] = "234";
+    */
 
     /*
     int node1 = build_node("Start", start_table);
@@ -979,12 +868,9 @@ int main() {
     node_t *cur = get_node(0);
 
     // the main game loop
-    gameloop(core_env, cur);
+    gameloop(campaign.core_env, cur);
 
-    // free the nodes
-    free_nodes();
 
-    // close the file
     fclose(fp);
     return 0;
 }
