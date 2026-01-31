@@ -74,6 +74,8 @@ class Campaign {
             // delete settings
             build_env[engine::settings::CAMPAIGN_NAME] = sol::nil;
             build_env[engine::settings::USE_GENERIC] = sol::nil;
+
+            log_trace("Successfully deleted all init data from build environment");
         }
 
         bool initExists(std::string campaignPath) {
@@ -89,11 +91,16 @@ class Campaign {
 
         // returns 0 for good or 1 for bad result
         int LoadInitSettings(std::string campaignPath) {
+            log_trace("Loading init settings");
+
             sol::state initFileState;
 
             const std::string initPath = campaignPath + "/" + engine::file::INIT;
 
+            log_debug("Init file path to test is \"%s\"", initPath.c_str());
+
             if ( !initExists(campaignPath) ) {
+                log_error("Init file does not exist");
                 return 1;
             }
 
@@ -102,6 +109,8 @@ class Campaign {
 
             // if not ok return fail
             if ( res != 0 ) {
+                log_error("Init file failed to load");
+
                 // return bad
                 return 1;
             } 
@@ -110,11 +119,17 @@ class Campaign {
 
             // if the data exists, then update the options
             sol::optional<bool> useGeneric = lua[engine::settings::USE_GENERIC];
-            if ( useGeneric ) { USE_GENERIC = useGeneric.value(); }
+            if ( useGeneric ) { 
+                USE_GENERIC = useGeneric.value();
+                log_debug("%s setting found and set to: %d", engine::settings::USE_GENERIC.c_str(), USE_GENERIC);
+            }
 
             // if the data exists, then update the options
             sol::optional<std::string> campaignName = lua[engine::settings::CAMPAIGN_NAME];
-            if ( campaignName ) { CAMPAIGN_NAME = campaignName.value(); }
+            if ( campaignName ) { 
+                CAMPAIGN_NAME = campaignName.value();
+                log_debug("%s setting found and set to: %s", engine::settings::CAMPAIGN_NAME.c_str(), CAMPAIGN_NAME.c_str());
+            }
             
             // return ok
             return 0;
@@ -127,9 +142,12 @@ class Campaign {
 
         // returns 0 for good or 1 for bad result
         int RunInit(std::string campaignPath) {
+            log_trace("Running init file");
+
             const std::string initPath = campaignPath + "/" + engine::file::INIT;
 
             if ( !initExists(campaignPath) ) {
+                log_error("Init file does not exist");
                 return 1;
             }
 
@@ -138,6 +156,8 @@ class Campaign {
 
             // if not ok return fail
             if ( res != 0 ) {
+                log_error("Failed to load init file. Deleting init data");
+
                 // delete init just in case
                 deleteInit();
 
@@ -154,12 +174,18 @@ class Campaign {
 
             // run all of the required functions
             for ( const auto &funcName : requiredFuncs ) {
+                log_debug("Checking for function \"%s\"", funcName.c_str());
+
                 // run process
                 if ( has_func(build_env, funcName) ) {
+                    log_trace("Function exists \"%s\"", funcName.c_str());
+
                     sol::protected_function func = build_env[funcName];
 
                     auto res = func();
                     if ( res.valid() ) {
+                        log_trace("Function \"%s\" ran successfully", funcName.c_str());
+
                         // if valid, continue looping
                         continue;
                     }
@@ -168,11 +194,16 @@ class Campaign {
                     sol::error e = res;
                     log_error("%s function ran with error:\n%s", funcName.c_str(), e.what());
                 }
+                else {
+                    log_error("Function does not exists \"%s\"", funcName.c_str());
+                }
 
                 // error result
                 deleteInit();
                 return 1;
             }
+
+            log_info("Successfully ran init file");
 
             // delete all init data from the build env to prevent being overwritten later
             // or causing issues where the same function is run several times
@@ -198,14 +229,21 @@ class Campaign {
                 log_error("Campaigns file does not exist.");
                 return 1;
             }
+
+            log_trace("Campaign directory exists");
             
             // if there is no init file we fail
             if ( !initExists( campaignPath ) ) {
+                log_error("Init file does not exist for this campaign");
                 return 1;
             }
 
+            log_trace("Init file found");
+
             // used to store the path then the current depth
             using dirPair = std::pair<std::string, int>;
+
+            log_trace("Beginning file search");
 
             // use BFS to load all files and directories up to a certain depth
             std::queue<dirPair> loadQueue;
@@ -219,10 +257,13 @@ class Campaign {
                 const dirPair currentDir = loadQueue.front();
                 loadQueue.pop();
 
+                log_trace("Current directory is %s", currentDir.first.c_str());
+
                 // create a directory iterator from the first item in the pair
                 auto curIter = std::filesystem::directory_iterator( currentDir.first );
 
                 for ( const auto &file : curIter ) {
+                    log_trace("Entry \"%s\" has been found", file.path().c_str());
 
                     // if directory, queue the item's path with depth as current + 1 unless we are at the max depth
                     if ( file.is_directory() ) {
@@ -230,6 +271,7 @@ class Campaign {
                         // file system depth validation
                         const bool atMaxDepth = currentDir.second >= MAX_FILE_SYSTEM_DEPTH;
                         if ( atMaxDepth ) {
+                            log_warn("Entry has exceeded the max directory depth and will not be processed");
                             continue;
                         }
 
@@ -240,28 +282,48 @@ class Campaign {
                         dirPair newItem(dirpath, currentDir.second + 1);
                         loadQueue.push(newItem);
 
+                        log_debug("Entry queued with path=\"%s\", depth=%d", newItem.first.c_str(), newItem.second);
+
                     }
 
                     // if is lua file, load the file into the scripts environment
-                    else if ( file.is_regular_file() && ( file.path().extension() == ".lua" ) ) {
+                    // file is file, is lua and is not the init file
+                    else if ( file.is_regular_file() &&
+                              ( file.path().extension() == ".lua" ) &&
+                              ( file.path().filename() != engine::file::INIT ) 
+                    ) {
 
                         // get the file path and load it
                         const std::string filepath = std::filesystem::canonical( file );
-                        load_file(lua, scripts_env, filepath);
 
+                        log_trace("File \"%s\" is being loaded as a script", filepath.c_str());
+
+                        const bool valid = load_file(lua, scripts_env, filepath) == 0;
+
+                        if ( !valid ) { log_warn("File did not successfully load."); }
+                        else { log_trace("File loaded successfully"); }
+
+                    }
+                    else {
+                        log_warn("File \"%s\" has not been processed", file.path().c_str());
                     }
 
                 }
 
             }
 
+            log_trace("Running init file");
+
             // run the init file once all files are loaded in
             int res = RunInit( campaignPath );
 
             // if we fail to run the init file return 1
             if ( res != 0 ) {
+                log_error("Init file failed to execute");
                 return 1;
             }
+
+            log_info("Successfully loaded campaign directory: \"%s\"", campaignPath.c_str());
 
             // return ok
             return 0;
@@ -401,7 +463,7 @@ class Campaign {
                 return 1;
             }
 
-            log_info("Successfully loaded campaign: \"%s\"", campaignName);
+            log_info("Successfully loaded campaign: \"%s\"", campaignName.c_str());
             return 0;
         }
 
