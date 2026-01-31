@@ -45,15 +45,18 @@ enum class errors {
 
 
 class Campaign {
-    private:
+    public:
         // create lua interpreter
         sol::state lua;
 
         // create and configure environments  --------------------------------------------------------------------------------------------
         sol::environment core_env;
         sol::environment scripts_env;
-        sol::environment build_env;  
+        sol::environment build_env;
 
+        // -------------------------------------------------------------------------------------------------------------------------------
+
+    private:
         // settings ----------------------------------------------------------------------------------------------------------------------
 
         // just the name
@@ -66,14 +69,18 @@ class Campaign {
 
         // deletes all of the init variables and data from the build environment
         void deleteInit() {
-            // delete functions
-            build_env[engine::func::extension::BUILD] = sol::nil;
-            build_env[engine::func::extension::ENVIRONMENT] = sol::nil;
-            build_env[engine::func::extension::EXTEND] = sol::nil;
+            const std::string initVars[5] = {
+                engine::func::extension::BUILD,
+                engine::func::extension::ENVIRONMENT,
+                engine::func::extension::EXTEND,
+                engine::settings::CAMPAIGN_NAME,
+                engine::settings::USE_GENERIC
+            };
 
-            // delete settings
-            build_env[engine::settings::CAMPAIGN_NAME] = sol::nil;
-            build_env[engine::settings::USE_GENERIC] = sol::nil;
+            for ( const auto &item : initVars ) {
+                log_trace("Deleting \"%s\" from build environment", item.c_str());
+                build_env[item] = sol::nil;
+            }
 
             log_trace("Successfully deleted all init data from build environment");
         }
@@ -118,17 +125,23 @@ class Campaign {
             // extract data out of the init file
 
             // if the data exists, then update the options
-            sol::optional<bool> useGeneric = lua[engine::settings::USE_GENERIC];
+            sol::optional<bool> useGeneric = initFileState[engine::settings::USE_GENERIC];
             if ( useGeneric ) { 
                 USE_GENERIC = useGeneric.value();
-                log_debug("%s setting found and set to: %d", engine::settings::USE_GENERIC.c_str(), USE_GENERIC);
+                log_debug("\"%s\" setting found and set to: %d", engine::settings::USE_GENERIC.c_str(), USE_GENERIC);
+            }
+            else {
+                log_trace("Setting \"%s\" was not found", engine::settings::USE_GENERIC.c_str());
             }
 
             // if the data exists, then update the options
-            sol::optional<std::string> campaignName = lua[engine::settings::CAMPAIGN_NAME];
+            sol::optional<std::string> campaignName = initFileState[engine::settings::CAMPAIGN_NAME];
             if ( campaignName ) { 
                 CAMPAIGN_NAME = campaignName.value();
-                log_debug("%s setting found and set to: %s", engine::settings::CAMPAIGN_NAME.c_str(), CAMPAIGN_NAME.c_str());
+                log_debug("\"%s\" setting found and set to: %s", engine::settings::CAMPAIGN_NAME.c_str(), CAMPAIGN_NAME.c_str());
+            }
+            else {
+                log_trace("Setting \"%s\" was not found", engine::settings::CAMPAIGN_NAME.c_str());
             }
             
             // return ok
@@ -166,9 +179,9 @@ class Campaign {
             } 
 
             // list of all of the functions to run
-            const std::string requiredFuncs[] = { 
+            const std::string requiredFuncs[] = {
+                engine::func::extension::EXTEND,
                 engine::func::extension::BUILD,
-                engine::func::extension::EXTEND, 
                 engine::func::extension::ENVIRONMENT
             };
 
@@ -223,14 +236,14 @@ class Campaign {
 
             // create a directory iterator to iterate through the files and directories
             try {
-                campaignsDir = std::filesystem::directory_iterator(engine::directories::CAMPAIGNS);
+                campaignsDir = std::filesystem::directory_iterator(campaignPath);
             }
             catch ( const std::filesystem::__cxx11::filesystem_error &error ) {
-                log_error("Campaigns file does not exist.");
+                log_error("Campaigns directory \"%s\" does not exist.", campaignPath.c_str());
                 return 1;
             }
 
-            log_trace("Campaign directory exists");
+            log_trace("Campaign directory \"%s\" exists", campaignPath.c_str());
             
             // if there is no init file we fail
             if ( !initExists( campaignPath ) ) {
@@ -450,10 +463,14 @@ class Campaign {
 
             // if we want to use the generic functions, load them in
             if ( USE_GENERIC ) {
-                log_trace("Campaign uses general functions");
+                log_trace("Campaign uses general functions. Loading generic functions");
 
-                // TODO: implement
-                // LoadDirectory( scripts );
+                res = LoadDirectory( engine::directories::GENERIC );
+
+                if ( res != 0 ) {
+                    log_error("Generic directory failed to load");
+                    return 1;
+                }
             }
 
             log_trace("Loading \"%s\"", campaignPath.c_str());
@@ -492,7 +509,7 @@ class Campaign {
 
         // destructor
         ~Campaign() {
-
+            log_trace("Destructing campaign");
         }
 };
 
@@ -779,7 +796,6 @@ int main() {
 
 
 
-
     fclose(fp);
     return 0;
 
@@ -889,6 +905,8 @@ int main() {
     }
 
     // ITERMEDIATE STEPS BEFORE CAMPAIGN FILE ----------------------------------------------------------------------------------------
+
+    // TODO: implement this in the Campaign class
 
     // build the nodes
     build_node_queue(core_env, core_env[engine::node::TEMPLATE]);

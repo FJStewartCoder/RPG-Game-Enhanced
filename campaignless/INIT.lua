@@ -1,7 +1,5 @@
-USE_GENERIC = true
-
 function build()
-    do_something_funny()
+
 end
 
 function extend()
