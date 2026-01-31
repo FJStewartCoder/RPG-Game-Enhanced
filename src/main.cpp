@@ -32,6 +32,9 @@ extern "C" {
 #include "inject/inject_build.hpp"
 
 
+#define MAX_FILE_SYSTEM_DEPTH 5
+
+
 // all errors in a namespace
 enum class errors {
     OK,
@@ -163,7 +166,7 @@ class Campaign {
 
                     // print error and continue to failure
                     sol::error e = res;
-                    log_fatal("%s function ran with error:\n%s", funcName.c_str(), e.what());
+                    log_error("%s function ran with error:\n%s", funcName.c_str(), e.what());
                 }
 
                 // error result
@@ -224,8 +227,17 @@ class Campaign {
                     // if directory, queue the item's path with depth as current + 1 unless we are at the max depth
                     if ( file.is_directory() ) {
                         
+                        // file system depth validation
+                        const bool atMaxDepth = currentDir.second >= MAX_FILE_SYSTEM_DEPTH;
+                        if ( atMaxDepth ) {
+                            continue;
+                        }
+
+                        // get the directory path
+                        const std::string dirpath = std::filesystem::canonical( file );
+
                         // queue the item
-                        dirPair newItem("abc", 2);
+                        dirPair newItem(dirpath, currentDir.second + 1);
                         loadQueue.push(newItem);
 
                     }
@@ -233,7 +245,9 @@ class Campaign {
                     // if is lua file, load the file into the scripts environment
                     else if ( file.is_regular_file() && ( file.path().extension() == ".lua" ) ) {
 
-                        // load_file(lua, scripts_env, );
+                        // get the file path and load it
+                        const std::string filepath = std::filesystem::canonical( file );
+                        load_file(lua, scripts_env, filepath);
 
                     }
 
@@ -266,21 +280,25 @@ class Campaign {
                 campaigns_dir = std::filesystem::directory_iterator(engine::directories::CAMPAIGNS);
             }
             catch ( const std::filesystem::__cxx11::filesystem_error &error ) {
-                log_error("Campaigns file does not exist.");
+                log_error("Campaigns directory does not exist.");
                 return campaigns;
             }
 
-            log_info("Campaigns file found.");
+            log_trace("Campaigns directory found.");
 
             for ( const auto &item : campaigns_dir ) {
+                const std::string cur_filename = item.path().filename();
+
+                log_trace("Analysing \"%s\"", cur_filename.c_str());
+
                 if ( !item.is_directory() ) {
-                    log_info("%s is not a directory", item.path().filename().c_str());
+                    log_trace("%s is not a directory", cur_filename.c_str());
                     continue;
                 }
 
                 const std::string init_file_path = item.path().generic_string() + "/" + engine::file::INIT;
 
-                log_debug("Searching for init file: %s", init_file_path.c_str());
+                log_trace("Searching for init file: \"%s\"", init_file_path.c_str());
 
                 const bool campaign_has_init = std::filesystem::exists(init_file_path);
 
@@ -288,7 +306,7 @@ class Campaign {
                 std::string campaign_name = item.path().filename();
 
                 if ( campaign_has_init ) {
-                    log_info("Campaign has init file.");
+                    log_trace("Campaign has init file.");
 
                     sol::state lua;
 
@@ -298,7 +316,7 @@ class Campaign {
 
                     // jump out of the if statement since the file is broken
                     if ( !file_success ) {
-                        log_info("init file is not valid.");
+                        log_error("init file is not valid.");
                         goto add_file;
                     }
 
@@ -306,9 +324,14 @@ class Campaign {
 
                     // if the name exists
                     if ( check_name ) {
-                        log_info("init file has campaign name.");
                         campaign_name = check_name.value();
+                        log_trace("init file has campaign name: \"%s\"", campaign_name);
                     }
+                }
+                // the campaign is not valid if it does not have an init file
+                else {
+                    log_error("Campaign \"%s\" does not have an init file", campaign_name.c_str());
+                    continue;
                 }
 
                 // goto for escaping the if block
@@ -319,7 +342,7 @@ class Campaign {
                 // if the campaign does not already exist, add it to the map
                 // else show error message
                 if ( !campaign_exists ) {
-                    log_info("Adding campaign with name: %s", campaign_name.c_str());
+                    log_info("Adding campaign with name: \"%s\"", campaign_name.c_str());
                     
                     // map the campaign name to the full file path to the directory
                     campaigns[campaign_name] = std::filesystem::canonical(item.path());
@@ -333,28 +356,53 @@ class Campaign {
         }
 
         int LoadCampaign(std::string campaignName) {
+            log_trace("Getting campaigns");
             auto campaigns = GetCampaigns();
             
+            log_trace("Checking if campaign \"%s\" exists", campaignName.c_str());
+
             const bool campaignExists = campaigns.find(campaignName) != campaigns.end();
             if ( !campaignExists ) {
+                log_error("Campaign does not exist");
                 return 1;
             }
 
+            log_trace("Campaign \"%s\" exists", campaignName.c_str());
+
+            // get the campaign path
             const std::string campaignPath = campaigns[campaignName];
+
+            log_debug("Campaign path is: \"%s\"", campaignPath.c_str());
     
             // recursively search that directory to load all of the data in to the environements
             const auto campaignDir = std::filesystem::directory_iterator(campaignPath);
 
             // load the main campaign dir
-            LoadInitSettings( campaignPath );
+            log_trace("Loading Init settings");
+
+            int res = LoadInitSettings( campaignPath );
+            if ( res != 0 ) {
+                log_error("Loading init settings failed");
+                return 1;
+            }
 
             // if we want to use the generic functions, load them in
             if ( USE_GENERIC ) {
+                log_trace("Campaign uses general functions");
+
                 // TODO: implement
                 // LoadDirectory( scripts );
             }
 
-            LoadDirectory( campaignPath );
+            log_trace("Loading \"%s\"", campaignPath.c_str());
+            res = LoadDirectory( campaignPath );
+            if ( res != 0 ) {
+                log_error("Loading directory failed");
+                return 1;
+            }
+
+            log_info("Successfully loaded campaign: \"%s\"", campaignName);
+            return 0;
         }
 
         // constructor
@@ -430,7 +478,7 @@ node_directions get_player_input(node_t *node) {
     
     std::string input = menu.ShowAlt();
 
-    log_debug("Menu returned: %s.", input.c_str());
+    log_trace("Menu returned: %s.", input.c_str());
 
     // if block again for correct return
     if ( input == "left" ) { return NODE_LEFT; }
@@ -482,10 +530,10 @@ void gameloop(sol::environment &core_env, node_t *(&start_node)) {
                 cur_node = new_pos;
 
                 // message to inform me the script moved the player
-                log_info("Script moved player to node ID: %d.", cur_node->id);
+                log_trace("Script moved player to node ID: %d.", cur_node->id);
             }
             catch (std::exception &e) {
-                log_info("Script attempted to manage position but the operation failed.");
+                log_warn("Script attempted to manage position but the operation failed.");
             }
         }
 
@@ -660,6 +708,20 @@ int main() {
     // will always log
     log_add_fp(fp, 0);
     // log_set_quiet(true);
+
+
+
+    Campaign campaign;
+
+    campaign.LoadCampaign( "test_campaign" );
+
+
+
+
+    fclose(fp);
+    return 0;
+
+
 
     // create lua interpreter
     sol::state lua;
