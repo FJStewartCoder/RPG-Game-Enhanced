@@ -191,4 +191,5 @@ IT IS POSSIBLE TO PLACE LOCALLY STORED VARIABLES THAT ARE IN A FUNCTION INTO AN 
 
 SO, WE CAN RUN THE INIT FUNCTIONS THEN DELETE THEM SINCE THE DATA INSIDE WILL NOT BE DELETED
 
-CURRENT = main.cpp 182 - 212
+TODO: implement a system to only run the environment function once we have loaded everything else in
+This may involve a seperate file again

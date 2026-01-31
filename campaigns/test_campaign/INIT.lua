@@ -20,4 +20,5 @@ function environment()
     node_2 = build_node("2", {}, node_1, "left", false)
     node_3 = build_node("2", {}, node_2, "up", false)
     node_4 = build_node("2", {}, node_3, "right", false)
+    node_5 = build_node("5", {}, node_4, "right", false)
 end
