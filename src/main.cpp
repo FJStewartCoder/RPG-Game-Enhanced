@@ -23,6 +23,8 @@ extern "C" {
 #include "lua_engine_constants.hpp"
 
 #include <filesystem>
+// required for a BFS
+#include <queue>
 
 // inject headers
 #include "inject/inject_api.hpp"
@@ -59,6 +61,18 @@ class Campaign {
 
         // -------------------------------------------------------------------------------------------------------------------------------
 
+        // deletes all of the init variables and data from the build environment
+        void deleteInit() {
+            // delete functions
+            build_env[engine::func::extension::BUILD] = sol::nil;
+            build_env[engine::func::extension::ENVIRONMENT] = sol::nil;
+            build_env[engine::func::extension::EXTEND] = sol::nil;
+
+            // delete settings
+            build_env[engine::settings::CAMPAIGN_NAME] = sol::nil;
+            build_env[engine::settings::USE_GENERIC] = sol::nil;
+        }
+
         bool initExists(std::string campaignPath) {
             const std::string initPath = campaignPath + "/" + engine::file::INIT;
             return std::filesystem::exists(initPath);
@@ -81,9 +95,26 @@ class Campaign {
             }
 
             // load the file into the new state
-            load_file(initFileState, initPath);
+            int res = load_file(initFileState, initPath);
+
+            // if not ok return fail
+            if ( res != 0 ) {
+                // return bad
+                return 1;
+            } 
 
             // extract data out of the init file
+
+            // if the data exists, then update the options
+            sol::optional<bool> useGeneric = lua[engine::settings::USE_GENERIC];
+            if ( useGeneric ) { USE_GENERIC = useGeneric.value(); }
+
+            // if the data exists, then update the options
+            sol::optional<std::string> campaignName = lua[engine::settings::CAMPAIGN_NAME];
+            if ( campaignName ) { CAMPAIGN_NAME = campaignName.value(); }
+            
+            // return ok
+            return 0;
         }
 
         // function that checks for the expected functions and runs them
@@ -92,8 +123,58 @@ class Campaign {
         // campaignDir -> a directory iterator
 
         // returns 0 for good or 1 for bad result
-        int RunInit(std::filesystem::__cxx11::directory_iterator campaignDir) {
+        int RunInit(std::string campaignPath) {
+            const std::string initPath = campaignPath + "/" + engine::file::INIT;
 
+            if ( !initExists(campaignPath) ) {
+                return 1;
+            }
+
+            // load the file into the build environment
+            int res = load_file(lua, build_env, initPath);
+
+            // if not ok return fail
+            if ( res != 0 ) {
+                // delete init just in case
+                deleteInit();
+
+                // return bad
+                return 1;
+            } 
+
+            // list of all of the functions to run
+            const std::string requiredFuncs[] = { 
+                engine::func::extension::BUILD,
+                engine::func::extension::EXTEND, 
+                engine::func::extension::ENVIRONMENT
+            };
+
+            // run all of the required functions
+            for ( const auto &funcName : requiredFuncs ) {
+                // run process
+                if ( has_func(build_env, funcName) ) {
+                    sol::protected_function func = build_env[funcName];
+
+                    auto res = func();
+                    if ( res.valid() ) {
+                        // if valid, continue looping
+                        continue;
+                    }
+
+                    // print error and continue to failure
+                    sol::error e = res;
+                    log_fatal("%s function ran with error:\n%s", funcName.c_str(), e.what());
+                }
+
+                // error result
+                deleteInit();
+                return 1;
+            }
+
+            // delete all init data from the build env to prevent being overwritten later
+            // or causing issues where the same function is run several times
+            deleteInit();
+            return 0;
         }
 
         // recursive function that loads a directory into the lua states and environments
@@ -102,8 +183,74 @@ class Campaign {
         // campaignDir -> a directory iterator
 
         // returns 0 for good or 1 for bad result
-        int LoadDirectory(std::filesystem::__cxx11::directory_iterator campaignDir) {
+        int LoadDirectory(std::string campaignPath) {
+            // ignore typename
+            std::filesystem::__cxx11::directory_iterator campaignsDir;
 
+            // create a directory iterator to iterate through the files and directories
+            try {
+                campaignsDir = std::filesystem::directory_iterator(engine::directories::CAMPAIGNS);
+            }
+            catch ( const std::filesystem::__cxx11::filesystem_error &error ) {
+                log_error("Campaigns file does not exist.");
+                return 1;
+            }
+            
+            // if there is no init file we fail
+            if ( !initExists( campaignPath ) ) {
+                return 1;
+            }
+
+            // used to store the path then the current depth
+            using dirPair = std::pair<std::string, int>;
+
+            // use BFS to load all files and directories up to a certain depth
+            std::queue<dirPair> loadQueue;
+
+            // queue the main directory
+            loadQueue.push( dirPair(campaignPath, 0) );
+
+            // while the queue is not empty keep loading
+            while ( loadQueue.size() >= 1 ) {
+
+                const dirPair currentDir = loadQueue.front();
+                loadQueue.pop();
+
+                // create a directory iterator from the first item in the pair
+                auto curIter = std::filesystem::directory_iterator( currentDir.first );
+
+                for ( const auto &file : curIter ) {
+
+                    // if directory, queue the item's path with depth as current + 1 unless we are at the max depth
+                    if ( file.is_directory() ) {
+                        
+                        // queue the item
+                        dirPair newItem("abc", 2);
+                        loadQueue.push(newItem);
+
+                    }
+
+                    // if is lua file, load the file into the scripts environment
+                    else if ( file.is_regular_file() && ( file.path().extension() == ".lua" ) ) {
+
+                        // load_file(lua, scripts_env, );
+
+                    }
+
+                }
+
+            }
+
+            // run the init file once all files are loaded in
+            int res = RunInit( campaignPath );
+
+            // if we fail to run the init file return 1
+            if ( res != 0 ) {
+                return 1;
+            }
+
+            // return ok
+            return 0;
         }
 
     public:
@@ -207,7 +354,7 @@ class Campaign {
                 // LoadDirectory( scripts );
             }
 
-            LoadDirectory( campaignDir );
+            LoadDirectory( campaignPath );
         }
 
         // constructor
