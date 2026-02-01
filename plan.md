@@ -235,3 +235,6 @@ Conclusion:
 Decent idea to build upon existing system but it makes the whole system much more complex.
 
 Further thinking means that INIT files deep in directories can cause issues. So, we only need one init file at the root of the campaign. So, the ignore system is more appealing despite additional clutter.
+
+Each campaign class needs a "node manager". So, rewrite the build.cpp scripts into a node manager.
+Then, each campaign can have it's own node manager. This allows several campaigns to be created simultaneously.
