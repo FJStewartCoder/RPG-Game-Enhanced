@@ -566,9 +566,6 @@ class Campaign {
 
         // destructor
         ~Campaign() {
-            // call the node manager destructor
-            nodeManager.~NodeManager();
-
             log_trace("Destructing campaign");
         }
 };
@@ -847,7 +844,7 @@ int main() {
     FILE *fp = fopen("log.txt", "w");
 
     // will always log
-    log_add_fp(fp, 0);
+    // log_add_fp(fp, 0);
     // log_set_quiet(true);
 
     Campaign campaign;
@@ -855,8 +852,7 @@ int main() {
     Campaign campaign3;
 
     campaign.LoadCampaign( "test_campaign" );
-    campaign2.LoadCampaign( "test_campaign" );
-    campaign3.LoadCampaign( "test_campaign" );
+    campaign2.LoadCampaign( "Hello123" );
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
@@ -911,7 +907,7 @@ int main() {
     cur = campaign2.nodeManager.get_node(0);
 
     // the main game loop
-    gameloop(campaign, cur);
+    gameloop(campaign2, cur);
 
 
     fclose(fp);

@@ -55,7 +55,7 @@ int check_default_node_table(sol::table &table) {
 
 // constructor and destructor
 NodeManager::NodeManager() {
-
+    log_trace("Initialising node manager.");
 }
 
 NodeManager::~NodeManager() {
@@ -87,11 +87,6 @@ int NodeManager::build_node(
     // this is done to ensure that the pointers always point to the same location
     node_t *new_node = new node_t;
 
-    if ( new_node == NULL ) {
-        log_error("Node did not allocate"); 
-        return -1;
-    }
-
     node_init(new_node);
 
     // add the node to the new environment
@@ -118,7 +113,7 @@ int NodeManager::build_node(
         case NODE_LEFT:
             previous_node->left = new_node;
 
-            // only allowing backtracking if not one way
+            // only allowing backtracking if not one wayc
             if ( !one_way ) { new_node->right = previous_node; }
             break;
         
@@ -180,6 +175,8 @@ int NodeManager::build_node(
 }
 
 int NodeManager::new_node_type(sol::environment &core_env, sol::table node_table) {
+    log_trace("New node type being created");
+
     // add the node table to the new lua queue
     core_env[engine::node::QUEUE].get<sol::table>().add(node_table);
 

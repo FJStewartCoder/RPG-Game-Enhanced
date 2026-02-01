@@ -4,8 +4,8 @@
 void node_init(node_t *node) {
     node->node_type = "";
 
-    // create blank table
-    node->unique_data = sol::table();
+    // set id to a generic value
+    node->id = 0;
 
     // set all directions to null
     node->left = nullptr;
@@ -20,7 +20,7 @@ void node_init(node_t *node) {
 
 node_errors can_traverse_direction(node_t *node) {
     // check if this direction can be traversed to which would be not a nullptr
-    if ( node != nullptr ) {
+    if ( node != NULL ) {
         return NODE_OK;
     }
 
