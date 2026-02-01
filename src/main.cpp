@@ -43,6 +43,13 @@ enum class errors {
     EXTEND
 };
 
+// equivalent to enum
+namespace Ignore {
+    int BUILD = 1;
+    int EXTEND = 1 << 1;
+    int ENVIRONMENT = 1 << 2;
+};
+
 
 class Campaign {
     public:
@@ -179,9 +186,10 @@ class Campaign {
         // this then deletes the reference to the function to allow more inits to be run
 
         // campaignDir -> a directory iterator
+        // ignore -> an integer which represents which functions to ignore based on the Ignore enum class.
 
         // returns 0 for good or 1 for bad result
-        int RunInit(std::string campaignPath) {
+        int RunInit(std::string campaignPath, int ignore = 0) {
             log_trace("Running init file");
 
             const std::string initPath = campaignPath + "/" + engine::file::INIT;
@@ -203,42 +211,60 @@ class Campaign {
 
                 // return bad
                 return 1;
-            } 
-
-            // list of all of the functions to run
-            const std::string requiredFuncs[] = {
-                engine::func::extension::EXTEND,
-                engine::func::extension::BUILD,
-                engine::func::extension::ENVIRONMENT
-            };
-
-            res = RunFunctionIfExists(build_env, engine::func::extension::EXTEND);
-            if ( res != 0 ) {
-                log_error("Extend function failed");
-
-                deleteInit();
-                return 1;
             }
 
-            res = RunFunctionIfExists(build_env, engine::func::extension::BUILD);
-            if ( res != 0 ) {
-                log_error("Build function failed");
+            const bool ignoreExtend = ignore & Ignore::EXTEND;
+            const bool ignoreBuild = ignore & Ignore::BUILD;
+            const bool ignoreEnvironment = ignore & Ignore::ENVIRONMENT;
 
-                deleteInit();
-                return 1;
+            if ( !ignoreExtend ) {
+
+                res = RunFunctionIfExists(build_env, engine::func::extension::EXTEND);
+                if ( res != 0 ) {
+                    log_error("Extend function failed");
+
+                    deleteInit();
+                    return 1;
+                }
+
+            }
+            else {
+                log_trace("Ignoring extend function in init file");
             }
 
-            // build the nodes
-            // MUST BE PERFORMED BEFORE RUNNING THE ENVIRONMENT FUNCTION
-            log_trace("Building node queue");
-            build_node_queue(core_env, core_env[engine::node::TEMPLATE]);
+            if ( !ignoreBuild ) {
 
-            res = RunFunctionIfExists(build_env, engine::func::extension::ENVIRONMENT);
-            if ( res != 0 ) {
-                log_error("Environment function failed");
+                res = RunFunctionIfExists(build_env, engine::func::extension::BUILD);
+                if ( res != 0 ) {
+                    log_error("Build function failed");
 
-                deleteInit();
-                return 1;
+                    deleteInit();
+                    return 1;
+                }
+            
+            }
+            else {
+                log_trace("Ignoring build function in init file");
+            }
+
+            if ( !ignoreEnvironment ) {
+
+                // build the nodes
+                // MUST BE PERFORMED BEFORE RUNNING THE ENVIRONMENT FUNCTION
+                log_trace("Building node queue");
+                build_node_queue(core_env, core_env[engine::node::TEMPLATE]);
+
+                res = RunFunctionIfExists(build_env, engine::func::extension::ENVIRONMENT);
+                if ( res != 0 ) {
+                    log_error("Environment function failed");
+
+                    deleteInit();
+                    return 1;
+                }
+
+            }
+            else {
+                log_trace("Ignoring environment function in init file");
             }
 
             log_info("Successfully ran init file");
@@ -253,9 +279,10 @@ class Campaign {
         // then, builds this directory based on the init file in the directory
 
         // campaignDir -> a directory iterator
+        // initIgnore -> a pass through to the run init function ( used to optionally ignore certain functions )
 
         // returns 0 for good or 1 for bad result
-        int LoadDirectory(std::string campaignPath) {
+        int LoadDirectory( std::string campaignPath, int initIgnore = 0 ) {
             // ignore typename
             std::filesystem::__cxx11::directory_iterator campaignsDir;
 
@@ -353,7 +380,7 @@ class Campaign {
             log_trace("Running init file");
 
             // run the init file once all files are loaded in
-            int res = RunInit( campaignPath );
+            int res = RunInit( campaignPath, initIgnore );
 
             // if we fail to run the init file return 1
             if ( res != 0 ) {
@@ -490,7 +517,7 @@ class Campaign {
             if ( USE_GENERIC ) {
                 log_trace("Campaign uses general functions. Loading generic functions");
 
-                res = LoadDirectory( engine::directories::GENERIC );
+                res = LoadDirectory( engine::directories::GENERIC, Ignore::ENVIRONMENT );
 
                 if ( res != 0 ) {
                     log_error("Generic directory failed to load");

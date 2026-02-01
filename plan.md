@@ -193,3 +193,45 @@ SO, WE CAN RUN THE INIT FUNCTIONS THEN DELETE THEM SINCE THE DATA INSIDE WILL NO
 
 TODO: implement a system to only run the environment function once we have loaded everything else in
 This may involve a seperate file again
+
+2 DIFFERENT SYSTEMS FOR INIT LOADING
+EITHER:
+- SEPERATE WORLD FILE
+- INIT FILE BUT THE RUN FUNCTIONS CAN BE SET TO IGNORE CERTAIN FUNCTIONS
+
+SEPERATE WORLD FILE:
+Description:
+WORLD.lua file which is linked to new seperate environment, which only has add_node etc functions and has fallback to scripts.
+
+Advantages:
+- Prevents clutter in INIT file
+- More clear intentions
+- Reduces risk of errors compared to ignore system
+- Allows for having as many INIT files as you want but only one WORLD file.
+
+Disadvantages:
+- An additional file needs to be checked for
+- More likely to cause user error having missed either init or world
+- More clutter in directory
+
+Conclusion:
+Has good advantages such as more INIT compatiblity and less possible errors. Addition file won't cost performance and one extra file isn't that bad.
+
+
+INIT WITH IGNORE:
+Description:
+Have an ignore enum that allows for optionally ignoring certain functions in init file.
+
+Advantages:
+- Requires only one file (INIT file)
+- Builds upon already existing system
+
+Disadvantages:
+- Difficult logical and many pass throughs to use this system
+- INIT file is more cluttered
+- Less clear intentions of init file
+
+Conclusion:
+Decent idea to build upon existing system but it makes the whole system much more complex.
+
+Further thinking means that INIT files deep in directories can cause issues. So, we only need one init file at the root of the campaign. So, the ignore system is more appealing despite additional clutter.

@@ -59,3 +59,13 @@ These outputs could help in debugging but simply make statements about something
 ## Examples
 ### Example 1:
 You need to sort a list. So, you will trace when the sorting begins and ends.
+
+# General Note:
+Each decreasing precedence of log should provide increasingly less critical information.
+Since it is possible to disable logs based on a level system, increasing the minimum level should reflect the information you recieve.
+For example, a trace will provide the least critical information. If an "INFO" log provided less critical information than a "TRACE", either one is not used correctly.
+
+Considering all levels at once, "FATAL" will provide information on a fatal error. 
+If you then enabled "ERROR", you would increase the total information that could have lead to the cause. However, this is less critical information.
+Then enabling "WARN" would then provide finer detail into the cause.
+Continuing on, each level should provide finer detail into the what is happening with decreasing significance.
