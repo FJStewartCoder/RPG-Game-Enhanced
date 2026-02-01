@@ -238,3 +238,5 @@ Further thinking means that INIT files deep in directories can cause issues. So,
 
 Each campaign class needs a "node manager". So, rewrite the build.cpp scripts into a node manager.
 Then, each campaign can have it's own node manager. This allows several campaigns to be created simultaneously.
+
+TODO: log_file_callback is causing issues when too much data is being written to the file.
