@@ -541,6 +541,14 @@ class Campaign {
             return 0;
         }
 
+        int SaveToFile() {
+            // recusively save the player data table
+        }
+
+        int LoadFromFile() {
+            // load magic or something
+        }
+
         // constructor
         Campaign() {
             // open libs so we have access to print --------------------------------------------------------------------------------------
