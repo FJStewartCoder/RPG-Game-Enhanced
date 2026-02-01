@@ -8,28 +8,9 @@ extern "C" {
     #include "log/log.h"
 }
 
-// the vector which will store all of the nodes
-std::vector<node_t*> environment;
 
-// all of the types of nodes which can be used for validation 
-std::unordered_set<std::string> all_node_types;
+// CLASSLESS -----------------------------------------------------------------------------------------------------------
 
-int free_nodes() {
-    for ( const auto &item : environment ) {
-        delete item;
-    }
-
-    return 0;
-}
-
-node_t *get_node(int id) {
-    if ( id >= environment.size() || id < 0 ) {
-        throw CustomException("The node selected does not exist.");
-    }
-
-    // get the previous node based on the id
-    return environment.at(id);
-}
 
 node_directions str_to_direction(std::string dir) {
     if ( dir == "left" || dir == "l" ) { return NODE_LEFT; }
@@ -46,7 +27,50 @@ node_directions str_to_direction(std::string dir) {
     return NODE_NONE;
 }
 
-int build_node(
+// checks to see if a node table is valid
+int check_default_node_table(sol::table &table) {
+    sol::optional<std::string> name = table[engine::node::NAME];
+    sol::optional<sol::function> on_land = table[engine::node::LAND];
+    sol::optional<sol::function> on_leave = table[engine::node::LEAVE];
+
+    if ( !name ) {
+        log_error("Node data does not contain name field.");
+        return 1;
+    }
+    else if ( !on_land ) {
+        log_error("Node with name \"%s\" does not have landing function.", name.value().c_str());
+        return 1;
+    }
+    else if ( !on_leave ) {
+        log_error("Node with name \"%s\" does not have leaving function.", name.value().c_str());
+        return 1;
+    }
+
+    return 0;
+}
+
+
+// CLASS ---------------------------------------------------------------------------------------------------------------
+
+
+// constructor and destructor
+NodeManager::NodeManager() {
+
+}
+
+NodeManager::~NodeManager() {
+    log_trace("Destructing node manager by deleting nodes");
+
+    log_debug("There are %d nodes to delete", environment.size());
+
+    for ( const auto &item : environment ) {
+        log_debug("Deleting node: %s", item->node_type.c_str());
+
+        delete item;
+    }
+}
+
+int NodeManager::build_node(
     std::string node_type,
     sol::table unique_data,
     int previous_node_id,
@@ -155,36 +179,14 @@ int build_node(
     return environment.size() - 1;
 }
 
-int new_node_type(sol::environment &core_env, sol::table node_table) {
+int NodeManager::new_node_type(sol::environment &core_env, sol::table node_table) {
     // add the node table to the new lua queue
     core_env[engine::node::QUEUE].get<sol::table>().add(node_table);
 
     return 0;
 }
 
-// checks to see if a node table is valid
-int check_default_node_table(sol::table &table) {
-    sol::optional<std::string> name = table[engine::node::NAME];
-    sol::optional<sol::function> on_land = table[engine::node::LAND];
-    sol::optional<sol::function> on_leave = table[engine::node::LEAVE];
-
-    if ( !name ) {
-        log_error("Node data does not contain name field.");
-        return 1;
-    }
-    else if ( !on_land ) {
-        log_error("Node with name \"%s\" does not have landing function.", name.value().c_str());
-        return 1;
-    }
-    else if ( !on_leave ) {
-        log_error("Node with name \"%s\" does not have leaving function.", name.value().c_str());
-        return 1;
-    }
-
-    return 0;
-}
-
-int build_single_node(sol::environment &core_env, sol::table node_template, sol::table node_table) {
+int NodeManager::build_single_node(sol::environment &core_env, sol::table node_template, sol::table node_table) {
     // create the new table
     sol::table new_table = core_env.create();
     std::unordered_set<std::string> availible_keys;
@@ -243,7 +245,18 @@ int build_single_node(sol::environment &core_env, sol::table node_template, sol:
     return 0;
 }
 
-int build_node_queue(sol::environment &core_env, sol::table node_template) {
+// get a node from the environment
+node_t *NodeManager::get_node(int id) {
+    if ( id >= environment.size() || id < 0 ) {
+        throw CustomException("The node selected does not exist.");
+    }
+
+    // get the previous node based on the id
+    return environment.at(id);
+}
+
+// function to build the node queue
+int NodeManager::build_node_queue(sol::environment &core_env, sol::table node_template) {
     sol::table node_queue = core_env[engine::node::QUEUE];
 
     log_debug("Node queue has length %d", node_queue.size());
@@ -256,7 +269,6 @@ int build_node_queue(sol::environment &core_env, sol::table node_template) {
     return 0;
 }
 
-// simple getter
-std::unordered_set<std::string> &get_all_node_types() {
+std::unordered_set<std::string> &NodeManager::get_all_node_types() {
     return all_node_types;
 }

@@ -63,6 +63,11 @@ class Campaign {
 
         // -------------------------------------------------------------------------------------------------------------------------------
 
+        // required for management of the current nodes
+        NodeManager nodeManager;
+
+        // -------------------------------------------------------------------------------------------------------------------------------
+
     private:
         // settings ----------------------------------------------------------------------------------------------------------------------
 
@@ -252,7 +257,7 @@ class Campaign {
                 // build the nodes
                 // MUST BE PERFORMED BEFORE RUNNING THE ENVIRONMENT FUNCTION
                 log_trace("Building node queue");
-                build_node_queue(core_env, core_env[engine::node::TEMPLATE]);
+                nodeManager.build_node_queue(core_env, core_env[engine::node::TEMPLATE]);
 
                 res = RunFunctionIfExists(build_env, engine::func::extension::ENVIRONMENT);
                 if ( res != 0 ) {
@@ -553,7 +558,7 @@ class Campaign {
             // inject functions and data into relevant environments  ---------------------------------------------------------------------
 
             inject_core(core_env);
-            inject_build_tools(build_env, core_env);
+            inject_build_tools(build_env, core_env, nodeManager);
             inject_api(scripts_env);
 
             // ---------------------------------------------------------------------------------------------------------------------------
@@ -561,11 +566,10 @@ class Campaign {
 
         // destructor
         ~Campaign() {
-            log_trace("Destructing campaign");
+            // call the node manager destructor
+            nodeManager.~NodeManager();
 
-            log_trace("Freeing the node array");
-            // free the nodes
-            free_nodes();
+            log_trace("Destructing campaign");
         }
 };
 
@@ -628,7 +632,9 @@ node_directions get_player_input(node_t *node) {
     return NODE_QUIT;
 }
 
-void gameloop(sol::environment &core_env, node_t *(&start_node)) {
+void gameloop(Campaign &campaign, node_t *(&start_node)) {
+    sol::environment &core_env = campaign.core_env;
+
     // reassign the name
     node_t *cur_node = start_node;
 
@@ -659,7 +665,7 @@ void gameloop(sol::environment &core_env, node_t *(&start_node)) {
         // check if the script is attempting to manage the player's position
         if ( script_player_pos >= 1 ) {
             try {
-                node_t *new_pos = get_node(script_player_pos - 1);
+                node_t *new_pos = campaign.nodeManager.get_node(script_player_pos - 1);
 
                 // set the current node to be the pointer to the new position
                 cur_node = new_pos;
@@ -845,8 +851,12 @@ int main() {
     // log_set_quiet(true);
 
     Campaign campaign;
+    Campaign campaign2;
+    Campaign campaign3;
 
     campaign.LoadCampaign( "test_campaign" );
+    campaign2.LoadCampaign( "test_campaign" );
+    campaign3.LoadCampaign( "test_campaign" );
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
@@ -863,7 +873,7 @@ int main() {
     } */
 
     // show nodes
-    for ( const auto &node : get_all_node_types() ) {
+    for ( const auto &node : campaign.nodeManager.get_all_node_types() ) {
         log_trace("Found node with name \"%s\"", node.c_str());
     }
 
@@ -890,12 +900,18 @@ int main() {
     std::cout << res << " " << res2 << std::endl;
     */
 
-    main_menu();
+    // main_menu();
 
-    node_t *cur = get_node(0);
+    node_t *cur = campaign.nodeManager.get_node(0);
 
     // the main game loop
-    gameloop(campaign.core_env, cur);
+    gameloop(campaign, cur);
+
+    // test a second campaign
+    cur = campaign2.nodeManager.get_node(0);
+
+    // the main game loop
+    gameloop(campaign, cur);
 
 
     fclose(fp);
