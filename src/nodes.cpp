@@ -1,6 +1,14 @@
 #include "nodes.hpp"
 
 
+coordinates_t add_coords(coordinates_t a, coordinates_t b) {
+    return {
+        (short)(a.x + b.x),
+        (short)(a.y + b.y),
+        (short)(a.z + b.z)
+    };
+}
+
 int init_coords(coordinates_t *coords) {
     coords->x = 0;
     coords->y = 0;
@@ -9,8 +17,8 @@ int init_coords(coordinates_t *coords) {
     return 0;
 }
 
-coord_hash get_coords_hash(coordinates_t *coords) {
-    return 0 | ((coord_hash)coords->x << (16 * 2)) | ((coord_hash)coords->y << (16 * 1)) | ((coord_hash)coords->z << (16 * 0));
+coord_hash get_coords_hash(coordinates_t coords) {
+    return 0 | ((coord_hash)coords.x << (16 * 2)) | ((coord_hash)coords.y << (16 * 1)) | ((coord_hash)coords.z << (16 * 0));
 }
 
 

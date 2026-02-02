@@ -13,9 +13,11 @@ typedef struct {
 
 typedef long long int coord_hash;
 
+coordinates_t add_coords(coordinates_t a, coordinates_t b);
+
 int init_coords(coordinates_t *coords);
 
-coord_hash get_coords_hash(coordinates_t *coords);
+coord_hash get_coords_hash(coordinates_t coords);
 
 
 typedef struct node_t {

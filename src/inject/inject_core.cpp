@@ -20,7 +20,11 @@ int inject_core_node_data(sol::environment &env) {
 int inject_core_player_data(sol::environment &env) {
     env[engine::player::DATA] = env.create_with(
         engine::player::NAME, "Player Name",
-        engine::player::POSITION, 0
+        engine::player::POSITION, env.create_with(
+            "x", 0,
+            "y", 0,
+            "z", 0
+        )
     );
 
     return 0;

@@ -8,6 +8,30 @@ extern "C" {
 #include "build.hpp"
 
 
+// TODO: implement later
+coordinates_t parse_coordinate_table(sol::table &coords) {
+    coordinates_t parsed_coords;
+
+    // initialise coordinates
+    init_coords(&parsed_coords);
+
+    const bool invalid_length = coords.size() != 3;
+
+    // return incomplete coordinates
+    if ( invalid_length ) {
+        return parsed_coords;
+    }
+
+    // check if using x=, y=, z= system or a list of 3 ints
+    // then, parse each value to a short ( if over some boundry set as 0 )
+    for ( const auto &point : coords ) {
+
+    }
+
+    return parsed_coords;
+}
+
+
 int build_player_extension(sol::environment &env, sol::table extension) {
     // TODO: add validation to prevent overrighting default properties or properties that already exist
     for ( const auto &item : extension ) {     
@@ -34,15 +58,20 @@ int inject_environment_tools(sol::environment &build_env, NodeManager &nodeManag
 
         [&nodeManager](
             std::string node_type,
-            sol::table coords,
+            short x,
+            short y,
+            short z,
             sol::table unique_data = sol::table(),
             std::string blocked = ""
         ) {
-            // TODO: implement proper coordinates system
             // parse coords
+            // TODO: implement later
+            // const coordinates_t parsed_coords = parse_coordinate_table(coords);
 
             log_debug("Called build function");
-            return nodeManager.build_node(node_type, {0, 0, 0}, unique_data, blocked);
+            log_debug("Coordinates are (%d %d %d)", x, y, z);
+
+            return nodeManager.build_node(node_type, {x, y, z}, unique_data, blocked);
         }
     );
 

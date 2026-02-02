@@ -90,7 +90,7 @@ void NodeManager::build_node(
     node_init(new_node);
 
     // get the hash of the coordinates requests
-    const coord_hash hash = get_coords_hash(&coords);
+    const coord_hash hash = get_coords_hash(coords);
     const bool position_taken = environment.find(hash) != environment.end();
 
     if ( position_taken ) {
@@ -100,9 +100,11 @@ void NodeManager::build_node(
     // add the node to the new environment is the coordinates are not already taken
     environment[hash] = new_node;
 
-    // set the name and unique data
+    // set the name, unique data and coordinates
     new_node->node_type = node_type;
     new_node->unique_data = unique_data;
+
+    new_node->coords = coords;
 
     // end
     return;
@@ -183,7 +185,7 @@ int NodeManager::build_single_node(
 // get a node from the environment
 node_t *NodeManager::get_node(coordinates_t coords) {
     // get the hash
-    const coord_hash hash = get_coords_hash(&coords);
+    const coord_hash hash = get_coords_hash(coords);
 
     // search for the hash
     auto search_res = environment.find(hash);
@@ -216,10 +218,6 @@ int NodeManager::build_node_queue(sol::environment &core_env, sol::table node_te
     return 0;
 }
 
-int NodeManager::make_all_connections() {
-    return 0;
-}
-
 int NodeManager::make_connection(
     coordinates_t node1,
     coordinates_t node2,
@@ -227,7 +225,117 @@ int NodeManager::make_connection(
     bool one_way,
     bool override_blocked
 ) {
-    // TODO: implement
+    node_t *node1_ptr = get_node(node1);
+    node_t *node2_ptr = get_node(node2);
+
+    // if the node does not exist return invalid
+    if ( node1_ptr == NULL ) {
+        return 1;
+    }
+
+    // if the node does not exist return invalid
+    if ( node2_ptr == NULL ) {
+        return 1;
+    }
+
+    // switch the link direction
+
+    // check if the connection is valid by checking if node already has that direction full
+    // also check if it is blocked and if we are overriding block and the one way thing
+
+    // TODO: implement one way and blocking
+
+    switch ( link ) {
+        case NODE_LEFT:
+            node1_ptr->left = node2_ptr;
+            node2_ptr->right = node1_ptr;
+            break;
+        
+        case NODE_RIGHT:
+            node1_ptr->right = node2_ptr;
+            node2_ptr->left = node1_ptr;
+            break;
+        
+        case NODE_FORWARD:
+            node1_ptr->forward = node2_ptr;
+            node2_ptr->back = node1_ptr;
+            break;
+        
+        case NODE_BACK:
+            node1_ptr->back = node2_ptr;
+            node2_ptr->forward = node1_ptr;
+            break;
+
+        case NODE_UP:
+            node1_ptr->up = node2_ptr;
+            node2_ptr->down = node1_ptr;
+            break;
+        
+        case NODE_DOWN:
+            node1_ptr->down = node2_ptr;
+            node2_ptr->up = node1_ptr;
+            break;
+        
+        case NODE_PREV:
+            node1_ptr->previous = node2_ptr;
+            node2_ptr->next = node1_ptr;
+            break;
+
+        case NODE_NEXT:
+            node1_ptr->next = node2_ptr;
+            node2_ptr->previous = node1_ptr;
+            break;
+        
+        default:
+            break;
+    }
+
+    return 0;
+}
+
+int NodeManager::make_all_connections() {
+    log_debug("Found %d nodes to make connections.", environment.size());
+
+    for ( const auto &node_pair : environment ) {
+        auto node = node_pair.second;
+
+        // get the coordinates
+        coordinates_t cur_coords = node->coords;
+
+        using offset_t = std::pair<coordinates_t, node_directions>;
+
+        // a list of add offsets and their corresponding direction
+        const offset_t offsets[] = {
+            offset_t({1, 0, 0}, NODE_RIGHT),
+            offset_t({-1, 0, 0}, NODE_LEFT),
+            offset_t({0, 0, 1}, NODE_FORWARD),
+            offset_t({0, 0, -1}, NODE_BACK),
+            offset_t({0, 1, 0}, NODE_UP),
+            offset_t({0, -1, 0}, NODE_DOWN)
+        };
+
+        for ( const auto &item : offsets ) {
+            const coordinates_t new_coords = add_coords(cur_coords, item.first);
+
+            log_debug(
+                "Trying to make connection between (%d %d %d) and (%d %d %d)",
+                cur_coords.x,
+                cur_coords.y,
+                cur_coords.z,
+                new_coords.x,
+                new_coords.y,
+                new_coords.z
+            );
+
+            make_connection(
+                cur_coords,
+                new_coords,
+                item.second
+            );
+
+        }
+    }
+
     return 0;
 }
 
