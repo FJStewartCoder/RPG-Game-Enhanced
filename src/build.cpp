@@ -64,20 +64,21 @@ NodeManager::~NodeManager() {
     log_debug("There are %d nodes to delete", environment.size());
 
     for ( const auto &item : environment ) {
-        log_debug("Deleting node: %s", item->node_type.c_str());
+        const node_t *node = item.second;
 
-        delete item;
+        log_debug("Deleting node: %s", node->node_type.c_str());
+
+        delete node;
     }
 }
 
-int NodeManager::build_node(
+void NodeManager::build_node(
     std::string node_type,
+    coordinates_t coords,
     sol::table unique_data,
-    int previous_node_id,
-    std::string relation,
-    bool one_way  // defines whether or not the new node added should be able to link back to the previous node
+    std::string blocked_directions
 ) {
-    bool type_exists = all_node_types.find(node_type) != all_node_types.end();
+    const bool type_exists = all_node_types.find(node_type) != all_node_types.end();
 
     if ( !type_exists ) {
         throw CustomException("This node type: does not exist or is malformed.");
@@ -86,92 +87,25 @@ int NodeManager::build_node(
     // allocate heap space for the new node
     // this is done to ensure that the pointers always point to the same location
     node_t *new_node = new node_t;
-
     node_init(new_node);
 
-    // add the node to the new environment
-    environment.push_back(new_node);
+    // get the hash of the coordinates requests
+    const coord_hash hash = get_coords_hash(&coords);
+    const bool position_taken = environment.find(hash) != environment.end();
+
+    if ( position_taken ) {
+        throw CustomException("These coordinates are already taken");
+    }
+
+    // add the node to the new environment is the coordinates are not already taken
+    environment[hash] = new_node;
 
     // set the name and unique data
     new_node->node_type = node_type;
     new_node->unique_data = unique_data;
-    new_node->id = environment.size() - 1;
 
-    // done at this point
-    if ( previous_node_id <= -1 ) {
-        // return the index of the previous node
-        return environment.size() - 1;
-    }
-
-    // get the previous node based on the id
-    node_t *previous_node = get_node(previous_node_id);
-
-    // get the direction of the node by string
-    node_directions direction = str_to_direction(relation);
-
-    switch (direction) {
-        case NODE_LEFT:
-            previous_node->left = new_node;
-
-            // only allowing backtracking if not one wayc
-            if ( !one_way ) { new_node->right = previous_node; }
-            break;
-        
-        case NODE_RIGHT:
-            previous_node->right = new_node;
-            
-            // only allowing backtracking if not one way
-            if ( !one_way ) { new_node->left = previous_node; }
-            break;
-        
-        case NODE_UP:
-            previous_node->up = new_node;
-            
-            // only allowing backtracking if not one way
-            if ( !one_way ) { new_node->down = previous_node; }
-            break;
-        
-        case NODE_DOWN:
-            previous_node->down = new_node;
-            
-            // only allowing backtracking if not one way
-            if ( !one_way ) { new_node->up = previous_node; }
-            break;
-        
-        case NODE_FORWARD:
-            previous_node->forward = new_node;
-            
-            // only allowing backtracking if not one way
-            if ( !one_way ) { new_node->back = previous_node; }
-            break;
-        
-        case NODE_BACK:
-            previous_node->back = new_node;
-            
-            // only allowing backtracking if not one way
-            if ( !one_way ) { new_node->forward = previous_node; }
-            break;
-        
-        case NODE_NEXT:
-            previous_node->next = new_node;
-            
-            // only allowing backtracking if not one way
-            if ( !one_way ) { new_node->previous = previous_node; }
-            break;
-        
-        case NODE_PREV:
-            previous_node->previous = new_node;
-            
-            // only allowing backtracking if not one way
-            if ( !one_way ) { new_node->next = previous_node; }
-            break;
-
-        default:
-            break;
-    }
-
-    // return the index of the new node
-    return environment.size() - 1;
+    // end
+    return;
 }
 
 int NodeManager::new_node_type(sol::environment &core_env, sol::table node_table) {
@@ -183,7 +117,11 @@ int NodeManager::new_node_type(sol::environment &core_env, sol::table node_table
     return 0;
 }
 
-int NodeManager::build_single_node(sol::environment &core_env, sol::table node_template, sol::table node_table) {
+int NodeManager::build_single_node(
+    sol::environment &core_env,
+    sol::table node_template,
+    sol::table node_table
+) {
     // create the new table
     sol::table new_table = core_env.create();
     std::unordered_set<std::string> availible_keys;
@@ -243,13 +181,25 @@ int NodeManager::build_single_node(sol::environment &core_env, sol::table node_t
 }
 
 // get a node from the environment
-node_t *NodeManager::get_node(int id) {
-    if ( id >= environment.size() || id < 0 ) {
-        throw CustomException("The node selected does not exist.");
-    }
+node_t *NodeManager::get_node(coordinates_t coords) {
+    // get the hash
+    const coord_hash hash = get_coords_hash(&coords);
 
-    // get the previous node based on the id
-    return environment.at(id);
+    // search for the hash
+    auto search_res = environment.find(hash);
+
+    // check for existance
+    const bool node_found = search_res != environment.end();
+
+    if ( !node_found ) {
+        return NULL;
+    }   
+
+    // does exist so get the node * from the pair
+    node_t* node = search_res->second;
+
+    // return the found node
+    return node;
 }
 
 // function to build the node queue
@@ -263,6 +213,21 @@ int NodeManager::build_node_queue(sol::environment &core_env, sol::table node_te
         build_single_node(core_env, node_template, table.second);
     }
 
+    return 0;
+}
+
+int NodeManager::make_all_connections() {
+    return 0;
+}
+
+int NodeManager::make_connection(
+    coordinates_t node1,
+    coordinates_t node2,
+    node_directions link,
+    bool one_way,
+    bool override_blocked
+) {
+    // TODO: implement
     return 0;
 }
 

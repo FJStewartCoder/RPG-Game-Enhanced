@@ -1,11 +1,26 @@
 #include "nodes.hpp"
 
 
+int init_coords(coordinates_t *coords) {
+    coords->x = 0;
+    coords->y = 0;
+    coords->z = 0;
+
+    return 0;
+}
+
+coord_hash get_coords_hash(coordinates_t *coords) {
+    return 0 | ((coord_hash)coords->x << (16 * 2)) | ((coord_hash)coords->y << (16 * 1)) | ((coord_hash)coords->z << (16 * 0));
+}
+
+
 void node_init(node_t *node) {
     node->node_type = "";
 
     // set id to a generic value
-    node->id = 0;
+    init_coords(&node->coords);
+
+    node->blocked_directions = "";
 
     // set all directions to null
     node->left = nullptr;

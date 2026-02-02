@@ -34,13 +34,15 @@ int inject_environment_tools(sol::environment &build_env, NodeManager &nodeManag
 
         [&nodeManager](
             std::string node_type,
-            sol::table unique_data,
-            int previous_node_id,
-            std::string relation,
-            bool one_way
+            sol::table coords,
+            sol::table unique_data = sol::table(),
+            std::string blocked = ""
         ) {
+            // TODO: implement proper coordinates system
+            // parse coords
+
             log_debug("Called build function");
-            return nodeManager.build_node(node_type, unique_data, previous_node_id, relation, one_way);
+            return nodeManager.build_node(node_type, {0, 0, 0}, unique_data, blocked);
         }
     );
 

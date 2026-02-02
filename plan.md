@@ -240,3 +240,6 @@ Each campaign class needs a "node manager". So, rewrite the build.cpp scripts in
 Then, each campaign can have it's own node manager. This allows several campaigns to be created simultaneously.
 
 TODO: log_file_callback is causing issues when too much data is being written to the file.
+
+NEW PLAYER DATA
+since we are moving to a new coordinates system, the player data need to reflect this to allow the script to still move the player if it wants.

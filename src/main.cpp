@@ -662,13 +662,14 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
         // check if the script is attempting to manage the player's position
         if ( script_player_pos >= 1 ) {
             try {
-                node_t *new_pos = campaign.nodeManager.get_node(script_player_pos - 1);
+                // TODO: fix this
+                node_t *new_pos = campaign.nodeManager.get_node({0, 0, 0});
 
                 // set the current node to be the pointer to the new position
                 cur_node = new_pos;
 
                 // message to inform me the script moved the player
-                log_trace("Script moved player to node ID: %d.", cur_node->id);
+                log_trace("Script moved player to node ID: %ld.", get_coords_hash(&cur_node->coords));
             }
             catch (std::exception &e) {
                 log_warn("Script attempted to manage position but the operation failed.");
@@ -682,7 +683,7 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
         // get the current node data
         auto cur_node_data = get_node_data(core_env, cur_node->node_type);
 
-        log_info("Landed on node with type: \"%s\", with ID: %d", cur_node->node_type.c_str(), cur_node->id);
+        log_info("Landed on node with type: \"%s\", with ID: %d", cur_node->node_type.c_str(), get_coords_hash(&cur_node->coords));
     
         // if data exists run on land
         if ( cur_node_data ) {
@@ -898,13 +899,23 @@ int main() {
 
     // main_menu();
 
-    node_t *cur = campaign.nodeManager.get_node(0);
+    node_t *cur = campaign.nodeManager.get_node({0, 0, 0});
+
+    if ( cur == NULL ) {
+        fclose(fp);
+        return 1;
+    }
 
     // the main game loop
     gameloop(campaign, cur);
 
     // test a second campaign
-    cur = campaign2.nodeManager.get_node(0);
+    cur = campaign2.nodeManager.get_node({0, 0, 0});
+
+    if ( cur == NULL ) {
+        fclose(fp);
+        return 1;
+    }
 
     // the main game loop
     gameloop(campaign2, cur);

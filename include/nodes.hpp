@@ -5,16 +5,30 @@
 
 #include "sol/sol.hpp"
 
+typedef struct {
+    short x;
+    short y;
+    short z;
+} coordinates_t;
+
+typedef long long int coord_hash;
+
+int init_coords(coordinates_t *coords);
+
+coord_hash get_coords_hash(coordinates_t *coords);
+
 
 typedef struct node_t {
     // will be used to link to the data
     std::string node_type;
 
     // essentially just the index in the array
-    int id;
+    coordinates_t coords;
 
     // table of data that is unique to this node
     sol::optional<sol::table> unique_data;
+
+    std::string blocked_directions;
 
     // pointers to other nodes for traversal
     struct node_t *left;
