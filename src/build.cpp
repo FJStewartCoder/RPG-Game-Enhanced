@@ -243,51 +243,99 @@ int NodeManager::make_connection(
     // check if the connection is valid by checking if node already has that direction full
     // also check if it is blocked and if we are overriding block and the one way thing
 
-    // TODO: implement one way and blocking
+    // TODO: implement blocking and validation to prevent overwriting an existing connection
+
+    bool connection_blocked = false;
+
+    // a pointer to the next and previous pointer
+    // we want to be able to change the pointer so we need a pointer to a pointer
+    node_t **cur = NULL;  // the pointer from the next node to the current node based on the opposite of the direction specified
+    node_t **next = NULL;  // pointer from the current node to the next node in the direction specified
 
     switch ( link ) {
         case NODE_LEFT:
-            node1_ptr->left = node2_ptr;
-            node2_ptr->right = node1_ptr;
+            /*
+            if (
+                node1_ptr->blocked_directions has 'l' or
+                node2_ptr->blocked_direction has 'r'
+            ) {
+                connection_blocked = true;
+            }
+            */
+
+            next = &node1_ptr->left;
+            cur = &node2_ptr->right;
+            
             break;
         
         case NODE_RIGHT:
-            node1_ptr->right = node2_ptr;
-            node2_ptr->left = node1_ptr;
+            next = &node1_ptr->right;
+            cur = &node2_ptr->left;
+            
             break;
         
         case NODE_FORWARD:
-            node1_ptr->forward = node2_ptr;
-            node2_ptr->back = node1_ptr;
+            next = &node1_ptr->forward;
+            cur = &node2_ptr->back;
+            
             break;
         
         case NODE_BACK:
-            node1_ptr->back = node2_ptr;
-            node2_ptr->forward = node1_ptr;
+            next = &node1_ptr->back;
+            cur = &node2_ptr->forward;
+            
             break;
 
         case NODE_UP:
-            node1_ptr->up = node2_ptr;
-            node2_ptr->down = node1_ptr;
+            next = &node1_ptr->up;
+            cur = &node2_ptr->down;
+            
             break;
         
         case NODE_DOWN:
-            node1_ptr->down = node2_ptr;
-            node2_ptr->up = node1_ptr;
+            next = &node1_ptr->down;
+            cur = &node2_ptr->up;
+            
             break;
         
         case NODE_PREV:
-            node1_ptr->previous = node2_ptr;
-            node2_ptr->next = node1_ptr;
+            next = &node1_ptr->previous;
+            cur = &node2_ptr->next;
+            
             break;
 
         case NODE_NEXT:
-            node1_ptr->next = node2_ptr;
-            node2_ptr->previous = node1_ptr;
+            next = &node1_ptr->next;
+            cur = &node2_ptr->previous;
+            
             break;
         
         default:
             break;
+    }
+
+    // if there are no pointers then we can't continue processing
+    if ( cur == NULL || next == NULL ) {
+        return 1;
+    }
+
+    // only if the connection is blocked and we are overriding the block, we have to return
+    if ( connection_blocked && !override_blocked ) {
+        return 1;
+    }
+
+    // only make a connection if a connection is not already established
+    // this would mean that the next would be NULL
+
+    // TODO: this needs to be improved to be more readable and accurate
+    if ( *next == NULL ) {
+        *next = node2_ptr;
+
+        if ( !one_way ) {
+            if ( *cur == NULL ) {
+                *cur = node1_ptr;
+            }
+        }
     }
 
     return 0;

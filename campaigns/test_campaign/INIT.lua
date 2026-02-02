@@ -16,9 +16,11 @@ function extend()
 end
 
 function environment()
-    node_1 = build_node("Start", 0, 0, 0, {}, "")
-    node_1 = build_node("2", 1, 0, 0, {}, "")
-    node_1 = build_node("3", 2, 0, 0, {}, "")
-    node_1 = build_node("2", 3, 0, 0, {}, "")
-    node_1 = build_node("5", 3, 0, 1, {}, "")
+    build_node("Start", 0, 0, 0, {}, "")
+    build_node("2", 1, 0, 0, {}, "")
+    build_node("2", 0, 0, 1, {}, "")
+    build_node("2", 1, 0, 1, {}, "")
+    build_node("3", 2, 0, 0, {}, "")
+    build_node("2", 3, 0, 0, {}, "")
+    build_node("5", 3, 0, 1, {}, "")
 end

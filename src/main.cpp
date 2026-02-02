@@ -675,7 +675,7 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
                 cur_node = new_pos;
 
                 // message to inform me the script moved the player
-                log_trace("Script moved player to node ID: %ld.", get_coords_hash(cur_node->coords));
+                log_trace("Script moved player to node ID: %lld.", get_coords_hash(cur_node->coords));
             }
             catch (std::exception &e) {
                 log_warn("Script attempted to manage position but the operation failed.");
@@ -690,7 +690,7 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
         // get the current node data
         auto cur_node_data = get_node_data(core_env, cur_node->node_type);
 
-        log_info("Landed on node with type: \"%s\", with ID: %d", cur_node->node_type.c_str(), get_coords_hash(cur_node->coords));
+        log_info("Landed on node with type: \"%s\", with ID: %lld", cur_node->node_type.c_str(), get_coords_hash(cur_node->coords));
     
         // if data exists run on land
         if ( cur_node_data ) {
