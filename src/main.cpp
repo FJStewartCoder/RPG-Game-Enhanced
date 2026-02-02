@@ -635,6 +635,8 @@ node_directions get_player_input(node_t *node) {
 }
 
 // TODO: fix script handled movement for new system
+// NEED TO ESTABLISH WHEN TO SET THE SCRIPT POSITION AN MAKE CHECKS FOR MOVEMENT
+
 void gameloop(Campaign &campaign, node_t *(&start_node)) {
     sol::environment &core_env = campaign.core_env;
 
@@ -659,38 +661,37 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
     // traverse
 
     while ( running ) {
+        // get the current node data
+        auto cur_node_data = get_node_data(core_env, cur_node->node_type);
+
+        log_info("Current node has type: \"%s\", with ID: %lld", cur_node->node_type.c_str(), get_coords_hash(cur_node->coords));
+
         // get the player data table
         sol::table player_data = core_env[engine::player::DATA];
 
         // stores the current location of the player
-        int script_player_pos = 0;  // player_data[engine::player::POSITION]["x"];
+        sol::table script_player_pos = player_data[engine::player::POSITION];
 
         // check if the script is attempting to manage the player's position
-        if ( script_player_pos >= 1 ) {
-            try {
-                // TODO: fix this
-                node_t *new_pos = campaign.nodeManager.get_node({0, 0, 0});
+        // by checking if any position data is different
+        if ( 
+            cur_node->coords.x != script_player_pos["x"] ||
+            cur_node->coords.y != script_player_pos["y"] ||
+            cur_node->coords.z != script_player_pos["z"]
+        ) {
+            node_t *new_pos = campaign.nodeManager.get_node( { script_player_pos["x"], script_player_pos["y"], script_player_pos["z"] } );
 
+            if ( new_pos != NULL ) {
                 // set the current node to be the pointer to the new position
                 cur_node = new_pos;
 
                 // message to inform me the script moved the player
                 log_trace("Script moved player to node ID: %lld.", get_coords_hash(cur_node->coords));
             }
-            catch (std::exception &e) {
+            else {
                 log_warn("Script attempted to manage position but the operation failed.");
             }
         }
-
-        // regardless of attempt, this should be 0
-        // set the script location to 0 to ensure that we know C++ is managing position
-        // TODO: fix later
-        // player_data[engine::player::POSITION]["x"] = 0;
-
-        // get the current node data
-        auto cur_node_data = get_node_data(core_env, cur_node->node_type);
-
-        log_info("Landed on node with type: \"%s\", with ID: %lld", cur_node->node_type.c_str(), get_coords_hash(cur_node->coords));
     
         // if data exists run on land
         if ( cur_node_data ) {

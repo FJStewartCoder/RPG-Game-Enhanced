@@ -53,7 +53,7 @@ namespace engine {
         const std::string DATA = "PLAYER_DATA";
 
         const std::string NAME = "name";
-        const std::string POSITION = "position_id";
+        const std::string POSITION = "position";
     };
 
     namespace file {

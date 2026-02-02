@@ -15,5 +15,5 @@ end
 
 function start_leave(data, node, player)
     -- manage position from the script
-    player.position_id = 3
+    player.position.x = 3
 end
