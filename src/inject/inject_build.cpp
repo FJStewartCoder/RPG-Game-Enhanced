@@ -96,6 +96,31 @@ int inject_build_tools(sol::environment &build_env, sol::environment &core, Node
         return nodeManager.new_node_type(core, table);
     });
 
+    // add the make connection function
+    build_env.set_function(
+        engine::func::api::ARBITRARY_CONNECTION,
+
+        [&core, &nodeManager](
+            short x1,
+            short y1,
+            short z1,
+            short x2,
+            short y2,
+            short z2,
+            std::string dir,
+            bool one_way = false,
+            bool override_blocking = false
+        ) {
+            return nodeManager.make_connection(
+                {x1, y1, z1},
+                {x2, y2, z2},
+                str_to_direction(dir),
+                one_way,
+                override_blocking
+            );
+        }
+    );
+
     inject_environment_tools(build_env, nodeManager);
 
     return 0;

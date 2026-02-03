@@ -25,6 +25,8 @@ function environment()
     build_node("2", 0, 0, 1, {}, "")
     build_node("2", 0, 0, -1, {}, "")
 
+    make_connection(0, 0, 0, 0, 1, 0, "next", false, true)
+
     --  2 
     -- 2S2
     --  2

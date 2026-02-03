@@ -307,3 +307,5 @@ movement decision
 sync position
 
 move player
+
+TODO: allow the user to make arbitrary connections using the make_connection function

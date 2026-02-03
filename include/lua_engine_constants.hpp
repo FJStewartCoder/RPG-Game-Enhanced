@@ -39,6 +39,7 @@ namespace engine {
             // functions to environment creation
             const std::string NEW_CAMPAIGN = "new_campaign";
             const std::string BUILD_NODE = "build_node";
+            const std::string ARBITRARY_CONNECTION = "make_connection";
         }
 
         namespace scripts_api {

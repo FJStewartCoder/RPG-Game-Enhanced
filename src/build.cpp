@@ -31,7 +31,7 @@ node_directions str_to_direction(std::string dir) {
 
     if ( dir == "forward" || dir == "f" ) { return NODE_FORWARD; }
     if ( dir == "back" || dir == "b" ) { return NODE_BACK; }
-    if ( dir == "next" || dir == "l" ) { return NODE_NEXT; }
+    if ( dir == "next" || dir == "n" ) { return NODE_NEXT; }
     if ( dir == "previous" || dir == "prev" || dir == "p" ) { return NODE_PREV; }
 
     // if nothing
@@ -254,8 +254,6 @@ int NodeManager::make_connection(
     // check if the connection is valid by checking if node already has that direction full
     // also check if it is blocked and if we are overriding block and the one way thing
 
-    // TODO: implement blocking
-
     bool connection_blocked = false;
 
     // a pointer to the next and previous pointer
@@ -336,6 +334,7 @@ int NodeManager::make_connection(
 
     // if there are no pointers then we can't continue processing
     if ( cur == NULL || next == NULL ) {
+        log_error("Either the current or next node does not exist. Likely due to invalid direction");
         return 1;
     }
 
