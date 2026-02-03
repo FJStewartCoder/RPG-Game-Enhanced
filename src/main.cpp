@@ -655,16 +655,27 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
     // STEPS:
     // get node data
     // on land ( ensures that the start activates )
-    // check if possible to move
-    // ask direction ( if we did this first the start would not work )
+    // check if script has managed movement
+    // if true:
+    //     try to move player
+    // else:
+    //     check if possible to move
+    //     if can't move:
+    //         quit gameloop
+    //
+    //     ask direction ( if we did this first the start would not work )
+    // sync lua and c++ position
     // on leave
+    // repeat script movement check but don't re-ask for movement
     // traverse
 
     while ( running ) {
         // get the current node data
         auto cur_node_data = get_node_data(core_env, cur_node->node_type);
 
-        log_info("Current node has type: \"%s\", with ID: %lld", cur_node->node_type.c_str(), get_coords_hash(cur_node->coords));
+        if ( cur_node_data ) {
+            log_info("Current node has type: \"%s\", with ID: %lld", cur_node->node_type.c_str(), get_coords_hash(cur_node->coords));
+        }
 
         // get the player data table
         sol::table player_data = core_env[engine::player::DATA];
@@ -672,27 +683,6 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
         // stores the current location of the player
         sol::table script_player_pos = player_data[engine::player::POSITION];
 
-        // check if the script is attempting to manage the player's position
-        // by checking if any position data is different
-        if ( 
-            cur_node->coords.x != script_player_pos["x"] ||
-            cur_node->coords.y != script_player_pos["y"] ||
-            cur_node->coords.z != script_player_pos["z"]
-        ) {
-            node_t *new_pos = campaign.nodeManager.get_node( { script_player_pos["x"], script_player_pos["y"], script_player_pos["z"] } );
-
-            if ( new_pos != NULL ) {
-                // set the current node to be the pointer to the new position
-                cur_node = new_pos;
-
-                // message to inform me the script moved the player
-                log_trace("Script moved player to node ID: %lld.", get_coords_hash(cur_node->coords));
-            }
-            else {
-                log_warn("Script attempted to manage position but the operation failed.");
-            }
-        }
-    
         // if data exists run on land
         if ( cur_node_data ) {
             sol::protected_function on_land = cur_node_data.value()[engine::node::LAND];
@@ -709,66 +699,65 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
             }
         }
 
-        // ask direction
-        node_directions chosen_direction = NODE_NONE;
+        // interpretation of the lua position
+        short script_x = player_data[engine::player::POSITION]["x"];
+        short script_y = player_data[engine::player::POSITION]["y"];
+        short script_z = player_data[engine::player::POSITION]["z"];
 
-        if ( can_traverse(cur_node) == NODE_ERROR ) {
-            stuck_count++;
+        // check if the position is synced
+        bool position_sync = (cur_node->coords.x == script_x) && (cur_node->coords.y == script_y) && (cur_node->coords.z == script_z);
 
-            // user input for quitting or not
-            bool will_quit = false;
+        log_debug("[AFTER LANDING] C++: (%d %d %d), SCRIPT: (%d %d %d), SYNC: %d", cur_node->coords.x, cur_node->coords.y, cur_node->coords.z, script_x, script_y, script_z, position_sync );
 
-            if ( stuck_count >= max_stuck_cycles ) {
-                log_info("Exceeded max stuck limit. Automatically exiting.");
-                std::cout << "[ERROR] You have been stuck longer than the stuck limit. Aborting..." << std::endl;
-                
-                // force quit
-                will_quit = true;
-                silence_stuck = true;
+        bool ask_user_for_direction = true;
+
+        // check if the script is attempting to manage the player's position
+        // by checking if any position data is different
+        if ( !position_sync ) {
+            node_t *new_pos = campaign.nodeManager.get_node( { script_player_pos["x"], script_player_pos["y"], script_player_pos["z"] } );
+
+            if ( new_pos != NULL ) {
+                // set the current node to be the pointer to the new position
+                cur_node = new_pos;
+
+                // message to inform me the script moved the player
+                log_trace("Script moved player to node ID: %lld.", get_coords_hash(cur_node->coords));
+                // we have successfully moved so we don't need to ask for movement
+                ask_user_for_direction = false;
+            }
+            else {
+                log_warn("Script attempted to manage position but the operation failed.");
+            }
+        }
+        
+        if ( ask_user_for_direction ) {
+            if ( can_traverse(cur_node) == NODE_ERROR ) {
+                log_fatal("Player is stuck");
+                break;
             }
 
-            log_error("Player is stuck. Count: %d/%d", stuck_count, max_stuck_cycles);
+            // get the direction that the player want to move.
+            node_directions chosen_direction = get_player_input(cur_node);
 
-            if ( !silence_stuck ) {
-                std::cout << "[ERROR] You may be stuck as you are unable to move. It may be possible that external scripts are handling movement." << std::endl;
-            
-                std::cout << "Type q to quit or s to silence stuck message: ";
-                // get use input
-                std::string input;
-                std::cin >> input;
-
-                for ( const auto &c : input ) {
-                    if ( c == 'q' ) {
-                        will_quit = true;
-                        break;
-                    }
-                    else if ( c == 's' ) {
-                        silence_stuck = true;
-                    }
-                }
-            } 
-            
-            // quit
-            if ( will_quit ) {
+            // quit if chosen to quit
+            if ( chosen_direction == NODE_QUIT ) {
                 running = false;
                 break;
             }
 
-            // will not run any further until can move or quit
-            continue;
+            // actually traverse
+            node_errors res = traverse_node(cur_node, chosen_direction);
+
+            // if there is an error when attempting to log
+            if ( res == NODE_ERROR ) {
+                log_error("Node traversal failed.");
+            }
         }
 
-        // if we escape, then reset the stuck counter
-        stuck_count = 0;
-
-        // get the direction that the player want to move.
-        chosen_direction = get_player_input(cur_node);
-
-        // quit if chosen to quit
-        if ( chosen_direction == NODE_QUIT ) {
-            running = false;
-            break;
-        }
+        // sync the position
+        script_player_pos["x"] = cur_node->coords.x;
+        script_player_pos["y"] = cur_node->coords.y;
+        script_player_pos["z"] = cur_node->coords.z;
 
         // if data exists run on leave
         if ( cur_node_data ) {
@@ -786,13 +775,36 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
             }
         }
 
-        // actually traverse
-        node_errors res = traverse_node(cur_node, chosen_direction);
+        // get the lua position from the lua state
+        script_x = player_data[engine::player::POSITION]["x"];
+        script_y = player_data[engine::player::POSITION]["y"];
+        script_z = player_data[engine::player::POSITION]["z"];
 
-        // if there is an error when attempting to log
-        if ( res == NODE_ERROR ) {
-            log_error("Node traversal failed.");
+        // check for sync
+        position_sync = (cur_node->coords.x == script_x) && (cur_node->coords.y == script_y) && (cur_node->coords.z == script_z);
+
+        log_debug("[AFTER LEAVING] C++: (%d %d %d), SCRIPT: (%d %d %d), SYNC: %d", cur_node->coords.x, cur_node->coords.y, cur_node->coords.z, script_x, script_y, script_z, position_sync );
+
+        // if script is managing the position
+        if ( !position_sync ) {
+            node_t *new_pos = campaign.nodeManager.get_node( { script_player_pos["x"], script_player_pos["y"], script_player_pos["z"] } );
+
+            if ( new_pos != NULL ) {
+                // set the current node to be the pointer to the new position
+                cur_node = new_pos;
+
+                // message to inform me the script moved the player
+                log_trace("Script moved player to node ID: %lld.", get_coords_hash(cur_node->coords));
+            }
+            else {
+                log_warn("Script attempted to manage position but the operation failed.");
+            }
         }
+
+        // sync the position
+        script_player_pos["x"] = cur_node->coords.x;
+        script_player_pos["y"] = cur_node->coords.y;
+        script_player_pos["z"] = cur_node->coords.z;
     }
 }
 
