@@ -68,6 +68,10 @@ class Campaign {
 
         // -------------------------------------------------------------------------------------------------------------------------------
 
+        VirtualEvents event = VirtualEvents::NONE;
+
+        // -------------------------------------------------------------------------------------------------------------------------------
+
     private:
         // settings ----------------------------------------------------------------------------------------------------------------------
 
@@ -564,7 +568,7 @@ class Campaign {
 
             inject_core(core_env);
             inject_build_tools(build_env, core_env, nodeManager);
-            inject_api(scripts_env);
+            inject_api(scripts_env, event);
 
             // ---------------------------------------------------------------------------------------------------------------------------
         }
@@ -667,6 +671,22 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
     // traverse
 
     while ( running ) {
+        // TODO: improve the virtual event handler
+        // virtual event handler ------------------------------------
+
+        switch (campaign.event) {
+            case VirtualEvents::NONE:
+                break;
+            case VirtualEvents::QUIT:
+                log_trace("Virtual Event: Quit called");
+                return;
+                break;
+        }
+
+        campaign.event = VirtualEvents::NONE;
+
+        // ----------------------------------------------------------
+
         // get the current node data
         auto cur_node_data = get_node_data(core_env, cur_node->node_type);
 

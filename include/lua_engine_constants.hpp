@@ -46,6 +46,10 @@ namespace engine {
             // functions bound to menu creation
             const std::string BASIC_MENU = "basic_menu";
             const std::string ALTERNATE_MENU = "alt_menu";
+
+            namespace virtual_events {
+                const std::string QUIT = "quit";
+            }
         }
     };
 
@@ -75,6 +79,11 @@ namespace engine {
 
         const std::string SCRIPTS = "scripts";
     }
+};
+
+enum class VirtualEvents {
+    NONE,
+    QUIT
 };
 
 #endif // LUA_ENGINE_CONSTANTS_HPP
