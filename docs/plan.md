@@ -310,4 +310,4 @@ move player
 
 TODO: allow the user to make arbitrary connections using the make_connection function
 
-TODO: add virtual events ( for example quit )
+TODO: improve virtual events

@@ -6,7 +6,7 @@
 #include "lua_engine_constants.hpp"
 
 
-int inject_api(sol::environment scripts_env);
+int inject_api(sol::environment scripts_env, VirtualEvents &event);
 
 
 #endif // INJECT_API_HPP

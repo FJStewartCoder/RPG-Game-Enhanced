@@ -20,7 +20,7 @@ std::string menu_wrapper(std::string name, std::string description, sol::table o
 }
 
 
-int inject_api(sol::environment scripts_env) {
+int inject_api(sol::environment scripts_env, VirtualEvents &event) {
     scripts_env.set_function(
         engine::func::scripts_api::BASIC_MENU,
     
@@ -34,6 +34,15 @@ int inject_api(sol::environment scripts_env) {
     
         [](std::string name, std::string description, sol::table options) {
             return menu_wrapper(name, description, options, TEXT);
+        }
+    );
+
+    // function to cause the virtual event QUIT
+    scripts_env.set_function(
+        engine::func::scripts_api::virtual_events::QUIT,
+
+        [&event]() {
+            event = VirtualEvents::QUIT;
         }
     );
 
