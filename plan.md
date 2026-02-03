@@ -240,3 +240,72 @@ Each campaign class needs a "node manager". So, rewrite the build.cpp scripts in
 Then, each campaign can have it's own node manager. This allows several campaigns to be created simultaneously.
 
 TODO: log_file_callback is causing issues when too much data is being written to the file.
+
+NEW PLAYER DATA
+since we are moving to a new coordinates system, the player data need to reflect this to allow the script to still move the player if it wants.
+
+NAME: string
+POSITION {
+    x, y, z
+}
+
+GAMELOOP:
+
+Basic data grab ( player data etc. )
+Landing function
+check position
+
+If position is same
+    ask direction
+else
+    try to move the player
+
+set script player position to current position
+
+leaving function
+
+TEST CASES:
+Landing function moves player:
+Landing function called
+Position is changed from where we currently are
+Position is not same as C++ so try to move
+If success:
+    Update the C++ to that new node and set the position
+Else:
+    Nothing happens and lua is set to match the current position
+
+Assuming leaving does not move the player, the next turn should have lua and C++ coords match
+
+Leaving function moves player:
+...
+Leaving function is called
+Leaving function moves the player
+Landing function from original move location is called
+Then position is updated to where the script wanted.
+
+NOT INTENDED
+
+C++ moves the player:
+...
+Player is moved as intended
+Lua is set to match the position (Lua and C++ in sync so no errors)
+...
+
+UPDATES:
+
+Data grab
+Landing
+Check pos
+
+movement decision as before
+sync position
+
+leaving function
+check pos
+
+movement decision
+sync position
+
+move player
+
+TODO: allow the user to make arbitrary connections using the make_connection function

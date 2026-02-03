@@ -39,6 +39,7 @@ namespace engine {
             // functions to environment creation
             const std::string NEW_CAMPAIGN = "new_campaign";
             const std::string BUILD_NODE = "build_node";
+            const std::string ARBITRARY_CONNECTION = "make_connection";
         }
 
         namespace scripts_api {
@@ -53,7 +54,7 @@ namespace engine {
         const std::string DATA = "PLAYER_DATA";
 
         const std::string NAME = "name";
-        const std::string POSITION = "position_id";
+        const std::string POSITION = "position";
     };
 
     namespace file {

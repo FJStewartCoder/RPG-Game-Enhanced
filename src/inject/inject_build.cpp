@@ -8,6 +8,30 @@ extern "C" {
 #include "build.hpp"
 
 
+// TODO: implement later
+coordinates_t parse_coordinate_table(sol::table &coords) {
+    coordinates_t parsed_coords;
+
+    // initialise coordinates
+    init_coords(&parsed_coords);
+
+    const bool invalid_length = coords.size() != 3;
+
+    // return incomplete coordinates
+    if ( invalid_length ) {
+        return parsed_coords;
+    }
+
+    // check if using x=, y=, z= system or a list of 3 ints
+    // then, parse each value to a short ( if over some boundry set as 0 )
+    for ( const auto &point : coords ) {
+
+    }
+
+    return parsed_coords;
+}
+
+
 int build_player_extension(sol::environment &env, sol::table extension) {
     // TODO: add validation to prevent overrighting default properties or properties that already exist
     for ( const auto &item : extension ) {     
@@ -34,13 +58,21 @@ int inject_environment_tools(sol::environment &build_env, NodeManager &nodeManag
 
         [&nodeManager](
             std::string node_type,
-            sol::table unique_data,
-            int previous_node_id,
-            std::string relation,
-            bool one_way
+            short x,
+            short y,
+            short z,
+            sol::table unique_data = sol::table(),
+            std::string blocked = ""
         ) {
+            // parse coords
+            // TODO: implement later
+            // const coordinates_t parsed_coords = parse_coordinate_table(coords);
+
             log_debug("Called build function");
-            return nodeManager.build_node(node_type, unique_data, previous_node_id, relation, one_way);
+            log_debug("Coordinates are (%d %d %d)", x, y, z);
+            log_debug("Blocked status is (%s)", blocked.c_str());
+
+            return nodeManager.build_node(node_type, {x, y, z}, unique_data, blocked);
         }
     );
 
@@ -63,6 +95,32 @@ int inject_build_tools(sol::environment &build_env, sol::environment &core, Node
     build_env.set_function(engine::func::api::ADD_NODE_TYPE, [&core, &nodeManager](sol::table table) {
         return nodeManager.new_node_type(core, table);
     });
+
+    // add the make connection function
+    build_env.set_function(
+        engine::func::api::ARBITRARY_CONNECTION,
+
+        // TODO: improve with parse coordinates once implemented
+        [&core, &nodeManager](
+            short x1,
+            short y1,
+            short z1,
+            short x2,
+            short y2,
+            short z2,
+            std::string dir,
+            bool one_way = false,
+            bool override_blocking = false
+        ) {
+            return nodeManager.make_connection(
+                {x1, y1, z1},
+                {x2, y2, z2},
+                str_to_direction(dir),
+                one_way,
+                override_blocking
+            );
+        }
+    );
 
     inject_environment_tools(build_env, nodeManager);
 

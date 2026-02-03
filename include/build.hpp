@@ -6,10 +6,13 @@
 #include <unordered_set>
 
 
+using NODE_MAP = std::unordered_map<coord_hash, node_t*>;
+
+
 class NodeManager {
     private:
         // the array of C++ nodes
-        std::vector<node_t*> environment;
+        NODE_MAP environment;
 
         // all of the types of nodes which can be used for validation 
         std::unordered_set<std::string> all_node_types;
@@ -26,16 +29,26 @@ class NodeManager {
         ~NodeManager();
 
         // function to build a node
-        int build_node(
+        void build_node(
             std::string node_type,
+            coordinates_t coords,
             sol::table unique_data = sol::table(),
-            int previous_node = -1,
-            std::string relation = "",  // "" == NODE_NODE
-            bool one_way = false  // defines whether or not the new node added should be able to link back to the previous node
+            std::string blocked_directions = ""  // string of blocked directions e.g "lr" would be left and right is blocked
+        );
+
+        // function that creates all of the connections between all of the nodes based on the grid system
+        int make_all_connections();
+
+        int make_connection(
+            coordinates_t node1,
+            coordinates_t node2,
+            node_directions link,
+            bool one_way = false,
+            bool override_blocked = false
         );
 
         // get a node from the environment
-        node_t *get_node(int id);
+        node_t *get_node(coordinates_t coords);
 
         // function that is passed to lua to build new nodes
         int new_node_type(sol::environment &core_env, sol::table node_table);
