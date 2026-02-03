@@ -16,11 +16,16 @@ function extend()
 end
 
 function environment()
-    build_node("Start", 0, 0, 0, {}, "")
+    -- TEST IS BLOCKING WORKS ON ALL DIRECTIONS
+    build_node("Start", 0, 0, 0, {}, "rudfbnp")
     build_node("2", 1, 0, 0, {}, "")
+    build_node("2", -1, 0, 0, {}, "")
+    build_node("2", 0, 1, 0, {}, "")
+    build_node("2", 0, -1, 0, {}, "")
     build_node("2", 0, 0, 1, {}, "")
-    build_node("2", 1, 0, 1, {}, "")
-    build_node("3", 2, 0, 0, {}, "")
-    build_node("2", 3, 0, 0, {}, "")
-    build_node("5", 3, 0, 1, {}, "")
+    build_node("2", 0, 0, -1, {}, "")
+
+    --  2 
+    -- 2S2
+    --  2
 end

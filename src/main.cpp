@@ -634,9 +634,6 @@ node_directions get_player_input(node_t *node) {
     return NODE_QUIT;
 }
 
-// TODO: fix script handled movement for new system
-// NEED TO ESTABLISH WHEN TO SET THE SCRIPT POSITION AN MAKE CHECKS FOR MOVEMENT
-
 void gameloop(Campaign &campaign, node_t *(&start_node)) {
     sol::environment &core_env = campaign.core_env;
 
@@ -732,6 +729,7 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
         
         if ( ask_user_for_direction ) {
             if ( can_traverse(cur_node) == NODE_ERROR ) {
+                // TODO: potentially create a similar unstuck system like before instead of just quitting
                 log_fatal("Player is stuck");
                 break;
             }

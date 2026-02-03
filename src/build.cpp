@@ -12,6 +12,17 @@ extern "C" {
 // CLASSLESS -----------------------------------------------------------------------------------------------------------
 
 
+bool str_contains(std::string str, char search_char) {
+    for ( const auto &c : str ) {
+        if ( c == search_char ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
 node_directions str_to_direction(std::string dir) {
     if ( dir == "left" || dir == "l" ) { return NODE_LEFT; }
     if ( dir == "right" || dir == "r" ) { return NODE_RIGHT; }
@@ -100,11 +111,12 @@ void NodeManager::build_node(
     // add the node to the new environment is the coordinates are not already taken
     environment[hash] = new_node;
 
-    // set the name, unique data and coordinates
+    // set the name, unique data, coordinates and blocked direction
     new_node->node_type = node_type;
     new_node->unique_data = unique_data;
 
     new_node->coords = coords;
+    new_node->blocked_directions = blocked_directions;
 
     // end
     return;
@@ -143,8 +155,7 @@ int NodeManager::build_single_node(
             new_table[new_pair.first] = new_pair.second;
         }
         else {
-            // TODO: FIX
-            // log_warn("Script tried to pass key to node with key %s that is not in the template.", new_pair.first.as<std::string>() );
+            log_warn("Script tried to pass key to node with key %s that is not in the template.", new_pair.first.as<std::string>() );
         }
     }
 
@@ -243,7 +254,7 @@ int NodeManager::make_connection(
     // check if the connection is valid by checking if node already has that direction full
     // also check if it is blocked and if we are overriding block and the one way thing
 
-    // TODO: implement blocking and validation to prevent overwriting an existing connection
+    // TODO: implement blocking
 
     bool connection_blocked = false;
 
@@ -254,14 +265,7 @@ int NodeManager::make_connection(
 
     switch ( link ) {
         case NODE_LEFT:
-            /*
-            if (
-                node1_ptr->blocked_directions has 'l' or
-                node2_ptr->blocked_direction has 'r'
-            ) {
-                connection_blocked = true;
-            }
-            */
+            connection_blocked = str_contains(node1_ptr->blocked_directions, 'l') || str_contains(node2_ptr->blocked_directions, 'r');            
 
             next = &node1_ptr->left;
             cur = &node2_ptr->right;
@@ -269,42 +273,56 @@ int NodeManager::make_connection(
             break;
         
         case NODE_RIGHT:
+            connection_blocked = str_contains(node1_ptr->blocked_directions, 'r') || str_contains(node2_ptr->blocked_directions, 'l');
+
             next = &node1_ptr->right;
             cur = &node2_ptr->left;
             
             break;
         
         case NODE_FORWARD:
+            connection_blocked = str_contains(node1_ptr->blocked_directions, 'f') || str_contains(node2_ptr->blocked_directions, 'b');        
+
             next = &node1_ptr->forward;
             cur = &node2_ptr->back;
             
             break;
         
         case NODE_BACK:
+            connection_blocked = str_contains(node1_ptr->blocked_directions, 'b') || str_contains(node2_ptr->blocked_directions, 'f');
+
             next = &node1_ptr->back;
             cur = &node2_ptr->forward;
             
             break;
 
         case NODE_UP:
+            connection_blocked = str_contains(node1_ptr->blocked_directions, 'u') || str_contains(node2_ptr->blocked_directions, 'd');           
+
             next = &node1_ptr->up;
             cur = &node2_ptr->down;
             
             break;
         
         case NODE_DOWN:
+            connection_blocked = str_contains(node1_ptr->blocked_directions, 'd') || str_contains(node2_ptr->blocked_directions, 'u');         
+
             next = &node1_ptr->down;
             cur = &node2_ptr->up;
             
             break;
         
         case NODE_PREV:
+            connection_blocked = str_contains(node1_ptr->blocked_directions, 'p') || str_contains(node2_ptr->blocked_directions, 'n');         
+
             next = &node1_ptr->previous;
             cur = &node2_ptr->next;
             
             break;
 
         case NODE_NEXT:
+            connection_blocked = str_contains(node1_ptr->blocked_directions, 'n') || str_contains(node2_ptr->blocked_directions, 'p');          
+
             next = &node1_ptr->next;
             cur = &node2_ptr->previous;
             
@@ -314,6 +332,8 @@ int NodeManager::make_connection(
             break;
     }
 
+    log_debug("%d %d", connection_blocked, override_blocked);
+
     // if there are no pointers then we can't continue processing
     if ( cur == NULL || next == NULL ) {
         return 1;
@@ -321,22 +341,24 @@ int NodeManager::make_connection(
 
     // only if the connection is blocked and we are overriding the block, we have to return
     if ( connection_blocked && !override_blocked ) {
+        log_warn("Connection is blocked");
         return 1;
     }
 
-    // only make a connection if a connection is not already established
-    // this would mean that the next would be NULL
-
-    // TODO: this needs to be improved to be more readable and accurate
-    if ( *next == NULL ) {
-        *next = node2_ptr;
-
-        if ( !one_way ) {
-            if ( *cur == NULL ) {
-                *cur = node1_ptr;
-            }
-        }
+    // IF EITHER OF NEXT OR CURRENT ARE NOT FREE, DISALLOW
+    if ( !( *next == NULL && *cur == NULL ) ) {
+        log_warn("A connection is trying to be established but a connection here is already made");
+        return 1;
     }
+
+    // the connection from the current to the next gets set
+    *next = node2_ptr;
+
+    // if one way, then we don't need to make the other connection
+    if ( one_way ) { return 0; }
+
+    // if not one way, make the connection from the next node to the current node
+    *cur = node1_ptr;
 
     return 0;
 }
@@ -366,13 +388,15 @@ int NodeManager::make_all_connections() {
             const coordinates_t new_coords = add_coords(cur_coords, item.first);
 
             log_debug(
-                "Trying to make connection between (%d %d %d) and (%d %d %d)",
+                "Trying to make connection between (%d %d %d, %lld) and (%d %d %d, %lld)",
                 cur_coords.x,
                 cur_coords.y,
                 cur_coords.z,
+                get_coords_hash(cur_coords),
                 new_coords.x,
                 new_coords.y,
-                new_coords.z
+                new_coords.z,
+                get_coords_hash(new_coords)
             );
 
             make_connection(

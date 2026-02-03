@@ -6,7 +6,7 @@
 #include <unordered_set>
 
 
-using NODE_MAP = std::unordered_map<long long int, node_t*>;
+using NODE_MAP = std::unordered_map<coord_hash, node_t*>;
 
 
 class NodeManager {

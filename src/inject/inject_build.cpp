@@ -70,6 +70,7 @@ int inject_environment_tools(sol::environment &build_env, NodeManager &nodeManag
 
             log_debug("Called build function");
             log_debug("Coordinates are (%d %d %d)", x, y, z);
+            log_debug("Blocked status is (%s)", blocked.c_str());
 
             return nodeManager.build_node(node_type, {x, y, z}, unique_data, blocked);
         }
