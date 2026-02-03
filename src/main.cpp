@@ -462,7 +462,7 @@ class Campaign {
                     // if the name exists
                     if ( check_name ) {
                         campaign_name = check_name.value();
-                        log_trace("init file has campaign name: \"%s\"", campaign_name);
+                        log_trace("init file has campaign name: \"%s\"", campaign_name.c_str());
                     }
                 }
                 // the campaign is not valid if it does not have an init file
@@ -867,11 +867,7 @@ int main() {
     // log_set_quiet(true);
 
     Campaign campaign;
-    Campaign campaign2;
-    Campaign campaign3;
-
-    campaign.LoadCampaign( "test_campaign" );
-    campaign2.LoadCampaign( "Hello123" );
+    campaign.LoadCampaign( "Sample Game" );
 
     // -------------------------------------------------------------------------------------------------------------------------------
 
@@ -926,18 +922,6 @@ int main() {
 
     // the main game loop
     gameloop(campaign, cur);
-
-    // test a second campaign
-    cur = campaign2.nodeManager.get_node({0, 0, 0});
-
-    if ( cur == NULL ) {
-        fclose(fp);
-        return 1;
-    }
-
-    // the main game loop
-    gameloop(campaign2, cur);
-
 
     fclose(fp);
     return 0;
