@@ -16,6 +16,7 @@ function land_fight(unique, node, player)
 
             if player.health <= 0 then
                 print("You died")
+                quit()
             end
 
             break
