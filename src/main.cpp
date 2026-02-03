@@ -31,6 +31,8 @@ extern "C" {
 #include "inject/inject_core.hpp"
 #include "inject/inject_build.hpp"
 
+#include "save.hpp"
+
 
 #define MAX_FILE_SYSTEM_DEPTH 5
 
@@ -546,12 +548,25 @@ class Campaign {
             return 0;
         }
 
-        int SaveToFile() {
+        int SaveToFile(std::string filename) {
             // recusively save the player data table
+
+            // open a new file for writing
+            FILE *fp = fopen(filename.c_str(), "wb");
+
+            if ( fp == NULL ) {
+                return 1;
+            }
+
+            Write::String(fp, "abc", "hello");
+
+            fclose(fp);
+            return 0;
         }
 
         int LoadFromFile() {
             // load magic or something
+            return 0;
         }
 
         // constructor
@@ -925,6 +940,8 @@ int main() {
 
     // main_menu();
 
+    campaign.SaveToFile("somefile.txt");
+    
     node_t *cur = campaign.nodeManager.get_node({0, 0, 0});
 
     if ( cur == NULL ) {
