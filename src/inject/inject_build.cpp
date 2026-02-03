@@ -100,6 +100,7 @@ int inject_build_tools(sol::environment &build_env, sol::environment &core, Node
     build_env.set_function(
         engine::func::api::ARBITRARY_CONNECTION,
 
+        // TODO: improve with parse coordinates once implemented
         [&core, &nodeManager](
             short x1,
             short y1,
