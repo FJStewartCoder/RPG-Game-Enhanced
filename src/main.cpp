@@ -638,7 +638,77 @@ node_directions get_player_input(node_t *node) {
     return NODE_QUIT;
 }
 
-void gameloop(Campaign &campaign, node_t *(&start_node)) {
+// makes some action if required by virtual event
+// else returns the same virtual event
+VirtualEvents handle_virtual_event(Campaign &campaign) {
+    // create a constant copy
+    const VirtualEvents ev = campaign.event;
+
+    // use this copy to make an action
+    switch (ev) {
+        case VirtualEvents::NONE:
+            break;
+        case VirtualEvents::QUIT:
+            log_trace("Virtual Event: Quit called");
+            break;
+    }
+
+    // set the campaign's event to none
+    campaign.event = VirtualEvents::NONE;
+
+    // return the event that we handled if more processing is required
+    return ev;
+}
+
+// returns true if the position has been moved by the script else false
+bool handle_script_movement(Campaign &campaign, node_t *(&cur_node), sol::table &player_data) {
+    // stores the current location of the player
+    sol::table script_player_pos = player_data[engine::player::POSITION];
+
+    // interpretation of the lua position
+    short script_x = player_data[engine::player::POSITION]["x"];
+    short script_y = player_data[engine::player::POSITION]["y"];
+    short script_z = player_data[engine::player::POSITION]["z"];
+
+    // check if the position is synced
+    bool position_sync = (cur_node->coords.x == script_x) && (cur_node->coords.y == script_y) && (cur_node->coords.z == script_z);
+
+    log_debug( "C++: (%d %d %d), SCRIPT: (%d %d %d), SYNC: %d", cur_node->coords.x, cur_node->coords.y, cur_node->coords.z, script_x, script_y, script_z, position_sync );
+
+    // check if the script is attempting to manage the player's position
+    // by checking if any position data is different
+    if ( position_sync ) {
+        // position matches so C++ manages movement ( false )
+        return false;
+    }
+
+    node_t *new_pos = campaign.nodeManager.get_node( { script_x, script_y, script_z } );
+
+    if ( new_pos == NULL ) {
+        log_warn("Script attempted to manage position but the operation failed.");
+        return false;
+    }
+
+    // set the current node to be the pointer to the new position
+    cur_node = new_pos;
+
+    // message to inform me the script moved the player
+    log_trace("Script moved player to node ID: %lld.", get_coords_hash(cur_node->coords));
+
+    return true;
+}
+
+void sync_player_position(node_t *cur_node, sol::table &player_data) {
+    // stores the current location of the player
+    sol::table script_player_pos = player_data[engine::player::POSITION];
+
+    // sync the position
+    script_player_pos["x"] = cur_node->coords.x;
+    script_player_pos["y"] = cur_node->coords.y;
+    script_player_pos["z"] = cur_node->coords.z;
+}
+
+int gameloop(Campaign &campaign, node_t *start_node) {
     sol::environment &core_env = campaign.core_env;
 
     // reassign the name
@@ -671,22 +741,6 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
     // traverse
 
     while ( running ) {
-        // TODO: improve the virtual event handler
-        // virtual event handler ------------------------------------
-
-        switch (campaign.event) {
-            case VirtualEvents::NONE:
-                break;
-            case VirtualEvents::QUIT:
-                log_trace("Virtual Event: Quit called");
-                return;
-                break;
-        }
-
-        campaign.event = VirtualEvents::NONE;
-
-        // ----------------------------------------------------------
-
         // get the current node data
         auto cur_node_data = get_node_data(core_env, cur_node->node_type);
 
@@ -696,9 +750,6 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
 
         // get the player data table
         sol::table player_data = core_env[engine::player::DATA];
-
-        // stores the current location of the player
-        sol::table script_player_pos = player_data[engine::player::POSITION];
 
         // if data exists run on land
         if ( cur_node_data ) {
@@ -716,36 +767,17 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
             }
         }
 
-        // interpretation of the lua position
-        short script_x = player_data[engine::player::POSITION]["x"];
-        short script_y = player_data[engine::player::POSITION]["y"];
-        short script_z = player_data[engine::player::POSITION]["z"];
+        // virtual event handler ------------------------------------
 
-        // check if the position is synced
-        bool position_sync = (cur_node->coords.x == script_x) && (cur_node->coords.y == script_y) && (cur_node->coords.z == script_z);
+        auto ev = handle_virtual_event(campaign);
 
-        log_debug("[AFTER LANDING] C++: (%d %d %d), SCRIPT: (%d %d %d), SYNC: %d", cur_node->coords.x, cur_node->coords.y, cur_node->coords.z, script_x, script_y, script_z, position_sync );
-
-        bool ask_user_for_direction = true;
-
-        // check if the script is attempting to manage the player's position
-        // by checking if any position data is different
-        if ( !position_sync ) {
-            node_t *new_pos = campaign.nodeManager.get_node( { script_player_pos["x"], script_player_pos["y"], script_player_pos["z"] } );
-
-            if ( new_pos != NULL ) {
-                // set the current node to be the pointer to the new position
-                cur_node = new_pos;
-
-                // message to inform me the script moved the player
-                log_trace("Script moved player to node ID: %lld.", get_coords_hash(cur_node->coords));
-                // we have successfully moved so we don't need to ask for movement
-                ask_user_for_direction = false;
-            }
-            else {
-                log_warn("Script attempted to manage position but the operation failed.");
-            }
+        if ( ev == VirtualEvents::QUIT ) {
+            return 0;
         }
+
+        // ----------------------------------------------------------
+
+        bool ask_user_for_direction = !handle_script_movement(campaign, cur_node, player_data);
         
         if ( ask_user_for_direction ) {
             if ( can_traverse(cur_node) == NODE_ERROR ) {
@@ -759,8 +791,7 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
 
             // quit if chosen to quit
             if ( chosen_direction == NODE_QUIT ) {
-                running = false;
-                break;
+                return 0;
             }
 
             // actually traverse
@@ -772,10 +803,7 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
             }
         }
 
-        // sync the position
-        script_player_pos["x"] = cur_node->coords.x;
-        script_player_pos["y"] = cur_node->coords.y;
-        script_player_pos["z"] = cur_node->coords.z;
+        sync_player_position(cur_node, player_data);
 
         // if data exists run on leave
         if ( cur_node_data ) {
@@ -793,37 +821,21 @@ void gameloop(Campaign &campaign, node_t *(&start_node)) {
             }
         }
 
-        // get the lua position from the lua state
-        script_x = player_data[engine::player::POSITION]["x"];
-        script_y = player_data[engine::player::POSITION]["y"];
-        script_z = player_data[engine::player::POSITION]["z"];
+        // virtual event handler ------------------------------------
 
-        // check for sync
-        position_sync = (cur_node->coords.x == script_x) && (cur_node->coords.y == script_y) && (cur_node->coords.z == script_z);
+        ev = handle_virtual_event(campaign);
 
-        log_debug("[AFTER LEAVING] C++: (%d %d %d), SCRIPT: (%d %d %d), SYNC: %d", cur_node->coords.x, cur_node->coords.y, cur_node->coords.z, script_x, script_y, script_z, position_sync );
-
-        // if script is managing the position
-        if ( !position_sync ) {
-            node_t *new_pos = campaign.nodeManager.get_node( { script_player_pos["x"], script_player_pos["y"], script_player_pos["z"] } );
-
-            if ( new_pos != NULL ) {
-                // set the current node to be the pointer to the new position
-                cur_node = new_pos;
-
-                // message to inform me the script moved the player
-                log_trace("Script moved player to node ID: %lld.", get_coords_hash(cur_node->coords));
-            }
-            else {
-                log_warn("Script attempted to manage position but the operation failed.");
-            }
+        if ( ev == VirtualEvents::QUIT ) {
+            return 0;
         }
 
-        // sync the position
-        script_player_pos["x"] = cur_node->coords.x;
-        script_player_pos["y"] = cur_node->coords.y;
-        script_player_pos["z"] = cur_node->coords.z;
+        // ----------------------------------------------------------
+
+        handle_script_movement(campaign, cur_node, player_data);
+        sync_player_position(cur_node, player_data);
     }
+
+    return 0;
 }
 
 
