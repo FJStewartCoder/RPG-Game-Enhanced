@@ -70,9 +70,54 @@ int Write::Nil(FILE *fp) {
     return 0;
 }
 
-int Write::Table(FILE *fp, sol::table &table) {
+int Write::Table(FILE *fp, sol::table table) {
     // write the type character
     fputc(engine::save::TABLE, fp);
+
+    // if table is invalid, return error
+    if ( !table.valid() ) { return 1; }
+
+    // write the table length to the file
+    int table_length = 0;
+    for ( const auto &item : table ) { table_length++; }
+    fwrite(&table_length, sizeof(int), 1, fp);
+
+    log_debug("Writing table to file with length %d", table_length);
+
+    for ( const auto &item : table ) {
+        // create variables to store the variable and the data
+        const auto var = item.first.as<std::string>();
+        const auto data = item.second;
+
+        Write::Var(fp, var);
+
+        switch (data.get_type()) {
+            case sol::type::boolean:
+                Write::Boolean(fp, data.as<bool>());
+                break;
+            
+            case sol::type::number:
+                Write::Int(fp, data.as<int>());
+                break;
+            
+            case sol::type::string:
+                Write::String(fp, data.as<std::string>());
+                break;
+
+            case sol::type::nil:
+                Write::Nil(fp);
+                break;
+
+            case sol::type::table:
+                Write::Table(fp, data.as<sol::table>());
+                break;
+            
+            default:
+                log_warn("The data type is not supported.");
+                Write::Nil(fp);
+                break;
+        }
+    }
 
     return 0;
 }

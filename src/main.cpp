@@ -558,21 +558,16 @@ class Campaign {
                 return 1;
             }
 
-            Write::Var(fp, "abc");
-            Write::String(fp, "hello");
-
-            Write::Var(fp, "anewvariable");
-            Write::Int(fp, 23784);
-
-            Write::Var(fp, "itsabool");
-            Write::Boolean(fp, false);
-
-            Write::Var(fp, "randomstring");
-            Write::String(fp, "HELLOAGAIN");
+            Write::Var(fp, engine::player::DATA);
+            Write::Table(fp, core_env[engine::player::DATA]);
 
             fclose(fp);
+            return 0;
+        }
 
-            fp = fopen(filename.c_str(), "rb");
+        int LoadFromFile(std::string filename) {
+            // load magic or something
+            FILE *fp = fopen(filename.c_str(), "rb");
 
             if ( fp == NULL ) {
                 return 1;
@@ -630,11 +625,6 @@ class Campaign {
             }
 
             fclose(fp);
-            return 0;
-        }
-
-        int LoadFromFile() {
-            // load magic or something
             return 0;
         }
 
@@ -1010,6 +1000,7 @@ int main() {
     // main_menu();
 
     campaign.SaveToFile("somefile.txt");
+    campaign.LoadFromFile("somefile.txt");
     
     node_t *cur = campaign.nodeManager.get_node({0, 0, 0});
 

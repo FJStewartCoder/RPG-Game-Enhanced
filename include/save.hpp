@@ -12,7 +12,7 @@ namespace Write {
 
     int Nil(FILE *fp);
 
-    int Table(FILE *fp, sol::table &table);
+    int Table(FILE *fp, sol::table table);
 }
 
 namespace Read {
