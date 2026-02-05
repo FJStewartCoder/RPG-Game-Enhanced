@@ -67,14 +67,22 @@ namespace engine {
     namespace settings {
         const std::string CAMPAIGN_NAME = "CAMPAIGN_NAME";
         const std::string USE_GENERIC = "USE_GENERIC";
-    }
+    };
 
     namespace directories {
         const std::string CAMPAIGNS = "campaigns";
         const std::string GENERIC = "campaignless";
 
         const std::string SCRIPTS = "scripts";
-    }
+    };
+
+    namespace save {
+        const char NIL = 'n';
+        const char STRING = 's';
+        const char INT = 'i';
+        const char BOOLEAN = 'b';
+        const char TABLE = 't';
+    };
 };
 
 #endif // LUA_ENGINE_CONSTANTS_HPP

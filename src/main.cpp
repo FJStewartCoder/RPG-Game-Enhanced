@@ -558,7 +558,76 @@ class Campaign {
                 return 1;
             }
 
-            Write::String(fp, "abc", "hello");
+            Write::Var(fp, "abc");
+            Write::String(fp, "hello");
+
+            Write::Var(fp, "anewvariable");
+            Write::Int(fp, 23784);
+
+            Write::Var(fp, "itsabool");
+            Write::Boolean(fp, false);
+
+            Write::Var(fp, "randomstring");
+            Write::String(fp, "HELLOAGAIN");
+
+            fclose(fp);
+
+            fp = fopen(filename.c_str(), "rb");
+
+            if ( fp == NULL ) {
+                return 1;
+            }
+
+            std::string data;
+            int int_data;
+            bool bool_data;
+            sol::table table_data;
+            char c;
+
+            while ( !feof(fp) ) {
+                if ( Read::Var(fp, data) ) {
+                    break;
+                };
+
+                std::cout << data << "=";
+
+                if ( Read::Type(fp, c) ) {
+                    break;
+                }
+
+                int res = 0;
+
+                switch (c) {
+                    case engine::save::STRING:
+                        res = Read::String(fp, data);
+                        std::cout << data << std::endl;
+                        break;
+
+                    case engine::save::INT:
+                        res = Read::Int(fp, int_data);
+                        std::cout << int_data << std::endl;
+                        break;
+                    
+                    case engine::save::BOOLEAN:
+                        res = Read::Boolean(fp, bool_data);
+                        std::cout << bool_data << std::endl;
+                        break;
+                    
+                    case engine::save::NIL:
+                        res = Read::Nil(fp);
+                        std::cout << "NIL" << std::endl;
+                        break;
+                    
+                    case engine::save::TABLE:
+                        res = Read::Table(fp, table_data);
+                        std::cout << "TABLE" << std::endl;
+                        break;
+                }
+
+                if ( res ) {
+                    break;
+                }
+            }
 
             fclose(fp);
             return 0;

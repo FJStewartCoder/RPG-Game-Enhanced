@@ -2,25 +2,31 @@
 #include <iostream>
 
 namespace Write {
-    int String(FILE *fp, std::string var, std::string str);
+    int Var(FILE *fp, std::string var);
 
-    int Int(FILE *fp, std::string var, int number);
+    int String(FILE *fp, std::string str);
 
-    int Boolean(FILE *fp, std::string var, bool boolean);
+    int Int(FILE *fp, int number);
 
-    int Nil(FILE *fp, std::string var);
-
-    int Table(FILE *fp, std::string var, sol::table &table);
-}
-
-namespace Read {
-    int String(FILE *fp);
-
-    int Int(FILE *fp);
-
-    int Boolean(FILE *fp);
+    int Boolean(FILE *fp, bool boolean);
 
     int Nil(FILE *fp);
 
-    int Table(FILE *fp);
+    int Table(FILE *fp, sol::table &table);
+}
+
+namespace Read {
+    int Var(FILE *fp, std::string &dest);
+
+    int Type(FILE *fp, char &dest);
+
+    int String(FILE *fp, std::string &dest);
+
+    int Int(FILE *fp, int &dest);
+
+    int Boolean(FILE *fp, bool &dest);
+
+    int Nil(FILE *fp);
+
+    int Table(FILE *fp, sol::table &dest);
 }
