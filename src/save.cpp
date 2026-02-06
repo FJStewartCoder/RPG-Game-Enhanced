@@ -243,43 +243,52 @@ int Read::Table(FILE *fp, sol::table &dest) {
             break;
         };
 
-        std::string str_var;
-        int int_var;
-        char char_var;
-        bool bool_var;
+        std::string str_var = "";
+        int int_var = 0;
+        char char_var = ' ';
+        bool bool_var = false;
+        // create a new table in the table
+        sol::table table_var = dest.create();
 
-        std::cout << var << "=";
-
-        if ( Read::Type(fp, c) ) {
+        if ( Read::Type(fp, char_var) ) {
             break;
         }
 
         int res = 0;
 
-        switch (c) {
+        switch (char_var) {
             case engine::save::STRING:
-                res = Read::String(fp, data);
-                std::cout << data << std::endl;
+                res = Read::String(fp, str_var);
+                log_debug("Setting table data at \"%s\" to \"%s\"", var.c_str(), str_var.c_str());
+
+                dest[var] = str_var;
                 break;
 
             case engine::save::INT:
-                res = Read::Int(fp, int_data);
-                std::cout << int_data << std::endl;
+                res = Read::Int(fp, int_var);
+                log_debug("Setting table data at \"%s\" to %d", var.c_str(), int_var);
+                
+                dest[var] = int_var;
                 break;
             
             case engine::save::BOOLEAN:
-                res = Read::Boolean(fp, bool_data);
-                std::cout << bool_data << std::endl;
+                res = Read::Boolean(fp, bool_var);
+                log_debug("Setting table data at \"%s\" to %i", var.c_str(), bool_var);
+
+                dest[var] = bool_var;
                 break;
             
             case engine::save::NIL:
                 res = Read::Nil(fp);
-                std::cout << "NIL" << std::endl;
+                log_debug("Setting table data at \"%s\" to nil", var.c_str());
+
+                dest[var] = sol::nil;
                 break;
             
             case engine::save::TABLE:
-                res = Read::Table(fp, table_data);
-                std::cout << "TABLE" << std::endl;
+                res = Read::Table(fp, table_var);
+                log_debug("Setting table data at \"%s\" to table", var.c_str());
+
                 break;
         }
 
@@ -287,7 +296,6 @@ int Read::Table(FILE *fp, sol::table &dest) {
             break;
         }
     }
-
 
     return 0;
 }

@@ -576,7 +576,7 @@ class Campaign {
             std::string data;
             int int_data;
             bool bool_data;
-            sol::table table_data;
+            sol::table table_data = lua.create_table();
             char c;
 
             while ( !feof(fp) ) {
