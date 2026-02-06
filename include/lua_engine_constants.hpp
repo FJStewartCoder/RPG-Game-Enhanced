@@ -10,6 +10,9 @@
 
 
 namespace engine {
+    // version 1.0.0
+    const unsigned int VERSION = 100;
+
     namespace node {
         const std::string TEMPLATE = "NODE_DATA_TEMPLATE";
         const std::string AVAILABLE = "AVAILIBLE_NODES";
@@ -77,6 +80,8 @@ namespace engine {
     };
 
     namespace save {
+        const std::string FILE_MAGIC = "RPenGineFILE";
+
         const char NIL = 'n';
         const char STRING = 's';
         const char INT = 'i';

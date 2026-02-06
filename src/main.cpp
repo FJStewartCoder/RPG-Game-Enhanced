@@ -558,13 +558,22 @@ class Campaign {
                 return 1;
             }
 
+            // write the file magic to the save file
+            fputs(engine::save::FILE_MAGIC.c_str(), fp);
+            
+            // write the version number into the file
+            fwrite(&engine::VERSION, sizeof(int), 1, fp);
+
+            Write::TypelessString(fp, CAMPAIGN_NAME);
+
             Write::Var(fp, engine::player::DATA);
             Write::Table(fp, core_env[engine::player::DATA]);
 
             fclose(fp);
             return 0;
         }
-
+        
+        // TODO: add validation
         int LoadFromFile(std::string filename) {
             // load magic or something
             FILE *fp = fopen(filename.c_str(), "rb");
@@ -573,56 +582,49 @@ class Campaign {
                 return 1;
             }
 
-            std::string data;
-            int int_data;
-            bool bool_data;
-            sol::table table_data = lua.create_table();
-            char c;
-
-            while ( !feof(fp) ) {
-                if ( Read::Var(fp, data) ) {
-                    break;
-                };
-
-                std::cout << data << "=";
-
-                if ( Read::Type(fp, c) ) {
-                    break;
-                }
-
-                int res = 0;
-
-                switch (c) {
-                    case engine::save::STRING:
-                        res = Read::String(fp, data);
-                        std::cout << data << std::endl;
-                        break;
-
-                    case engine::save::INT:
-                        res = Read::Int(fp, int_data);
-                        std::cout << int_data << std::endl;
-                        break;
-                    
-                    case engine::save::BOOLEAN:
-                        res = Read::Boolean(fp, bool_data);
-                        std::cout << bool_data << std::endl;
-                        break;
-                    
-                    case engine::save::NIL:
-                        res = Read::Nil(fp);
-                        std::cout << "NIL" << std::endl;
-                        break;
-                    
-                    case engine::save::TABLE:
-                        res = Read::Table(fp, table_data);
-                        std::cout << "TABLE" << std::endl;
-                        break;
-                }
-
-                if ( res ) {
-                    break;
-                }
+            // read the file magic from the file
+            std::string file_magic = "";
+            for ( int i = 0; i < engine::save::FILE_MAGIC.length(); i++ ) {
+                file_magic += fgetc(fp);
             }
+
+            log_debug("Read file magic \"%s\"", file_magic.c_str());
+            
+            // if the file magic is not present, close the file and error
+            if ( file_magic != engine::save::FILE_MAGIC ) {
+                fclose(fp);
+                return 1;
+            }
+            
+            // read the file version
+            unsigned int file_version;
+            fread(&file_version, sizeof(int), 1, fp);
+
+            log_debug("Read file version %d", file_version);
+
+            // read the campaign name from the file
+            std::string campaign_name;
+            Read::TypelessString(fp, campaign_name);
+
+            log_debug("Read campaign \"%s\"", campaign_name.c_str());
+            CAMPAIGN_NAME = campaign_name;
+
+            // load the campaign
+            LoadCampaign( CAMPAIGN_NAME );
+
+            // read the table and var
+            std::string var;
+            Read::Var(fp, var);
+
+            char c;
+            Read::Type(fp, c);
+
+            sol::table player_data = lua.create_table();
+            Read::Table(fp, player_data);
+
+            // write the loaded table to the core_env
+            // the expectation is that this is the player data
+            core_env[var] = player_data;
 
             fclose(fp);
             return 0;
@@ -998,9 +1000,6 @@ int main() {
     */
 
     // main_menu();
-
-    campaign.SaveToFile("somefile.txt");
-    campaign.LoadFromFile("somefile.txt");
     
     node_t *cur = campaign.nodeManager.get_node({0, 0, 0});
 
@@ -1023,6 +1022,8 @@ int main() {
     // the main game loop
     gameloop(campaign2, cur);
 
+    campaign.SaveToFile("somefile.txt");
+    // campaign.LoadFromFile("somefile.txt");
 
     fclose(fp);
     return 0;

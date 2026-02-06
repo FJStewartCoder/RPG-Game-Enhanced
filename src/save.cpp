@@ -17,6 +17,18 @@ int Write::Var(FILE *fp, std::string var) {
     return 0;
 }
 
+int Write::TypelessString(FILE *fp, std::string str) {
+    const int str_len = str.length();
+
+    log_debug("Writing typeless string: \"%s\" with length %d to file", str.c_str(), str_len);
+
+    // write the string length then the string
+    fwrite(&str_len, sizeof(int), 1, fp);
+    fwrite(str.c_str(), sizeof(char), str_len, fp);
+
+    return 0;
+}
+
 int Write::String(FILE *fp, std::string str) {
     const int str_len = str.length();
 
@@ -163,6 +175,35 @@ int Read::Type(FILE *fp, char &dest) {
     return 0;
 }
 
+int Read::TypelessString(FILE *fp, std::string &dest) {
+    int str_len;
+    fread(&str_len, sizeof(int), 1, fp);
+
+    // if there is an error or end of file, return 1
+    if ( feof(fp) || ferror(fp) ) { return 1; }
+
+    log_debug("Reading typeless string with length %d", str_len);
+
+    // set the destination to blank
+    dest = "";
+
+    // the current character
+    char c;
+
+    for (int i = 0; i < str_len; i++) {
+        // get the character
+        c = fgetc(fp);
+
+        // check if c is end of file, return
+        if ( c == EOF ) { return 1; }
+
+        // if not end of file, add the new character to the string
+        dest += c;
+    }
+
+    return 0;
+}
+
 int Read::String(FILE *fp, std::string &dest) {
     int str_len;
     fread(&str_len, sizeof(int), 1, fp);
@@ -290,6 +331,9 @@ int Read::Table(FILE *fp, sol::table &dest) {
                 log_debug("Setting table data at \"%s\" to table", var.c_str());
 
                 break;
+            
+            default:
+                log_warn("Data attempting to be read is of a type not implemented");
         }
 
         if ( res ) {

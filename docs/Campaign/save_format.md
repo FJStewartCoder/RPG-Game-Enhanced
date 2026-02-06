@@ -21,10 +21,6 @@ It will be stored by storing the length as a 32 bit integer followed by the name
 For example: "test_campaign" would be stored as
 13 (as bytes) test_campaign 
 
-### Save Time
-The next piece of data will be the time that the file was saved as a 64 bit integer.
-Time refers to the Unix epoch.
-
 ### Player Data
 The player data table will then be stored in the format as specified below. This technically allows for reducing any lua data to string interpretations.
 The following types are availible in Lua: none, lua_nil, string, number, thread, boolean, function, userdata, lightuserdata, table
