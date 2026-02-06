@@ -227,5 +227,19 @@ int Read::Nil(FILE *fp) {
 }
 
 int Read::Table(FILE *fp, sol::table &dest) {
+    int table_length;
+
+    fread(&table_length, sizeof(int), 1, fp);
+
+    log_debug("Reading table of length %d", table_length);
+
+    if ( feof(fp) || ferror(fp) ) { return 1; }
+
+    // iterate table length items
+    for ( int i = 0; i < table_length; i++ ) {
+
+    }
+
+
     return 0;
 }
