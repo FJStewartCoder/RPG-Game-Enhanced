@@ -310,9 +310,9 @@ struct Read::ReturnVal<char> Read::Nil(FILE *fp) {
     return res;
 }
 
-struct Read::ReturnVal<sol::table> Read::Table(FILE *fp) {
+struct Read::ReturnVal<sol::table> Read::Table(FILE *fp, sol::state &lua) {
     struct Read::ReturnVal<sol::table> res = {
-        0, sol::table()
+        0, lua.create_table()
     };
 
     // create a reference to the res' value
@@ -397,7 +397,7 @@ struct Read::ReturnVal<sol::table> Read::Table(FILE *fp) {
                 break;
             
             case engine::save::TABLE:
-                table_var = Read::Table(fp);
+                table_var = Read::Table(fp, lua);
                 error = table_var.error;
 
                 log_debug("Setting table data at \"%s\" to table", var.value.c_str());

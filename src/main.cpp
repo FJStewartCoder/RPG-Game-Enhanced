@@ -678,7 +678,7 @@ class Campaign {
             // read the table and var
             auto var = Read::Var(fp);
             auto c = Read::Type(fp);
-            auto player_data = Read::Table(fp);
+            auto player_data = Read::Table(fp, lua);
 
             // write the loaded table to the core_env
             // the expectation is that this is the player data

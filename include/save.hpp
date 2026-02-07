@@ -38,5 +38,5 @@ namespace Read {
 
     struct ReturnVal<char> Nil(FILE *fp);
 
-    struct ReturnVal<sol::table> Table(FILE *fp);
+    struct ReturnVal<sol::table> Table(FILE *fp, sol::state &lua);
 }
