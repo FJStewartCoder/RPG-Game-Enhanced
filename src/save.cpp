@@ -302,9 +302,9 @@ struct Read::ReturnVal<bool> Read::Boolean(FILE *fp) {
     return res;
 }
 
-struct Read::ReturnVal<sol::type> Read::Nil(FILE *fp) {
-    struct Read::ReturnVal<sol::type> res = {
-        0, sol::nil
+struct Read::ReturnVal<char> Read::Nil(FILE *fp) {
+    struct Read::ReturnVal<char> res = {
+        0, ' ' 
     };
 
     return res;
@@ -326,77 +326,93 @@ struct Read::ReturnVal<sol::table> Read::Table(FILE *fp) {
 
     log_debug("Reading table of length %d", table_length);
 
-    if ( feof(fp) || ferror(fp) ) { return 1; }
+    if ( feof(fp) || ferror(fp) ) { 
+        res.error = 1;
+        return res;
+    }
 
     // iterate table length items
     while ( !feof(fp) ) {
-        std::string var;
+        auto var = Read::Var(fp);
 
-        if ( Read::Var(fp, var) ) {
-            break;
+        if ( var.error != 0 ) {
+            res.error = 1;
+            return res;
         };
 
-        dest[var] = "HELLOORSOMETHING";
-        std::cout << "TESTING " << dest[var].get<std::string>() << std::endl;
+        struct ReturnVal<std::string> str_var;
+        struct ReturnVal<int> int_var;
+        struct ReturnVal<char> char_var;
+        struct ReturnVal<char> nil_var;
+        struct ReturnVal<bool> bool_var;
+        struct ReturnVal<sol::table> table_var;
 
-        std::string str_var = "";
-        int int_var = 0;
-        char char_var = ' ';
-        bool bool_var = false;
-        // create a new table in the table
-        sol::table table_var = dest.create();
-
-        if ( Read::Type(fp, char_var) ) {
-            break;
+        auto type = Read::Type(fp);
+        if ( type.error != 0 ) {
+            res.error = 1;
+            return res;
         }
 
-        int res = 0;
+        int error = 0;
 
-        switch (char_var) {
+        switch ( char_var.value ) {
             case engine::save::STRING:
-                res = Read::String(fp, str_var);
-                log_debug("Setting table data at \"%s\" to \"%s\"", var.c_str(), str_var.c_str());
+                str_var = Read::String(fp);
+                error = str_var.error;
+
+                log_debug("Setting table data at \"%s\" to \"%s\"", var.value.c_str(), str_var.value.c_str());
 
                 dest[var] = str_var;
                 dest.set(var, str_var);
                 break;
 
             case engine::save::INT:
-                res = Read::Int(fp, int_var);
-                log_debug("Setting table data at \"%s\" to %d", var.c_str(), int_var);
+                int_var = Read::Int(fp);
+                error = int_var.error;
+
+                log_debug("Setting table data at \"%s\" to %d", var.value.c_str(), int_var.value);
                 
-                dest[var] = int_var;
-                dest.set(var, int_var);
+                dest[var.value] = int_var.value;
+                dest.set(var.value, int_var.value);
                 break;
             
             case engine::save::BOOLEAN:
-                res = Read::Boolean(fp, bool_var);
-                log_debug("Setting table data at \"%s\" to %i", var.c_str(), bool_var);
+                bool_var = Read::Boolean(fp);
+                error = bool_var.error;
 
-                dest[var] = bool_var;
-                dest.set(var, bool_var);
+                log_debug("Setting table data at \"%s\" to %i", var.value.c_str(), bool_var.value);
+
+                dest[var.value] = bool_var.value;
+                dest.set(var.value, bool_var.value);
                 break;
             
             case engine::save::NIL:
-                res = Read::Nil(fp);
-                log_debug("Setting table data at \"%s\" to nil", var.c_str());
+                nil_var = Read::Nil(fp);
+                error = nil_var.error;
 
-                dest[var] = sol::nil;
-                dest.set(var, sol::nil);
+                log_debug("Setting table data at \"%s\" to nil", var.value.c_str());
+
+                dest[var.value] = sol::nil;
+                dest.set(var.value, sol::nil);
                 break;
             
             case engine::save::TABLE:
-                res = Read::Table(fp, table_var);
-                log_debug("Setting table data at \"%s\" to table", var.c_str());
+                table_var = Read::Table(fp);
+                error = table_var.error;
 
+                log_debug("Setting table data at \"%s\" to table", var.value.c_str());
+
+                dest[var.value] = table_var.value;
+                dest.set(var.value, table_var.value);
                 break;
             
             default:
                 log_warn("Data attempting to be read is of a type not implemented");
         }
 
-        if ( res ) {
-            break;
+        if ( error != 0 ) {
+            res.error = 1;
+            return res;
         }
     }
 

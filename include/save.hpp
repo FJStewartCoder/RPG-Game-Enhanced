@@ -36,7 +36,7 @@ namespace Read {
 
     struct ReturnVal<bool> Boolean(FILE *fp);
 
-    struct ReturnVal<sol::type> Nil(FILE *fp);
+    struct ReturnVal<char> Nil(FILE *fp);
 
     struct ReturnVal<sol::table> Table(FILE *fp);
 }

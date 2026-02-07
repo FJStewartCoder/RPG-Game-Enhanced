@@ -86,7 +86,9 @@ file_metadata read_file_metadata(FILE *fp) {
     log_debug("Read file version %d", res.version);
 
     // read the campaign name from the file
-    Read::TypelessString(fp, res.campaign_name);
+    auto str = Read::TypelessString(fp);
+    res.campaign_name = str.value;
+
     log_debug("Read campaign \"%s\"", res.campaign_name.c_str());
 
     return res;
@@ -674,20 +676,15 @@ class Campaign {
             }
 
             // read the table and var
-            std::string var;
-            Read::Var(fp, var);
-
-            char c;
-            Read::Type(fp, c);
-
-            sol::table player_data = lua.create_table();
-            Read::Table(fp, player_data);
+            auto var = Read::Var(fp);
+            auto c = Read::Type(fp);
+            auto player_data = Read::Table(fp);
 
             // write the loaded table to the core_env
             // the expectation is that this is the player data
-            core_env[var] = player_data;
+            core_env[var] = player_data.value;
 
-            for ( const auto &item : player_data ) {
+            for ( const auto &item : player_data.value ) {
                 log_debug( "%s %s", item.first.as<std::string>().c_str(), item.second.as<std::string>().c_str());
             }
 
