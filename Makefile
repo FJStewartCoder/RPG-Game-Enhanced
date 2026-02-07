@@ -14,9 +14,11 @@ inject_core.o: src/inject/inject_core.cpp
 
 INJECT = inject_api.o inject_build.o inject_core.o
 
-
 menus.o: src/menus/menus.cpp
 	${CPPC} $^ -Iinclude/menus -c -o $@
+
+save.o: src/save.cpp
+	${CPPC} $^ -Iinclude -c -o $@
 
 extension.o: src/extension.cpp
 	${CPPC} $^ -Iinclude -c -o $@
@@ -33,7 +35,7 @@ log.o:
 nodes.o: src/nodes.cpp
 	${CPPC} $^ -Iinclude -c -o $@
 
-all: src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o ${INJECT}
+all: src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o save.o ${INJECT}
 	${CPPC} $^ -Iinclude -Llib -llua54 -lm -g
 
 clean:
