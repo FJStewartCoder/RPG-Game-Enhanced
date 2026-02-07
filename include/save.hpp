@@ -33,6 +33,7 @@ namespace Read {
         std::vector<int> ints;
         std::vector<bool> bools;
         std::vector<char> chars;
+        std::vector<sol::table> tables;
 
         // the value is the final table
         sol::table value;

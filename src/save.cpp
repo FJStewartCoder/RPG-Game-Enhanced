@@ -365,27 +365,33 @@ Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
                 str_var = Read::String(fp);
                 error = str_var.error;
 
+                res.strs.push_back(str_var.value);
+
                 log_debug("Setting table data at \"%s\" to \"%s\"", var.value.c_str(), str_var.value.c_str());
 
-                dest[var_ref] = str_var.value;
+                dest[var_ref] = res.strs.back();
                 break;
 
             case engine::save::INT:
                 int_var = Read::Int(fp);
                 error = int_var.error;
 
+                res.ints.push_back(int_var.value);
+
                 log_debug("Setting table data at \"%s\" to %d", var.value.c_str(), int_var.value);
                 
-                dest[var_ref] = int_var.value;
+                dest[var_ref] = res.ints.back();
                 break;
             
             case engine::save::BOOLEAN:
                 bool_var = Read::Boolean(fp);
                 error = bool_var.error;
 
+                res.bools.push_back(bool_var.value);
+
                 log_debug("Setting table data at \"%s\" to %i", var.value.c_str(), bool_var.value);
 
-                dest[var_ref] = bool_var.value;
+                dest[var_ref] = res.bools.back();
                 break;
             
             case engine::save::NIL:
@@ -401,9 +407,11 @@ Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
                 table_var = Read::Table(fp, lua);
                 error = table_var.error;
 
+                res.tables.push_back(table_var.value);
+
                 log_debug("Setting table data at \"%s\" to table", var.value.c_str());
 
-                dest[var_ref] = table_var.value;
+                dest[var_ref] = res.tables.back();
                 break;
             
             default:
