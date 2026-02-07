@@ -290,16 +290,19 @@ struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
 
     // iterate table length items
     for ( int i = 0; i < table_length; i++ ) {
-        // add one new item to the back of the array ( probably )
-        res.vars.resize(res.vars.size() + 1);
+        // add one blank item to the back of the array
+        res.vars.push_back("");
         
         // write to the new heap memory
         if ( Read::Var(fp, res.vars.back()) ) {
             res.error = 1;
             return res;
         };
+
+        // reference to the current variable
+        std::string &var = res.vars.back();
         
-        log_debug("IN TABLE - Var recieved is %s. Total vars = %d", res.vars.back().c_str(), res.vars.size());
+        log_debug("IN TABLE - Var recieved is %s. Total vars = %d", var.c_str(), res.vars.size());
         for ( const auto v : res.vars ) {
             log_debug("VAR: %s", v.c_str());
         }
@@ -323,9 +326,9 @@ struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
                 res.strs.push_back("");
                 error = Read::String(fp, res.strs.back());
 
-                log_debug("Setting table data at \"%s\" to \"%s\"", res.vars.back().c_str(), res.strs.back().c_str());
+                log_debug("Setting table data at \"%s\" to \"%s\"", var.c_str(), res.strs.back().c_str());
 
-                dest[res.vars.back()] = res.strs.back();
+                dest[var] = res.strs.back();
                 break;
 
             case engine::save::INT:
@@ -333,9 +336,9 @@ struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
                 res.ints.push_back(0);
                 error = Read::Int(fp, res.ints.back());
 
-                log_debug("Setting table data at \"%s\" to %d", res.vars.back().c_str(), res.ints.back());
+                log_debug("Setting table data at \"%s\" to %d", var.c_str(), res.ints.back());
                 
-                dest[res.vars.back()] = res.ints.back();
+                dest[var] = res.ints.back();
                 break;
             
             case engine::save::BOOLEAN:
@@ -343,17 +346,17 @@ struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
                 error = Read::Boolean(fp, bool_var);
                 res.bools.push_back(bool_var);
 
-                log_debug("Setting table data at \"%s\" to %i", res.vars.back().c_str(), res.bools.back());
+                log_debug("Setting table data at \"%s\" to %i", var.c_str(), res.bools.back());
 
-                dest[res.vars.back()] = res.bools.back();
+                dest[var] = res.bools.back();
                 break;
             
             case engine::save::NIL:
                 error = Read::Nil(fp);
 
-                log_debug("Setting table data at \"%s\" to nil", res.vars.back().c_str());
+                log_debug("Setting table data at \"%s\" to nil", var.c_str());
 
-                dest[res.vars.back()] = sol::nil;
+                dest[var] = sol::nil;
                 break;
             
             case engine::save::TABLE:
@@ -363,9 +366,9 @@ struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
                 // add the value to the heap
                 res.tables.push_back(table_var);
 
-                log_debug("Setting table data at \"%s\" to table", res.vars.back().c_str());
+                log_debug("Setting table data at \"%s\" to table", var.c_str());
 
-                dest[res.vars.back()] = res.tables.back().value;
+                dest[var] = res.tables.back().value;
                 break;
             
             default:
