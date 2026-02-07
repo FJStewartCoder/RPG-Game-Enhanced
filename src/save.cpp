@@ -310,10 +310,12 @@ struct Read::ReturnVal<char> Read::Nil(FILE *fp) {
     return res;
 }
 
-struct Read::ReturnVal<sol::table> Read::Table(FILE *fp, sol::state &lua) {
-    struct Read::ReturnVal<sol::table> res = {
-        0, lua.create_table()
-    };
+struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
+    Read::TableReturn res;
+
+    // initialiase some return variables
+    res.value = lua.create_table();
+    res.error = 0;
 
     // create a reference to the res' value
     sol::table &dest = res.value;
@@ -338,12 +340,17 @@ struct Read::ReturnVal<sol::table> Read::Table(FILE *fp, sol::state &lua) {
             return res;
         };
 
+        // push the variable to the back of the list and make a reference to the variable in the list
+        res.vars.push_back(var.value);
+        const std::string var_ref = res.vars.back();
+
+        // return values for each of the possible return values
         struct ReturnVal<std::string> str_var;
         struct ReturnVal<int> int_var;
         struct ReturnVal<char> char_var;
         struct ReturnVal<char> nil_var;
         struct ReturnVal<bool> bool_var;
-        struct ReturnVal<sol::table> table_var;
+        struct TableReturn table_var;
 
         auto type = Read::Type(fp);
         if ( type.error != 0 ) {
@@ -358,27 +365,36 @@ struct Read::ReturnVal<sol::table> Read::Table(FILE *fp, sol::state &lua) {
                 str_var = Read::String(fp);
                 error = str_var.error;
 
+                // add the value to the heap
+                res.strs.push_back(str_var.value);
+
                 log_debug("Setting table data at \"%s\" to \"%s\"", var.value.c_str(), str_var.value.c_str());
 
-                dest[var.value] = str_var.value;
+                dest[var_ref] = res.strs.back();
                 break;
 
             case engine::save::INT:
                 int_var = Read::Int(fp);
                 error = int_var.error;
 
+                // add the value to the heap
+                res.ints.push_back(int_var.value);
+
                 log_debug("Setting table data at \"%s\" to %d", var.value.c_str(), int_var.value);
                 
-                dest[var.value] = int_var.value;
+                dest[var_ref] = res.ints.back();
                 break;
             
             case engine::save::BOOLEAN:
                 bool_var = Read::Boolean(fp);
                 error = bool_var.error;
 
+                // add the value to the heap
+                res.bools.push_back(bool_var.value);
+
                 log_debug("Setting table data at \"%s\" to %i", var.value.c_str(), bool_var.value);
 
-                dest[var.value] = bool_var.value;
+                dest[var_ref] = res.bools.back();
                 break;
             
             case engine::save::NIL:
@@ -387,16 +403,19 @@ struct Read::ReturnVal<sol::table> Read::Table(FILE *fp, sol::state &lua) {
 
                 log_debug("Setting table data at \"%s\" to nil", var.value.c_str());
 
-                dest[var.value] = sol::nil;
+                dest[var_ref] = sol::nil;
                 break;
             
             case engine::save::TABLE:
                 table_var = Read::Table(fp, lua);
                 error = table_var.error;
 
+                // add the value to the heap
+                res.tables.push_back(table_var);
+
                 log_debug("Setting table data at \"%s\" to table", var.value.c_str());
 
-                dest[var.value] = table_var.value;
+                dest[var_ref] = res.tables.back().value;
                 break;
             
             default:
