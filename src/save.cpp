@@ -136,21 +136,17 @@ int Write::Table(FILE *fp, sol::table table) {
 
 // --------------------------------------------------------------------------------
 
-struct Read::ReturnVal<std::string> Read::Var(FILE *fp) {
-    struct Read::ReturnVal<std::string> res = {
-        0, "" 
-    };
-
+int Read::Var(FILE *fp, std::string &dest) {
     int var_len;
     fread(&var_len, sizeof(int), 1, fp);
 
     // if there is an error or end of file, return 1
-    if ( feof(fp) || ferror(fp) ) {
-        res.error = 1;
-        return res;
-    }
+    if ( feof(fp) || ferror(fp) ) { return 1; }
 
     log_debug("Reading variable with length %d", var_len);
+
+    // set the destination to blank
+    dest = "";
 
     // the current character
     char c;
@@ -160,51 +156,37 @@ struct Read::ReturnVal<std::string> Read::Var(FILE *fp) {
         c = fgetc(fp);
 
         // check if c is end of file, return
-        if ( c == EOF ) {
-            res.error = 1;
-            return res;
-        }
+        if ( c == EOF ) { return 1; }
 
         // if not end of file, add the new character to the string
-        res.value += c;
+        dest += c;
     }
 
-    return res;
+    return 0;
 }
 
-struct Read::ReturnVal<char> Read::Type(FILE *fp) {
-    struct Read::ReturnVal<char> res = {
-        0, ' ' 
-    };
-
+int Read::Type(FILE *fp, char &dest) {
     char c = fgetc(fp);
 
-    if ( c == EOF ) {
-        res.error = 1;
-        return res;
-    }
+    if ( c == EOF ) { return 1; }
 
-    res.value = c;
+    dest = c;
 
-    return res;
+    return 0;
 }
 
-struct Read::ReturnVal<std::string> Read::TypelessString(FILE *fp) {
-    struct Read::ReturnVal<std::string> res = {
-        0, "" 
-    };
-
+int Read::TypelessString(FILE *fp, std::string &dest) {
     int str_len;
     fread(&str_len, sizeof(int), 1, fp);
 
     // if there is an error or end of file, return 1
-    if ( feof(fp) || ferror(fp) ) {
-        res.error = 1;
-        return res;
-    }
+    if ( feof(fp) || ferror(fp) ) { return 1; }
 
     log_debug("Reading typeless string with length %d", str_len);
 
+    // set the destination to blank
+    dest = "";
+
     // the current character
     char c;
 
@@ -213,33 +195,26 @@ struct Read::ReturnVal<std::string> Read::TypelessString(FILE *fp) {
         c = fgetc(fp);
 
         // check if c is end of file, return
-        if ( c == EOF ) {
-            res.error = 1;
-            return res;
-        }
+        if ( c == EOF ) { return 1; }
 
         // if not end of file, add the new character to the string
-        res.value += c;
+        dest += c;
     }
 
-    return res;
+    return 0;
 }
 
-struct Read::ReturnVal<std::string> Read::String(FILE *fp) {
-    struct Read::ReturnVal<std::string> res = {
-        0, "" 
-    };
-
+int Read::String(FILE *fp, std::string &dest) {
     int str_len;
     fread(&str_len, sizeof(int), 1, fp);
 
     // if there is an error or end of file, return 1
-    if ( feof(fp) || ferror(fp) ) {
-        res.error = 1;
-        return res;
-    }
+    if ( feof(fp) || ferror(fp) ) { return 1; }
 
     log_debug("Reading string with length %d", str_len);
+
+    // set the destination to blank
+    dest = "";
 
     // the current character
     char c;
@@ -249,65 +224,47 @@ struct Read::ReturnVal<std::string> Read::String(FILE *fp) {
         c = fgetc(fp);
 
         // check if c is end of file, return
-        if ( c == EOF ) {
-            res.error = 1;
-            return res;
-        }
+        if ( c == EOF ) { return 1; }
 
         // if not end of file, add the new character to the string
-        res.value += c;
+        dest += c;
     }
 
-    return res;
+    return 0;
 }
 
-struct Read::ReturnVal<int> Read::Int(FILE *fp) {
-    struct Read::ReturnVal<int> res = {
-        0, 0
-    };
-
+int Read::Int(FILE *fp, int &dest) {
     int data;
 
     fread(&data, sizeof(int), 1, fp);
     
-    if ( feof(fp) || ferror(fp) ) {
-        res.error = 1;
-        return res;
-    }
+    if ( feof(fp) || ferror(fp) ) { return 1; }
 
     log_debug("Read int %d", data);
 
-    res.value = data;
+    dest = data;
 
-    return res;
+    return 0;
 }
 
-struct Read::ReturnVal<bool> Read::Boolean(FILE *fp) {
-    struct Read::ReturnVal<bool> res = {
-        0, false 
-    };
-    
+int Read::Boolean(FILE *fp, bool &dest) {
     char c = fgetc(fp);
 
     if ( c == 0 ) {
-        res.value = false;
+        dest = false;
     }
     else if ( c == 1 ) {
-        res.value = true;
+        dest = true;
     }
     else {
-        res.error = 1;
+        return 1;
     }
 
-    return res;
+    return 0;
 }
 
-struct Read::ReturnVal<char> Read::Nil(FILE *fp) {
-    struct Read::ReturnVal<char> res = {
-        0, ' ' 
-    };
-
-    return res;
+int Read::Nil(FILE *fp) {
+    return 0;
 }
 
 struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
@@ -332,78 +289,71 @@ struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
     }
 
     // iterate table length items
-    while ( !feof(fp) ) {
-        auto var = Read::Var(fp);
-
-        if ( var.error != 0 ) {
+    for ( int i = 0; i < table_length; i++ ) {
+        // add one new item to the back of the array ( probably )
+        res.vars.resize(res.vars.size() + 1);
+        
+        // write to the new heap memory
+        if ( Read::Var(fp, res.vars.back()) ) {
             res.error = 1;
             return res;
         };
+        
+        log_debug("IN TABLE - Var recieved is %s. Total vars = %d", res.vars.back().c_str(), res.vars.size());
+        for ( const auto v : res.vars ) {
+            log_debug("VAR: %s", v.c_str());
+        }
 
-        // push the variable to the back of the list and make a reference to the variable in the list
-        res.vars.push_back(var.value);
-        const std::string var_ref = res.vars.back();
-
-        // return values for each of the possible return values
-        struct ReturnVal<std::string> str_var;
-        struct ReturnVal<int> int_var;
-        struct ReturnVal<char> char_var;
-        struct ReturnVal<char> nil_var;
-        struct ReturnVal<bool> bool_var;
+        // return values for a possible table or bool
+        bool bool_var;
         struct TableReturn table_var;
 
-        auto type = Read::Type(fp);
-        if ( type.error != 0 ) {
+        char type;
+        
+        if ( Read::Type(fp, type) ) {
             res.error = 1;
             return res;
         }
 
         int error = 0;
 
-        switch ( type.value ) {
+        switch ( type ) {
             case engine::save::STRING:
-                str_var = Read::String(fp);
-                error = str_var.error;
+                // push a blank value to the heap
+                res.strs.push_back("");
+                error = Read::String(fp, res.strs.back());
 
-                // add the value to the heap
-                res.strs.push_back(str_var.value);
+                log_debug("Setting table data at \"%s\" to \"%s\"", res.vars.back().c_str(), res.strs.back().c_str());
 
-                log_debug("Setting table data at \"%s\" to \"%s\"", var.value.c_str(), str_var.value.c_str());
-
-                dest[var_ref] = res.strs.back();
+                dest[res.vars.back()] = res.strs.back();
                 break;
 
             case engine::save::INT:
-                int_var = Read::Int(fp);
-                error = int_var.error;
-
                 // add the value to the heap
-                res.ints.push_back(int_var.value);
+                res.ints.push_back(0);
+                error = Read::Int(fp, res.ints.back());
 
-                log_debug("Setting table data at \"%s\" to %d", var.value.c_str(), int_var.value);
+                log_debug("Setting table data at \"%s\" to %d", res.vars.back().c_str(), res.ints.back());
                 
-                dest[var_ref] = res.ints.back();
+                dest[res.vars.back()] = res.ints.back();
                 break;
             
             case engine::save::BOOLEAN:
-                bool_var = Read::Boolean(fp);
-                error = bool_var.error;
+                // push a blank value and load the new value into this location
+                error = Read::Boolean(fp, bool_var);
+                res.bools.push_back(bool_var);
 
-                // add the value to the heap
-                res.bools.push_back(bool_var.value);
+                log_debug("Setting table data at \"%s\" to %i", res.vars.back().c_str(), res.bools.back());
 
-                log_debug("Setting table data at \"%s\" to %i", var.value.c_str(), bool_var.value);
-
-                dest[var_ref] = res.bools.back();
+                dest[res.vars.back()] = res.bools.back();
                 break;
             
             case engine::save::NIL:
-                nil_var = Read::Nil(fp);
-                error = nil_var.error;
+                error = Read::Nil(fp);
 
-                log_debug("Setting table data at \"%s\" to nil", var.value.c_str());
+                log_debug("Setting table data at \"%s\" to nil", res.vars.back().c_str());
 
-                dest[var_ref] = sol::nil;
+                dest[res.vars.back()] = sol::nil;
                 break;
             
             case engine::save::TABLE:
@@ -413,9 +363,9 @@ struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
                 // add the value to the heap
                 res.tables.push_back(table_var);
 
-                log_debug("Setting table data at \"%s\" to table", var.value.c_str());
+                log_debug("Setting table data at \"%s\" to table", res.vars.back().c_str());
 
-                dest[var_ref] = res.tables.back().value;
+                dest[res.vars.back()] = res.tables.back().value;
                 break;
             
             default:

@@ -41,19 +41,19 @@ namespace Read {
         int error;
     }; 
     
-    struct ReturnVal<std::string> Var(FILE *fp);
+    int Var(FILE *fp, std::string &dest);
 
-    struct ReturnVal<char> Type(FILE *fp);
+    int Type(FILE *fp, char &dest);
 
-    struct ReturnVal<std::string> TypelessString(FILE *fp);
+    int TypelessString(FILE *fp, std::string &dest);
 
-    struct ReturnVal<std::string> String(FILE *fp);
+    int String(FILE *fp, std::string &dest);
 
-    struct ReturnVal<int> Int(FILE *fp);
+    int Int(FILE *fp, int &dest);
 
-    struct ReturnVal<bool> Boolean(FILE *fp);
+    int Boolean(FILE *fp, bool &dest);
 
-    struct ReturnVal<char> Nil(FILE *fp);
+    int Nil(FILE *fp);
 
     struct TableReturn Table(FILE *fp, sol::state &lua);
 }

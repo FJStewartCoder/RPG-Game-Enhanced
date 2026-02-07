@@ -86,8 +86,7 @@ file_metadata read_file_metadata(FILE *fp) {
     log_debug("Read file version %d", res.version);
 
     // read the campaign name from the file
-    auto str = Read::TypelessString(fp);
-    res.campaign_name = str.value;
+    int error = Read::TypelessString(fp, res.campaign_name);
 
     log_debug("Read campaign \"%s\"", res.campaign_name.c_str());
 
@@ -676,13 +675,20 @@ class Campaign {
             }
 
             // read the table and var
-            auto var = Read::Var(fp);
-            auto c = Read::Type(fp);
+            std::string var;
+            char type;
+
+            res = Read::Var(fp, var);
+            res = Read::Type(fp, type);
             auto player_data = Read::Table(fp, lua);
 
             // write the loaded table to the core_env
             // the expectation is that this is the player data
-            core_env[var.value] = player_data.value;
+            core_env[var] = player_data.value;
+
+            for ( const auto &var : player_data.vars ) {
+                std::cout << var << std::endl;
+            }
 
             for ( const auto &item : player_data.value ) {
                 log_debug( "%s %d", item.first.as<std::string>().c_str(), item.second.get_type());
