@@ -50,6 +50,4 @@ Allow for connecting existing nodes to other nodes since you may want to connect
 
 Script directories: There could be a feature involving specific campaigns based around single implementations. Instead of loading everything, load only that directory and consider it to be its own campaign rather than combining everything into one. However, there could be a campaign-less directory of pure extensions that don’t have any related campaign. Such as: Node type fight. This can be used across many campaigns and will be loaded alongside all campaigns unless a special flag is set to only include the specific directory data. (That directory is all that is needed for that story)
 
-
-TODO: EMPTY STRINGS DON'T SAVE AND LOAD CORRECTLY
-TODO: revert to old read system where you pass a reference THIS WILL FINALLY FIX THE THING (probably)
+TODO: try reverting to first implementation of load system but with only loading the correct number of items
