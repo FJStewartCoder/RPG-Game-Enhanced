@@ -52,3 +52,4 @@ Script directories: There could be a feature involving specific campaigns based 
 
 
 TODO: EMPTY STRINGS DON'T SAVE AND LOAD CORRECTLY
+TODO: revert to old read system where you pass a reference THIS WILL FINALLY FIX THE THING (probably)
