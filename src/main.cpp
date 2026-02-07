@@ -53,6 +53,46 @@ namespace Ignore {
 };
 
 
+typedef struct {
+    std::string filemagic;
+    unsigned int version;
+    std::string campaign_name;
+    int error;
+} file_metadata;
+
+file_metadata read_file_metadata(FILE *fp) {
+    file_metadata res = {
+        "",
+        0,
+        "",
+        0
+    };
+
+    // read the file magic from the file
+    for ( int i = 0; i < engine::save::FILE_MAGIC.length(); i++ ) {
+        res.filemagic += fgetc(fp);
+    }
+
+    log_debug("Read file magic \"%s\"", res.filemagic.c_str());
+    
+    // if the file magic is not present, close the file and error
+    if ( res.filemagic != engine::save::FILE_MAGIC ) {
+        res.error = 1;
+        return res;
+    }
+    
+    // read the file version
+    fread(&res.version, sizeof(int), 1, fp);
+    log_debug("Read file version %d", res.version);
+
+    // read the campaign name from the file
+    Read::TypelessString(fp, res.campaign_name);
+    log_debug("Read campaign \"%s\"", res.campaign_name.c_str());
+
+    return res;
+}
+
+
 class Campaign {
     public:
         // create lua interpreter
@@ -512,6 +552,9 @@ class Campaign {
 
             log_trace("Campaign \"%s\" exists", campaignName.c_str());
 
+            // write the campaignName loaded to the CAMPAIGN_NAME as backup incase init does not have campaign name
+            CAMPAIGN_NAME = campaignName;
+
             // get the campaign path
             const std::string campaignPath = campaigns[campaignName];
 
@@ -559,6 +602,7 @@ class Campaign {
             FILE *fp = fopen(filename.c_str(), "wb");
 
             if ( fp == NULL ) {
+                log_error("Unable to write to or make file \"%s\"", filename.c_str());
                 return 1;
             }
 
@@ -583,38 +627,26 @@ class Campaign {
             FILE *fp = fopen(filename.c_str(), "rb");
 
             if ( fp == NULL ) {
+                log_error("File \"%s\" does not exist", filename.c_str());
                 return 1;
             }
 
-            // read the file magic from the file
-            std::string file_magic = "";
-            for ( int i = 0; i < engine::save::FILE_MAGIC.length(); i++ ) {
-                file_magic += fgetc(fp);
-            }
+            file_metadata metadata = read_file_metadata(fp);
+            if ( metadata.error != 0 ) {
+                log_error("File metadata is not valid");
 
-            log_debug("Read file magic \"%s\"", file_magic.c_str());
-            
-            // if the file magic is not present, close the file and error
-            if ( file_magic != engine::save::FILE_MAGIC ) {
                 fclose(fp);
                 return 1;
             }
-            
-            // read the file version
-            unsigned int file_version;
-            fread(&file_version, sizeof(int), 1, fp);
 
-            log_debug("Read file version %d", file_version);
-
-            // read the campaign name from the file
-            std::string campaign_name;
-            Read::TypelessString(fp, campaign_name);
-
-            log_debug("Read campaign \"%s\"", campaign_name.c_str());
-            CAMPAIGN_NAME = campaign_name;
+            CAMPAIGN_NAME = metadata.campaign_name;
 
             // load the campaign
-            LoadCampaign( CAMPAIGN_NAME );
+            int res = LoadCampaign( CAMPAIGN_NAME );
+            if ( res != 0 ) {
+                log_error("Campaign did not successfully load");
+                return 1;
+            }
 
             // read the table and var
             std::string var;
@@ -944,6 +976,47 @@ void new_campaign() {
 }
 
 
+void load_campaign() {
+    std::filesystem::__cxx11::directory_iterator savefiles;
+
+    try {
+        savefiles = std::filesystem::directory_iterator(engine::directories::SAVEFILES);
+    }
+    catch ( std::filesystem::filesystem_error &e ) {
+        return;
+    }
+
+    Menu savefile_menu("Load From Savefile");
+
+    // iterate each file in savefiles
+    // if the file is file, add it to the menu
+    for ( const auto &file : savefiles ) {
+        if ( file.is_directory() ) {
+            continue;
+        }
+
+        FILE *fp = fopen( file.path().c_str(), "rb" );
+        if ( fp == NULL ) {
+            fclose(fp);
+            continue;
+        }
+
+        file_metadata meta = read_file_metadata(fp);
+
+        if ( meta.error != 0 ) {
+            fclose(fp);
+            continue;
+        }
+
+        savefile_menu.AddItem(file.path().filename());
+
+        fclose(fp);
+    }
+
+    savefile_menu.ShowStandard();
+}
+
+
 int main_menu() {
     Menu menu("Main Menu", "Welcome to the game!");
 
@@ -961,7 +1034,7 @@ int main_menu() {
         new_campaign();
     }
     else if ( res == "Load Campaign" ) {
-
+        load_campaign();
     }
     else if ( res == "Quit" ){
 
@@ -1031,7 +1104,7 @@ int main() {
     std::cout << res << " " << res2 << std::endl;
     */
 
-    // main_menu();
+    main_menu();
     
     node_t *cur = campaign.nodeManager.get_node({0, 0, 0});
 
@@ -1043,6 +1116,9 @@ int main() {
     // the main game loop
     gameloop(campaign, cur);
 
+    campaign.SaveToFile( "./" + engine::directories::SAVEFILES + "/somefile.txt" );
+    // campaign.LoadFromFile("somefile.txt");
+
     // test a second campaign
     cur = campaign2.nodeManager.get_node({0, 0, 0});
 
@@ -1053,9 +1129,6 @@ int main() {
 
     // the main game loop
     gameloop(campaign2, cur);
-
-    campaign.SaveToFile("somefile.txt");
-    // campaign.LoadFromFile("somefile.txt");
 
     fclose(fp);
     return 0;
