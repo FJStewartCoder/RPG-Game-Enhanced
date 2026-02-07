@@ -318,8 +318,6 @@ struct Read::ReturnVal<sol::table> Read::Table(FILE *fp, sol::state &lua) {
     // create a reference to the res' value
     sol::table &dest = res.value;
 
-    dest["SomeOtherRandomThing"] = "HELLOORSOMETHING";
-
     int table_length;
 
     fread(&table_length, sizeof(int), 1, fp);
@@ -355,15 +353,14 @@ struct Read::ReturnVal<sol::table> Read::Table(FILE *fp, sol::state &lua) {
 
         int error = 0;
 
-        switch ( char_var.value ) {
+        switch ( type.value ) {
             case engine::save::STRING:
                 str_var = Read::String(fp);
                 error = str_var.error;
 
                 log_debug("Setting table data at \"%s\" to \"%s\"", var.value.c_str(), str_var.value.c_str());
 
-                dest[var] = str_var;
-                dest.set(var, str_var);
+                dest[var.value] = str_var.value;
                 break;
 
             case engine::save::INT:
@@ -373,7 +370,6 @@ struct Read::ReturnVal<sol::table> Read::Table(FILE *fp, sol::state &lua) {
                 log_debug("Setting table data at \"%s\" to %d", var.value.c_str(), int_var.value);
                 
                 dest[var.value] = int_var.value;
-                dest.set(var.value, int_var.value);
                 break;
             
             case engine::save::BOOLEAN:
@@ -383,7 +379,6 @@ struct Read::ReturnVal<sol::table> Read::Table(FILE *fp, sol::state &lua) {
                 log_debug("Setting table data at \"%s\" to %i", var.value.c_str(), bool_var.value);
 
                 dest[var.value] = bool_var.value;
-                dest.set(var.value, bool_var.value);
                 break;
             
             case engine::save::NIL:
@@ -393,7 +388,6 @@ struct Read::ReturnVal<sol::table> Read::Table(FILE *fp, sol::state &lua) {
                 log_debug("Setting table data at \"%s\" to nil", var.value.c_str());
 
                 dest[var.value] = sol::nil;
-                dest.set(var.value, sol::nil);
                 break;
             
             case engine::save::TABLE:
@@ -403,7 +397,6 @@ struct Read::ReturnVal<sol::table> Read::Table(FILE *fp, sol::state &lua) {
                 log_debug("Setting table data at \"%s\" to table", var.value.c_str());
 
                 dest[var.value] = table_var.value;
-                dest.set(var.value, table_var.value);
                 break;
             
             default:

@@ -682,10 +682,10 @@ class Campaign {
 
             // write the loaded table to the core_env
             // the expectation is that this is the player data
-            core_env[var] = player_data.value;
+            core_env[var.value] = player_data.value;
 
             for ( const auto &item : player_data.value ) {
-                log_debug( "%s %s", item.first.as<std::string>().c_str(), item.second.as<std::string>().c_str());
+                log_debug( "%s %d", item.first.as<std::string>().c_str(), item.second.get_type());
             }
 
             fclose(fp);
