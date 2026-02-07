@@ -18,19 +18,25 @@ namespace Write {
 }
 
 namespace Read {
-    int Var(FILE *fp, std::string &dest);
+    template <typename T>
+    struct ReturnVal {
+        int error;
+        T value;
+    };
+    
+    struct ReturnVal<std::string> Var(FILE *fp);
 
-    int Type(FILE *fp, char &dest);
+    struct ReturnVal<char> Type(FILE *fp);
 
-    int TypelessString(FILE *fp, std::string &dest);
+    struct ReturnVal<std::string> TypelessString(FILE *fp);
 
-    int String(FILE *fp, std::string &dest);
+    struct ReturnVal<std::string> String(FILE *fp);
 
-    int Int(FILE *fp, int &dest);
+    struct ReturnVal<int> Int(FILE *fp);
 
-    int Boolean(FILE *fp, bool &dest);
+    struct ReturnVal<bool> Boolean(FILE *fp);
 
-    int Nil(FILE *fp);
+    struct ReturnVal<sol::type> Nil(FILE *fp);
 
-    int Table(FILE *fp, sol::table &dest);
+    struct ReturnVal<sol::table> Table(FILE *fp);
 }

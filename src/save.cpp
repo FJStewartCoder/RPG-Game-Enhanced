@@ -136,17 +136,21 @@ int Write::Table(FILE *fp, sol::table table) {
 
 // --------------------------------------------------------------------------------
 
-int Read::Var(FILE *fp, std::string &dest) {
+struct Read::ReturnVal<std::string> Read::Var(FILE *fp) {
+    struct Read::ReturnVal<std::string> res = {
+        0, "" 
+    };
+
     int var_len;
     fread(&var_len, sizeof(int), 1, fp);
 
     // if there is an error or end of file, return 1
-    if ( feof(fp) || ferror(fp) ) { return 1; }
+    if ( feof(fp) || ferror(fp) ) {
+        res.error = 1;
+        return res;
+    }
 
     log_debug("Reading variable with length %d", var_len);
-
-    // set the destination to blank
-    dest = "";
 
     // the current character
     char c;
@@ -156,37 +160,51 @@ int Read::Var(FILE *fp, std::string &dest) {
         c = fgetc(fp);
 
         // check if c is end of file, return
-        if ( c == EOF ) { return 1; }
+        if ( c == EOF ) {
+            res.error = 1;
+            return res;
+        }
 
         // if not end of file, add the new character to the string
-        dest += c;
+        res.value += c;
     }
 
-    return 0;
+    return res;
 }
 
-int Read::Type(FILE *fp, char &dest) {
+struct Read::ReturnVal<char> Read::Type(FILE *fp) {
+    struct Read::ReturnVal<char> res = {
+        0, ' ' 
+    };
+
     char c = fgetc(fp);
 
-    if ( c == EOF ) { return 1; }
+    if ( c == EOF ) {
+        res.error = 1;
+        return res;
+    }
 
-    dest = c;
+    res.value = c;
 
-    return 0;
+    return res;
 }
 
-int Read::TypelessString(FILE *fp, std::string &dest) {
+struct Read::ReturnVal<std::string> Read::TypelessString(FILE *fp) {
+    struct Read::ReturnVal<std::string> res = {
+        0, "" 
+    };
+
     int str_len;
     fread(&str_len, sizeof(int), 1, fp);
 
     // if there is an error or end of file, return 1
-    if ( feof(fp) || ferror(fp) ) { return 1; }
+    if ( feof(fp) || ferror(fp) ) {
+        res.error = 1;
+        return res;
+    }
 
     log_debug("Reading typeless string with length %d", str_len);
 
-    // set the destination to blank
-    dest = "";
-
     // the current character
     char c;
 
@@ -195,26 +213,33 @@ int Read::TypelessString(FILE *fp, std::string &dest) {
         c = fgetc(fp);
 
         // check if c is end of file, return
-        if ( c == EOF ) { return 1; }
+        if ( c == EOF ) {
+            res.error = 1;
+            return res;
+        }
 
         // if not end of file, add the new character to the string
-        dest += c;
+        res.value += c;
     }
 
-    return 0;
+    return res;
 }
 
-int Read::String(FILE *fp, std::string &dest) {
+struct Read::ReturnVal<std::string> Read::String(FILE *fp) {
+    struct Read::ReturnVal<std::string> res = {
+        0, "" 
+    };
+
     int str_len;
     fread(&str_len, sizeof(int), 1, fp);
 
     // if there is an error or end of file, return 1
-    if ( feof(fp) || ferror(fp) ) { return 1; }
+    if ( feof(fp) || ferror(fp) ) {
+        res.error = 1;
+        return res;
+    }
 
     log_debug("Reading string with length %d", str_len);
-
-    // set the destination to blank
-    dest = "";
 
     // the current character
     char c;
@@ -224,50 +249,77 @@ int Read::String(FILE *fp, std::string &dest) {
         c = fgetc(fp);
 
         // check if c is end of file, return
-        if ( c == EOF ) { return 1; }
+        if ( c == EOF ) {
+            res.error = 1;
+            return res;
+        }
 
         // if not end of file, add the new character to the string
-        dest += c;
+        res.value += c;
     }
 
-    return 0;
+    return res;
 }
 
-int Read::Int(FILE *fp, int &dest) {
+struct Read::ReturnVal<int> Read::Int(FILE *fp) {
+    struct Read::ReturnVal<int> res = {
+        0, 0
+    };
+
     int data;
 
     fread(&data, sizeof(int), 1, fp);
     
-    if ( feof(fp) || ferror(fp) ) { return 1; }
+    if ( feof(fp) || ferror(fp) ) {
+        res.error = 1;
+        return res;
+    }
 
     log_debug("Read int %d", data);
 
-    dest = data;
+    res.value = data;
 
-    return 0;
+    return res;
 }
 
-int Read::Boolean(FILE *fp, bool &dest) {
+struct Read::ReturnVal<bool> Read::Boolean(FILE *fp) {
+    struct Read::ReturnVal<bool> res = {
+        0, false 
+    };
+    
     char c = fgetc(fp);
 
     if ( c == 0 ) {
-        dest = false;
+        res.value = false;
     }
     else if ( c == 1 ) {
-        dest = true;
+        res.value = true;
     }
     else {
-        return 1;
+        res.error = 1;
     }
 
-    return 0;
+    return res;
 }
 
-int Read::Nil(FILE *fp) {
-    return 0;
+struct Read::ReturnVal<sol::type> Read::Nil(FILE *fp) {
+    struct Read::ReturnVal<sol::type> res = {
+        0, sol::nil
+    };
+
+    return res;
 }
 
-int Read::Table(FILE *fp, sol::table &dest) {
+struct Read::ReturnVal<sol::table> Read::Table(FILE *fp) {
+    struct Read::ReturnVal<sol::table> res = {
+        0, sol::table()
+    };
+
+    // create a reference to the res' value
+    sol::table &dest = res.value;
+
+    dest["SomeOtherRandomThing"] = "HELLOORSOMETHING";
+
     int table_length;
 
     fread(&table_length, sizeof(int), 1, fp);
@@ -283,6 +335,9 @@ int Read::Table(FILE *fp, sol::table &dest) {
         if ( Read::Var(fp, var) ) {
             break;
         };
+
+        dest[var] = "HELLOORSOMETHING";
+        std::cout << "TESTING " << dest[var].get<std::string>() << std::endl;
 
         std::string str_var = "";
         int int_var = 0;
@@ -303,6 +358,7 @@ int Read::Table(FILE *fp, sol::table &dest) {
                 log_debug("Setting table data at \"%s\" to \"%s\"", var.c_str(), str_var.c_str());
 
                 dest[var] = str_var;
+                dest.set(var, str_var);
                 break;
 
             case engine::save::INT:
@@ -310,6 +366,7 @@ int Read::Table(FILE *fp, sol::table &dest) {
                 log_debug("Setting table data at \"%s\" to %d", var.c_str(), int_var);
                 
                 dest[var] = int_var;
+                dest.set(var, int_var);
                 break;
             
             case engine::save::BOOLEAN:
@@ -317,6 +374,7 @@ int Read::Table(FILE *fp, sol::table &dest) {
                 log_debug("Setting table data at \"%s\" to %i", var.c_str(), bool_var);
 
                 dest[var] = bool_var;
+                dest.set(var, bool_var);
                 break;
             
             case engine::save::NIL:
@@ -324,6 +382,7 @@ int Read::Table(FILE *fp, sol::table &dest) {
                 log_debug("Setting table data at \"%s\" to nil", var.c_str());
 
                 dest[var] = sol::nil;
+                dest.set(var, sol::nil);
                 break;
             
             case engine::save::TABLE:
@@ -341,5 +400,5 @@ int Read::Table(FILE *fp, sol::table &dest) {
         }
     }
 
-    return 0;
+    return res;
 }

@@ -123,6 +123,10 @@ class Campaign {
         // whether or not use the generic directory
         bool USE_GENERIC = false;
 
+        // the name of the savefile
+        // if blank, no file is selected
+        std::string SAVEFILE = "";
+
         // -------------------------------------------------------------------------------------------------------------------------------
 
         // deletes all of the init variables and data from the build environment
@@ -595,14 +599,30 @@ class Campaign {
             return 0;
         }
 
-        int SaveToFile(std::string filename) {
+        int SetSavefile(std::string filename) {
+            if ( filename == "" ) {
+                log_error("No filename");
+                return 1;
+            }
+
+            SAVEFILE = engine::directories::SAVEFILES + "/" + filename;
+
+            return 0;
+        }
+
+        int SaveToFile() {
             // recusively save the player data table
 
+            if ( SAVEFILE == "" ) {
+                log_error("No savefile selected");
+                return 1;
+            }
+
             // open a new file for writing
-            FILE *fp = fopen(filename.c_str(), "wb");
+            FILE *fp = fopen(SAVEFILE.c_str(), "wb");
 
             if ( fp == NULL ) {
-                log_error("Unable to write to or make file \"%s\"", filename.c_str());
+                log_error("Unable to write to or make file \"%s\"", SAVEFILE.c_str());
                 return 1;
             }
 
@@ -622,12 +642,17 @@ class Campaign {
         }
         
         // TODO: add validation
-        int LoadFromFile(std::string filename) {
+        int LoadFromFile() {
+            if ( SAVEFILE == "" ) { 
+                log_error("No save file selected");
+                return 1;
+            }
+
             // load magic or something
-            FILE *fp = fopen(filename.c_str(), "rb");
+            FILE *fp = fopen(SAVEFILE.c_str(), "rb");
 
             if ( fp == NULL ) {
-                log_error("File \"%s\" does not exist", filename.c_str());
+                log_error("File \"%s\" does not exist", SAVEFILE.c_str());
                 return 1;
             }
 
@@ -661,6 +686,10 @@ class Campaign {
             // write the loaded table to the core_env
             // the expectation is that this is the player data
             core_env[var] = player_data;
+
+            for ( const auto &item : player_data ) {
+                log_debug( "%s %s", item.first.as<std::string>().c_str(), item.second.as<std::string>().c_str());
+            }
 
             fclose(fp);
             return 0;
@@ -954,6 +983,28 @@ int gameloop(Campaign &campaign, node_t *start_node) {
     return 0;
 }
 
+std::string get_savefile_name() {
+    std::cout << "Enter your savefile name" << std::endl;
+    
+    std::string filename;
+
+    while ( true ) {
+        std::string user_input;
+
+        std::cin >> user_input;
+        
+        filename = user_input + ".txt";
+        const bool file_exists = std::filesystem::exists( engine::directories::SAVEFILES + "/" + filename );
+
+        if ( file_exists ) {
+            continue;
+        }
+
+        break;
+    }
+
+    return filename;
+}
 
 void new_campaign() {
     Menu menu("Campaign Selection");
@@ -972,7 +1023,18 @@ void new_campaign() {
         menu.AddItem(item.first);
     }
 
-    menu.ShowStandard();
+    std::string campaign_choice = menu.ShowStandard();
+    std::string filename = get_savefile_name();
+
+    Campaign campaign;
+    campaign.SetSavefile( filename );
+    
+    campaign.LoadCampaign(campaign_choice);
+
+    node_t *cur = campaign.nodeManager.get_node({0, 0, 0});
+
+    gameloop(campaign, cur);
+    campaign.SaveToFile();
 }
 
 
@@ -1013,7 +1075,17 @@ void load_campaign() {
         fclose(fp);
     }
 
-    savefile_menu.ShowStandard();
+    std::string campaign_choice = savefile_menu.ShowStandard();
+
+    Campaign campaign;
+    campaign.SetSavefile( campaign_choice );
+
+    campaign.LoadFromFile();
+
+    node_t *cur = campaign.nodeManager.get_node({0, 0, 0});
+
+    gameloop(campaign, cur);
+    campaign.SaveToFile();
 }
 
 
@@ -1116,8 +1188,9 @@ int main() {
     // the main game loop
     gameloop(campaign, cur);
 
-    campaign.SaveToFile( "./" + engine::directories::SAVEFILES + "/somefile.txt" );
-    // campaign.LoadFromFile("somefile.txt");
+    campaign.SetSavefile( "something.txt" );
+    campaign.SaveToFile();
+    // campaign.LoadFromFile();
 
     // test a second campaign
     cur = campaign2.nodeManager.get_node({0, 0, 0});
