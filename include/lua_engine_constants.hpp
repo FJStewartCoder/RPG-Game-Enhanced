@@ -40,7 +40,6 @@ namespace engine {
             const std::string EXTEND_PLAYER = "extend_player";
             
             // functions to environment creation
-            const std::string NEW_CAMPAIGN = "new_campaign";
             const std::string BUILD_NODE = "build_node";
             const std::string ARBITRARY_CONNECTION = "make_connection";
         }
@@ -61,9 +60,6 @@ namespace engine {
     };
 
     namespace file {
-        const std::string BUILD = "BUILD_FILE.lua";
-        const std::string CAMPAIGN = "CAMPAIGN_FILE.lua";
-
         const std::string INIT = "INIT.lua";
     };
 
@@ -76,7 +72,7 @@ namespace engine {
         const std::string CAMPAIGNS = "campaigns";
         const std::string GENERIC = "campaignless";
 
-        const std::string SCRIPTS = "scripts";
+        const std::string SAVEFILES = "savefiles";
     };
 
     namespace save {
