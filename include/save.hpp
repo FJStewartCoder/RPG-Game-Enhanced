@@ -26,20 +26,20 @@ namespace Read {
 
     // table return specifically for reading tables
     // values need heap memory allocated due to wierd references required by sol
-    typedef struct {
+    struct TableReturn {
         // allocated memory for all values read from the table
         std::vector<std::string> vars;
         std::vector<std::string> strs;
         std::vector<int> ints;
         std::vector<bool> bools;
         std::vector<char> chars;
-        std::vector<sol::table> tables;
+        std::vector<struct TableReturn> tables;
 
         // the value is the final table
         sol::table value;
         // any error
         int error;
-    } TableReturn; 
+    }; 
     
     struct ReturnVal<std::string> Var(FILE *fp);
 
@@ -55,5 +55,5 @@ namespace Read {
 
     struct ReturnVal<char> Nil(FILE *fp);
 
-    TableReturn Table(FILE *fp, sol::state &lua);
+    struct TableReturn Table(FILE *fp, sol::state &lua);
 }

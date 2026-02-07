@@ -310,7 +310,7 @@ struct Read::ReturnVal<char> Read::Nil(FILE *fp) {
     return res;
 }
 
-Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
+struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
     Read::TableReturn res;
 
     // initialiase some return variables
@@ -350,7 +350,7 @@ Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
         struct ReturnVal<char> char_var;
         struct ReturnVal<char> nil_var;
         struct ReturnVal<bool> bool_var;
-        TableReturn table_var;
+        struct TableReturn table_var;
 
         auto type = Read::Type(fp);
         if ( type.error != 0 ) {
@@ -365,6 +365,7 @@ Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
                 str_var = Read::String(fp);
                 error = str_var.error;
 
+                // add the value to the heap
                 res.strs.push_back(str_var.value);
 
                 log_debug("Setting table data at \"%s\" to \"%s\"", var.value.c_str(), str_var.value.c_str());
@@ -376,6 +377,7 @@ Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
                 int_var = Read::Int(fp);
                 error = int_var.error;
 
+                // add the value to the heap
                 res.ints.push_back(int_var.value);
 
                 log_debug("Setting table data at \"%s\" to %d", var.value.c_str(), int_var.value);
@@ -387,6 +389,7 @@ Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
                 bool_var = Read::Boolean(fp);
                 error = bool_var.error;
 
+                // add the value to the heap
                 res.bools.push_back(bool_var.value);
 
                 log_debug("Setting table data at \"%s\" to %i", var.value.c_str(), bool_var.value);
@@ -407,11 +410,12 @@ Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
                 table_var = Read::Table(fp, lua);
                 error = table_var.error;
 
-                res.tables.push_back(table_var.value);
+                // add the value to the heap
+                res.tables.push_back(table_var);
 
                 log_debug("Setting table data at \"%s\" to table", var.value.c_str());
 
-                dest[var_ref] = res.tables.back();
+                dest[var_ref] = res.tables.back().value;
                 break;
             
             default:
