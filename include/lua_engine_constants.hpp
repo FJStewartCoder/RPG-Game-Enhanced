@@ -10,6 +10,9 @@
 
 
 namespace engine {
+    // version 1.0.0
+    const unsigned int VERSION = 100;
+
     namespace node {
         const std::string TEMPLATE = "NODE_DATA_TEMPLATE";
         const std::string AVAILABLE = "AVAILIBLE_NODES";
@@ -37,7 +40,6 @@ namespace engine {
             const std::string EXTEND_PLAYER = "extend_player";
             
             // functions to environment creation
-            const std::string NEW_CAMPAIGN = "new_campaign";
             const std::string BUILD_NODE = "build_node";
             const std::string ARBITRARY_CONNECTION = "make_connection";
         }
@@ -62,23 +64,30 @@ namespace engine {
     };
 
     namespace file {
-        const std::string BUILD = "BUILD_FILE.lua";
-        const std::string CAMPAIGN = "CAMPAIGN_FILE.lua";
-
         const std::string INIT = "INIT.lua";
     };
 
     namespace settings {
         const std::string CAMPAIGN_NAME = "CAMPAIGN_NAME";
         const std::string USE_GENERIC = "USE_GENERIC";
-    }
+    };
 
     namespace directories {
         const std::string CAMPAIGNS = "campaigns";
         const std::string GENERIC = "campaignless";
 
-        const std::string SCRIPTS = "scripts";
-    }
+        const std::string SAVEFILES = "savefiles";
+    };
+
+    namespace save {
+        const std::string FILE_MAGIC = "RPenGineFILE";
+
+        const char NIL = 'n';
+        const char STRING = 's';
+        const char INT = 'i';
+        const char BOOLEAN = 'b';
+        const char TABLE = 't';
+    };
 };
 
 enum class VirtualEvents {

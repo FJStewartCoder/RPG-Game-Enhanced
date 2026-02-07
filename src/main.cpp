@@ -31,6 +31,8 @@ extern "C" {
 #include "inject/inject_core.hpp"
 #include "inject/inject_build.hpp"
 
+#include "save.hpp"
+
 
 #define MAX_FILE_SYSTEM_DEPTH 5
 
@@ -550,6 +552,88 @@ class Campaign {
             return 0;
         }
 
+        int SaveToFile(std::string filename) {
+            // recusively save the player data table
+
+            // open a new file for writing
+            FILE *fp = fopen(filename.c_str(), "wb");
+
+            if ( fp == NULL ) {
+                return 1;
+            }
+
+            // write the file magic to the save file
+            fputs(engine::save::FILE_MAGIC.c_str(), fp);
+            
+            // write the version number into the file
+            fwrite(&engine::VERSION, sizeof(int), 1, fp);
+
+            Write::TypelessString(fp, CAMPAIGN_NAME);
+
+            Write::Var(fp, engine::player::DATA);
+            Write::Table(fp, core_env[engine::player::DATA]);
+
+            fclose(fp);
+            return 0;
+        }
+        
+        // TODO: add validation
+        int LoadFromFile(std::string filename) {
+            // load magic or something
+            FILE *fp = fopen(filename.c_str(), "rb");
+
+            if ( fp == NULL ) {
+                return 1;
+            }
+
+            // read the file magic from the file
+            std::string file_magic = "";
+            for ( int i = 0; i < engine::save::FILE_MAGIC.length(); i++ ) {
+                file_magic += fgetc(fp);
+            }
+
+            log_debug("Read file magic \"%s\"", file_magic.c_str());
+            
+            // if the file magic is not present, close the file and error
+            if ( file_magic != engine::save::FILE_MAGIC ) {
+                fclose(fp);
+                return 1;
+            }
+            
+            // read the file version
+            unsigned int file_version;
+            fread(&file_version, sizeof(int), 1, fp);
+
+            log_debug("Read file version %d", file_version);
+
+            // read the campaign name from the file
+            std::string campaign_name;
+            Read::TypelessString(fp, campaign_name);
+
+            log_debug("Read campaign \"%s\"", campaign_name.c_str());
+            CAMPAIGN_NAME = campaign_name;
+
+            // load the campaign
+            LoadCampaign( CAMPAIGN_NAME );
+
+            // read the table and var
+            std::string var;
+            Read::Var(fp, var);
+
+            char c;
+            Read::Type(fp, c);
+
+            sol::table player_data = lua.create_table();
+            Read::Table(fp, player_data);
+
+            // write the loaded table to the core_env
+            // the expectation is that this is the player data
+            core_env[var] = player_data;
+
+            fclose(fp);
+            return 0;
+        }
+
         // constructor
         Campaign() {
             // open libs so we have access to print --------------------------------------------------------------------------------------
@@ -948,7 +1032,7 @@ int main() {
     */
 
     // main_menu();
-
+    
     node_t *cur = campaign.nodeManager.get_node({0, 0, 0});
 
     if ( cur == NULL ) {
@@ -970,6 +1054,8 @@ int main() {
     // the main game loop
     gameloop(campaign2, cur);
 
+    campaign.SaveToFile("somefile.txt");
+    // campaign.LoadFromFile("somefile.txt");
 
     fclose(fp);
     return 0;
