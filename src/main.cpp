@@ -1142,12 +1142,52 @@ void load_campaign() {
     campaign.SaveToFile();
 }
 
+#ifdef DEV
+void test_campaign() {
+    Menu menu("Test Campaign Selection");
+
+    auto campaigns = Campaign::GetCampaigns();
+
+    const bool empty = campaigns.size() == 0;
+
+    // if there are no campaigns return to main menu
+    if ( empty ) {
+        log_error("No campaigns availible.");
+        return;
+    }
+
+    for ( const auto &item : campaigns ) {
+        menu.AddItem(item.first);
+    }
+
+    std::string campaign_choice = menu.ShowStandard();
+
+    Campaign campaign;
+    
+    if ( campaign.LoadCampaign(campaign_choice) ) {
+        log_error("Loading campaign failed");
+        return;
+    }
+
+    node_t *cur = campaign.nodeManager.get_node({0, 0, 0});
+    if ( cur == NULL ) {
+        return;
+    }
+
+    gameloop(campaign, cur);
+}
+#endif
 
 int main_menu() {
     Menu menu("Main Menu", "Welcome to the game!");
 
     menu.AddItem("New Campaign");
     menu.AddItem("Load Campaign");
+
+#ifdef DEV
+    menu.AddItem("Test Campaign");
+#endif
+
     menu.AddItem("Quit");
 
     while ( true ) {
@@ -1164,6 +1204,13 @@ int main_menu() {
         else if ( res == "Load Campaign" ) {
             load_campaign();
         }
+
+#ifdef DEV
+        else if ( res == "Test Campaign" ) {
+            test_campaign();
+        }
+#endif
+
         else if ( res == "Quit" ){
             break;
         }
@@ -1182,7 +1229,10 @@ int main() {
 
     // will always log
     // log_add_fp(fp, 0);
+
+#ifndef DEV
     log_set_quiet(true);
+#endif // DEV
 
     main_menu();
 
