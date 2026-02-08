@@ -33,20 +33,38 @@ coordinates_t parse_coordinate_table(sol::table &coords) {
 
 
 int build_player_extension(sol::environment &env, sol::table extension) {
-    // TODO: add validation to prevent overrighting default properties or properties that already exist
     for ( const auto &item : extension ) {     
-        log_info("Extend player called with extension: \"%s\"", item.first.as<std::string>().c_str());
-        env[engine::player::DATA][item.first] = item.second;
+        const std::string var = item.first.as<std::string>();
+
+        log_info("Extend player called with extension: \"%s\"", var.c_str());
+        
+        const auto player_template = env[engine::player::DATA];
+        
+        if ( player_template[var] != sol::nil ) {
+            log_warn("Script attempted to overwrite this property");
+            continue;
+        }
+
+        player_template[var] = item.second;
     }
 
     return 0;
 }
 
 int build_node_extension(sol::environment &env, sol::table extension) {
-    // TODO: add validation to prevent overrighting default properties or properties that already exist
     for ( const auto &item : extension ) {
-        log_info("Extend node called with extension: \"%s\"", item.first.as<std::string>().c_str());
-        env[engine::node::TEMPLATE][item.first] = item.second;
+        const std::string var = item.first.as<std::string>();
+
+        log_info("Extend node called with extension: \"%s\"", var.c_str());
+        
+        const auto node_template = env[engine::node::TEMPLATE];
+        
+        if ( node_template[var] != sol::nil ) {
+            log_warn("Script attempted to overwrite this property");
+            continue;
+        }
+
+        node_template[var] = item.second;
     }
 
     return 0;

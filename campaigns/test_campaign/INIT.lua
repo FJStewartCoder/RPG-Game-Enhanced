@@ -13,6 +13,10 @@ end
 
 function extend()
     extend_node({bob = "abc"})
+
+    -- tests validation of overwriting properties
+    extend_node({bob = "gdf"})
+    extend_node({name = "Alternate Name"})
 end
 
 function environment()
