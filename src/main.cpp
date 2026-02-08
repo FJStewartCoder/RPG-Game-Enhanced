@@ -1182,7 +1182,7 @@ int main() {
 
     // will always log
     // log_add_fp(fp, 0);
-    // log_set_quiet(true);
+    log_set_quiet(true);
 
     main_menu();
 
