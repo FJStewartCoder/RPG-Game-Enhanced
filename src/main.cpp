@@ -68,9 +68,18 @@ file_metadata read_file_metadata(FILE *fp) {
         0
     };
 
+    // buffer to store the current character in
+    char c;
+
     // read the file magic from the file
     for ( int i = 0; i < engine::save::FILE_MAGIC.length(); i++ ) {
-        res.filemagic += fgetc(fp);
+        c = fgetc(fp);
+        if ( c == EOF ) {
+            res.error = 1;
+            return res;
+        }
+        
+        res.filemagic += c;
     }
 
     log_debug("Read file magic \"%s\"", res.filemagic.c_str());
@@ -86,7 +95,10 @@ file_metadata read_file_metadata(FILE *fp) {
     log_debug("Read file version %d", res.version);
 
     // read the campaign name from the file
-    int error = Read::TypelessString(fp, res.campaign_name);
+    if ( Read::TypelessString(fp, res.campaign_name) ) {
+        res.error = 1;
+        return res;
+    }
 
     log_debug("Read campaign \"%s\"", res.campaign_name.c_str());
 
@@ -308,7 +320,14 @@ class Campaign {
                 // build the nodes
                 // MUST BE PERFORMED BEFORE RUNNING THE ENVIRONMENT FUNCTION
                 log_trace("Building node queue");
-                nodeManager.build_node_queue(core_env, core_env[engine::node::TEMPLATE]);
+
+                res = nodeManager.build_node_queue(core_env, core_env[engine::node::TEMPLATE]);
+                if ( res != 0 ) {
+                    log_error("Node queue failed to build");
+
+                    deleteInit();
+                    return 1;
+                }
 
                 res = RunFunctionIfExists(build_env, engine::func::extension::ENVIRONMENT);
                 if ( res != 0 ) {
@@ -321,7 +340,13 @@ class Campaign {
                 log_trace("Making all connections between nodes");
 
                 // make all of the connections
-                nodeManager.make_all_connections();
+                res = nodeManager.make_all_connections();
+                if ( res != 0 ) {
+                    log_error("Make connections functions failed");
+
+                    deleteInit();
+                    return 1;
+                }
 
             }
             else {
@@ -546,7 +571,13 @@ class Campaign {
         int LoadCampaign(std::string campaignName) {
             log_trace("Getting campaigns");
             auto campaigns = GetCampaigns();
-            
+
+            const bool noCampaigns = campaigns.empty();
+            if ( noCampaigns ) {
+                log_error("No campaigns exist");
+                return 1;
+            }
+
             log_trace("Checking if campaign \"%s\" exists", campaignName.c_str());
 
             const bool campaignExists = campaigns.find(campaignName) != campaigns.end();
@@ -678,8 +709,16 @@ class Campaign {
             std::string var;
             char type;
 
-            res = Read::Var(fp, var);
-            res = Read::Type(fp, type);
+            if ( Read::Var(fp, var) ) {
+                fclose(fp);
+                return 1;
+            }
+
+            if ( Read::Type(fp, type) ) {
+                fclose(fp);
+                return 1;
+            }
+
             auto player_data = Read::Table(fp, lua);
 
             // write the loaded table to the core_env
