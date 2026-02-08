@@ -308,6 +308,5 @@ sync position
 
 move player
 
-TODO: allow the user to make arbitrary connections using the make_connection function
-
 TODO: improve virtual events
+TODO: add better logging throughout

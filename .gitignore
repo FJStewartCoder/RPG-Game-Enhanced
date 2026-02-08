@@ -1,4 +1,4 @@
 *.out
 *.o
 log.txt
-/savefiles
+savefiles/*
