@@ -1150,23 +1150,27 @@ int main_menu() {
     menu.AddItem("Load Campaign");
     menu.AddItem("Quit");
 
-    std::string res = menu.ShowStandard();
+    while ( true ) {
 
-    // log the option the user chose
-    log_trace("User selected %s.", res.c_str());
+        std::string res = menu.ShowStandard();
 
-    // NEW CAMPAIGN
-    if ( res == "New Campaign" ) {
-        new_campaign();
-    }
-    else if ( res == "Load Campaign" ) {
-        load_campaign();
-    }
-    else if ( res == "Quit" ){
+        // log the option the user chose
+        log_trace("User selected %s.", res.c_str());
 
-    }
-    else {
-        log_fatal("Whoever wrote the code to allow this is bad.");
+        // NEW CAMPAIGN
+        if ( res == "New Campaign" ) {
+            new_campaign();
+        }
+        else if ( res == "Load Campaign" ) {
+            load_campaign();
+        }
+        else if ( res == "Quit" ){
+            break;
+        }
+        else {
+            log_fatal("Whoever wrote the code to allow this is bad.");
+        }
+
     }
 
     return 0;
