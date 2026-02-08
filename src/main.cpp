@@ -841,7 +841,7 @@ bool handle_script_movement(Campaign &campaign, node_t *(&cur_node), sol::table 
     cur_node = new_pos;
 
     // message to inform me the script moved the player
-    log_trace("Script moved player to node ID: %lld.", get_coords_hash(cur_node->coords));
+    log_trace("Script moved player to node ID: %lld.", cur_node->coords.hash);
 
     return true;
 }
@@ -893,7 +893,7 @@ int gameloop(Campaign &campaign, node_t *start_node) {
         auto cur_node_data = get_node_data(core_env, cur_node->node_type);
 
         if ( cur_node_data ) {
-            log_info("Current node has type: \"%s\", with ID: %lld", cur_node->node_type.c_str(), get_coords_hash(cur_node->coords));
+            log_info("Current node has type: \"%s\", with ID: %lld", cur_node->node_type.c_str(), cur_node->coords.hash);
         }
 
         // get the player data table

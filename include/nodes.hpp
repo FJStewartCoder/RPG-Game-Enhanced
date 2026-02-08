@@ -5,19 +5,21 @@
 
 #include "sol/sol.hpp"
 
-typedef struct {
-    short x;
-    short y;
-    short z;
-} coordinates_t;
-
 typedef long long int coord_hash;
+
+typedef union {
+    struct {
+        short x;
+        short y;
+        short z;
+    };
+
+    coord_hash hash;
+} coordinates_t;
 
 coordinates_t add_coords(coordinates_t a, coordinates_t b);
 
 int init_coords(coordinates_t *coords);
-
-coord_hash get_coords_hash(coordinates_t coords);
 
 
 typedef struct node_t {

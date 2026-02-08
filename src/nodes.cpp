@@ -17,24 +17,6 @@ int init_coords(coordinates_t *coords) {
     return 0;
 }
 
-coord_hash get_coords_hash(coordinates_t coords) {
-    // WHY THIS WORKS:
-    // coords.x is signed short
-    // if we convert signed short to int the signedness is maintained ( e.g -1 ( 0xffff ) is converted to -1 (0xffffffff) instead of 2^16 - 1 )
-    // we can bypass this by converting the short to an unsigned short which does convert properly
-    // then, we are able to convert to the longer type before shifting 
-
-    coord_hash chuck1 = (coord_hash)(unsigned short)coords.x << (16 * 2);
-    coord_hash chuck2 = (coord_hash)(unsigned short)coords.y << (16 * 1);
-    coord_hash chuck3 = (coord_hash)(unsigned short)coords.z << (16 * 0);
-
-    // DEBUG STATEMENT
-    // printf("(%llx %llx %llx) %llx %llx %llx %llx\n", (unsigned short)coords.x, (unsigned short)coords.y, (unsigned short)coords.z, chuck1, chuck2, chuck3, chuck1 | chuck2 | chuck3);
-
-    return 0 | chuck1 | chuck2 | chuck3;
-}
-
-
 void node_init(node_t *node) {
     node->node_type = "";
 

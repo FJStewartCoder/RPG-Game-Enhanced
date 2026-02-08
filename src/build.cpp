@@ -101,7 +101,7 @@ void NodeManager::build_node(
     node_init(new_node);
 
     // get the hash of the coordinates requests
-    const coord_hash hash = get_coords_hash(coords);
+    const coord_hash hash = coords.hash;
     const bool position_taken = environment.find(hash) != environment.end();
 
     if ( position_taken ) {
@@ -196,7 +196,7 @@ int NodeManager::build_single_node(
 // get a node from the environment
 node_t *NodeManager::get_node(coordinates_t coords) {
     // get the hash
-    const coord_hash hash = get_coords_hash(coords);
+    const coord_hash hash = coords.hash;
 
     // search for the hash
     auto search_res = environment.find(hash);
@@ -391,11 +391,11 @@ int NodeManager::make_all_connections() {
                 cur_coords.x,
                 cur_coords.y,
                 cur_coords.z,
-                get_coords_hash(cur_coords),
+                cur_coords.hash,
                 new_coords.x,
                 new_coords.y,
                 new_coords.z,
-                get_coords_hash(new_coords)
+                new_coords.hash
             );
 
             make_connection(
