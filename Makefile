@@ -38,5 +38,9 @@ nodes.o: src/nodes.cpp
 all: src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o save.o ${INJECT}
 	${CPPC} $^ -Iinclude -Llib -llua54 -lm -g
 
+# make all but with the DEF macro defined
+dev: src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o save.o ${INJECT}
+	${CPPC} $^ -Iinclude -Llib -llua54 -lm -g -DDEV
+
 clean:
 	rm *.o
