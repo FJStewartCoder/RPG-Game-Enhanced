@@ -721,6 +721,11 @@ class Campaign {
 
             auto player_data = Read::Table(fp, lua);
 
+            if ( player_data.error != 0 ) {
+                fclose(fp);
+                return 1;
+            }
+
             // write the loaded table to the core_env
             // the expectation is that this is the player data
             core_env[var] = player_data.value;
@@ -904,12 +909,6 @@ int gameloop(Campaign &campaign, node_t *start_node) {
     // the running state
     bool running = true;
 
-    // boolean to silence the stuck message
-    bool silence_stuck = false;
-
-    uint stuck_count = 0;
-    const uint max_stuck_cycles = 100;
-
     // STEPS:
     // get node data
     // on land ( ensures that the start activates )
@@ -1039,6 +1038,7 @@ std::string get_savefile_name() {
         const bool file_exists = std::filesystem::exists( engine::directories::SAVEFILES + "/" + filename );
 
         if ( file_exists ) {
+            std::cout << "This file already exists" << std::endl;
             continue;
         }
 
@@ -1071,9 +1071,15 @@ void new_campaign() {
     Campaign campaign;
     campaign.SetSavefile( filename );
     
-    campaign.LoadCampaign(campaign_choice);
+    if ( campaign.LoadCampaign(campaign_choice) ) {
+        log_error("Loading campaign failed");
+        return;
+    }
 
     node_t *cur = campaign.nodeManager.get_node({0, 0, 0});
+    if ( cur == NULL ) {
+        return;
+    }
 
     gameloop(campaign, cur);
     campaign.SaveToFile();
@@ -1122,9 +1128,15 @@ void load_campaign() {
     Campaign campaign;
     campaign.SetSavefile( campaign_choice );
 
-    campaign.LoadFromFile();
+    if ( campaign.LoadFromFile() ) {
+        log_error("Loading from file failed");
+        return;
+    }
 
     node_t *cur = campaign.nodeManager.get_node({0, 0, 0});
+    if ( cur == NULL ) {
+        return;
+    }
 
     gameloop(campaign, cur);
     campaign.SaveToFile();
@@ -1160,7 +1172,6 @@ int main_menu() {
     return 0;
 }
 
-
 int main() {
     // open the log file
     FILE *fp = fopen("log.txt", "w");
@@ -1169,66 +1180,7 @@ int main() {
     // log_add_fp(fp, 0);
     // log_set_quiet(true);
 
-    Campaign campaign;
-    campaign.LoadCampaign( "Sample Game" );
-
-    // -------------------------------------------------------------------------------------------------------------------------------
-
-    // test if the data is found from the injection
-    std::cout << campaign.core_env[engine::node::TEMPLATE][engine::node::NAME].get<std::string>() << std::endl;
-    std::cout << campaign.core_env[engine::player::DATA][engine::player::NAME].get<std::string>() << std::endl;
-
-    // test a function
-    campaign.core_env[engine::node::TEMPLATE][engine::node::LAND]();
-
-    // get all keys and values for template debug
-    /* for ( const auto &t : lua[engine::node::TEMPLATE].get<sol::table>() ) {
-        std::cout << "Node template has " << t.first.as<std::string>() << " with value type " << (int)t.second.get_type() << std::endl;
-    } */
-
-    // show nodes
-    for ( const auto &node : campaign.nodeManager.get_all_node_types() ) {
-        log_trace("Found node with name \"%s\"", node.c_str());
-    }
-
-    // build test
-    /*
-    sol::table start_table = lua.create_table();
-    start_table["data1"] = "123";
-
-    sol::table start_table2 = lua.create_table();
-    start_table2["data1"] = "234";
-    */
-
-    /*
-    int node1 = build_node("Start", start_table);
-    int node2 = build_node("2", sol::table(), node1, NODE_RIGHT, false);
-    int node3 = build_node("Start", start_table2, node2, NODE_UP, false);
-
-    // traversal test
-    node_t *cur = get_node(node1);
-
-    int res = traverse_node(cur, NODE_RIGHT);
-    int res2 = traverse_node(cur, NODE_LEFT);
-
-    std::cout << res << " " << res2 << std::endl;
-    */
-
     main_menu();
-    
-    node_t *cur = campaign.nodeManager.get_node({0, 0, 0});
-
-    if ( cur == NULL ) {
-        fclose(fp);
-        return 1;
-    }
-
-    // the main game loop
-    gameloop(campaign, cur);
-
-    campaign.SetSavefile( "something.txt" );
-    campaign.SaveToFile();
-    // campaign.LoadFromFile();
 
     fclose(fp);
     return 0;

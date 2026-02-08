@@ -155,7 +155,7 @@ int NodeManager::build_single_node(
             new_table[new_pair.first] = new_pair.second;
         }
         else {
-            log_warn("Script tried to pass key to node with key %s that is not in the template.", new_pair.first.as<std::string>() );
+            log_warn("Script tried to pass key to node with key %s that is not in the template.", new_pair.first.as<std::string>().c_str() );
         }
     }
 
