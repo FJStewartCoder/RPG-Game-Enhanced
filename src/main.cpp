@@ -746,7 +746,12 @@ class Campaign {
         Campaign() {
             // open libs so we have access to print --------------------------------------------------------------------------------------
 
-            lua.open_libraries(sol::lib::base, sol::lib::io, sol::lib::table);
+            lua.open_libraries(
+                sol::lib::base,
+                sol::lib::io,
+                sol::lib::table,
+                sol::lib::math
+            );
 
             // initialise the environments -----------------------------------------------------------------------------------------------
 

@@ -76,7 +76,11 @@ function extend()
     extend_player({
         health = 100,
         money = 0,
-        inventory = {}
+        wanted_level = 0,
+        inventory = {},
+        bosses_defeated = {
+            dragon = false
+        }
     })
 end
 
