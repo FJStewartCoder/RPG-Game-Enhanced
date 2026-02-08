@@ -12,14 +12,37 @@ build_env = {
 
 village = function ()
     build_node("Path", 0, 0, 1, {}, "")
-    build_node("Shop", 1, 0, 1, {}, "fbnprud")  -- only allow entrance left
+    build_node(
+        "Shop",
+        1, 0, 1,
+        {
+            name = "Items",
+            items = {
+                { name = "Health Potion", cost = 100 }
+            }
+        },
+        "fbnprud"
+    )  -- only allow entrance left
 
     build_node("Path", -1, 0, 0, {}, "")
     build_node("Start", 0, 0, 0, {}, "")
-    build_node("Shop", 1, 0, 0, {}, "fbnprud")  -- only allow entrance left
+    build_node(
+        "Shop",
+        1, 0, 0,
+        {
+            name = "Weapons",
+            items = {
+                { name = "Sword", cost = 100 },
+                { name = "Shield", cost = 75 },
+                { name = "Rock", cost = 0}
+            }
+        },
+        "fbnprud"
+    )  -- only allow entrance left
 
     build_node(
-        "House", -1, 0, -1,
+        "House",
+        -1, 0, -1,
         {
             name = "Bob"
         },
@@ -50,7 +73,11 @@ function build()
 end
 
 function extend()
-    extend_player({health = 100})
+    extend_player({
+        health = 100,
+        money = 0,
+        inventory = {}
+    })
 end
 
 function environment()
