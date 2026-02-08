@@ -34,7 +34,7 @@ village = function ()
             items = {
                 { name = "Sword", cost = 100 },
                 { name = "Shield", cost = 75 },
-                { name = "Rock", cost = 0}
+                { name = "Rock", cost = 0 }
             }
         },
         "fbnprud"
