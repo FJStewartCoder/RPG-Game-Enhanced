@@ -15,7 +15,7 @@ inject_core.o: src/inject/inject_core.cpp
 INJECT = inject_api.o inject_build.o inject_core.o
 
 menus.o: src/menus/menus.cpp
-	${CPPC} $^ -Iinclude/menus -c -o $@
+	${CPPC} $^ -Iinclude/menus -Iinclude -c -o $@
 
 save.o: src/save.cpp
 	${CPPC} $^ -Iinclude -c -o $@
@@ -38,7 +38,7 @@ nodes.o: src/nodes.cpp
 all: src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o save.o ${INJECT}
 	${CPPC} $^ -Iinclude -Llib -llua54 -lm -g
 
-# make all but with the DEF macro defined
+# make all but with the DEV macro defined
 dev: src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o save.o ${INJECT}
 	${CPPC} $^ -Iinclude -Llib -llua54 -lm -g -DDEV
 

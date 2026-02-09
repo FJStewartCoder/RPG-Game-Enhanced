@@ -5,6 +5,9 @@
 
 // for fast lookups in alias
 #include <unordered_set>
+#include <cmath>
+
+#include "input.hpp"
 
 
 // GLOBAL CONSTANTS -------------------------------------------------------------------
@@ -17,23 +20,6 @@ const std::string ERROR_GENERAL = "Please try again";
 
 
 // UTILITIES --------------------------------------------------------------------------
-
-
-std::string ReadStdin() {
-    std::string newStr;
-
-    // currently read character
-    char c;
-    
-    // read while character is not '\n' ( user pressed enter )
-    while ( (c = getchar()) != '\n' ) {
-        // add the read character to the string
-        newStr += c;
-    }
-
-    // return the string
-    return newStr;
-}
 
 std::string ToLower(std::string str) {
     std::string res;
@@ -69,28 +55,75 @@ std::string ToUpper(std::string str) {
 
 // MENU ITEMS -------------------------------------------------------------------------
 
-
-MenuItem::MenuItem(std::string name, bool isDefault) {
+MenuItem::MenuItem(
+    std::string name,
+    std::string description,
+    bool isDefault 
+) {
+    // initialise all of the variables
     this->name = name;
+    this->description = description;
     this->isDefault = isDefault;
 }
 
-std::string MenuItem::GetAliasedName() {
-    if ( isDefault ) {
-        return "(" + ToUpper( alias ) + ")" + ToLower( name.substr(alias.size()) );
+std::ostream &operator<<(std::ostream &os, const MenuItem &item) {
+    // if default, write as such (DE)fault
+    if ( item.isDefault ) {
+        os << "(" + ToUpper( item.alias ) + ")" + ToLower( item.name.substr(item.alias.size()) );
     }
-
-    return "(" + ToLower( alias ) + ")" + ToLower( name.substr(alias.size()) );
+    // else, write as such (de)fault
+    else {
+        os << "(" + ToLower( item.alias ) + ")" + ToLower( item.name.substr(item.alias.size()) );
+    }
     
+    return os;
 }
 
 
 // MENUS ------------------------------------------------------------------------------
 
 
-Menu::Menu(std::string name, std::string description) {
+Menu::Menu(
+    std::string name,
+    std::string description,
+    std::string message
+) {
+    // initialise the menu
     this->name = name;
     this->description = description;
+    this->message = message;
+}
+
+void Menu::OutputHeading() {
+    using namespace std;
+
+    // write the name if it exists else write a placeholder
+    const bool hasName = !name.empty();
+    if ( hasName ) {
+        cout << "-- " << name << " --" << endl;
+    }
+    else {
+        cout << "-- UNKNOWN MENU NAME --" << endl;
+    }
+
+    // optionally output the description
+    const bool hasDesc = !description.empty();
+    if ( hasDesc ) {
+        cout << description << endl;
+    }
+}
+
+void Menu::OutputMessage() {
+    using namespace std;
+
+    const bool hasMessage = !message.empty();
+    if ( hasMessage ) {
+        cout << message << ": ";
+    }
+    // show a default option
+    else {
+        cout << "Select an option: ";
+    }
 }
 
 bool Menu::HasDefault() {
@@ -106,14 +139,15 @@ MenuItem *Menu::GetDefault() {
     return &items[defaultIndex];
 }
 
-void Menu::AddItem(std::string name, bool isDefault) {
+void Menu::AddItem(MenuItem newItem) {
     // if the current item is default, perform default checks
-    if ( isDefault ) {
+    if ( newItem.isDefault ) {
         // if the menu already has a default, set isDefault to false
         // because we can't have a new default
         if ( HasDefault() ) {
-            isDefault = false;
+            newItem.isDefault = false;
         }
+
         // if the menu doesn't already have a default, set the new default index
         // set it to the size of the items list because the size is last idx + 1 or next index
         else {
@@ -121,33 +155,48 @@ void Menu::AddItem(std::string name, bool isDefault) {
         }
     }
     
-    // create a new items and add to the items list
-    MenuItem newItem(name, isDefault);
+    // add the new item to the list
     items.push_back(newItem);
 }
 
 std::string Menu::ShowStandard() {
     using namespace std;
 
-    cout << "-- " << name << " --" << endl;
+    OutputHeading();
 
     const int numMenuItems = items.size();
 
-    // print each option with format "n - name"
+    // print each option with formato:
+    // n - name
+    //     description
+
     for ( int i = 0; i < numMenuItems; i++ ) {
-        cout << i + 1 << " - " << items.at(i).name << endl;
+        const MenuItem &item = items[i];
+
+        // output the item's name
+        cout << i + 1 << " - " << item.name << endl;
+
+        const bool hasItemDesc = !item.description.empty();
+        if ( hasItemDesc ) {
+            // log10 of 10 = 1 because 10^1 = 10
+            // log10 of 100 = 2 because 10^2 = 100
+            // this tells us how many digits a number has - 1
+            // use this to create a number of spaces
+            int numSpacesForNumber = log10( i ) + 1;
+
+            // used to pad the description
+            // 3 spaces for " - "
+            // n spaces for the length of the number
+            std::string spacing( 3 + numSpacesForNumber, ' ' );
+
+            cout << spacing << item.description << endl;
+        } 
     }
 
-    // get the message that is shown as the input field
-    string message = description + ": ";
+    // create a single blank line for nicer formatting
+    cout << endl;
 
-    // if there is none, show a default option
-    if ( description.empty() ) {
-        message = "Select an option: ";
-    }
-
-    // show the input field
-    cout << message;
+    OutputMessage();
 
     // the chosen value by the user
     int intChoice;
@@ -229,14 +278,8 @@ std::string Menu::ShowAlt() {
     // create and set all of the aliases
     SetAliases();
 
-    string message = description + ": ";
-
-    if ( description.empty() ) {
-        message = "Select an option: ";
-    }
-
-    // begin printing the message
-    cout << message;
+    // show the menu's message
+    OutputMessage();
 
     const int numItems = items.size();
 
@@ -247,11 +290,11 @@ std::string Menu::ShowAlt() {
 
     // print out all of the menu items
     for ( int i = 0; i < numItems - 1; i++ ) {
-        cout << items[i].GetAliasedName() << ", ";
+        cout << items[i] << ", ";
     }
 
     // print the last item with different formatting
-    cout << items.back().GetAliasedName() << ": ";
+    cout << items.back() << ": ";
 
     std::string chosenString;
     bool selectionMade = false;

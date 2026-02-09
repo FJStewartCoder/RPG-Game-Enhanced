@@ -804,19 +804,53 @@ sol::optional<sol::table> get_node_data(sol::environment &core_env, std::string 
 }
 
 node_directions get_player_input(node_t *node) {
-    Menu menu("", "Select a direction");
+    Menu menu("", "", "Select a direction");
 
     // get each option
-    if ( node->left != nullptr ) { menu.AddItem("left"); }
-    if ( node->right != nullptr ) { menu.AddItem("right"); }
-    if ( node->up != nullptr ) { menu.AddItem("up"); }
-    if ( node->down != nullptr ) { menu.AddItem("down"); }
-    if ( node->forward != nullptr ) { menu.AddItem("forward"); }
-    if ( node->back != nullptr ) { menu.AddItem("back"); }
-    if ( node->next != nullptr ) { menu.AddItem("next"); }
-    if ( node->previous != nullptr ) { menu.AddItem("previous"); }
+    if ( node->left != nullptr ) {
+        menu.AddItem(
+            MenuItem("left")
+        );
+    }
+    if ( node->right != nullptr ) {
+        menu.AddItem(
+            MenuItem("right")
+        );
+    }
+    if ( node->up != nullptr ) {
+        menu.AddItem(
+            MenuItem("up")
+        );
+    }
+    if ( node->down != nullptr ) {
+        menu.AddItem(
+            MenuItem("down")
+        );
+    }
+    if ( node->forward != nullptr ) {
+        menu.AddItem(
+            MenuItem("forward")
+        );
+    }
+    if ( node->back != nullptr ) {
+        menu.AddItem(
+            MenuItem("back")
+        );
+    }
+    if ( node->next != nullptr ) {
+        menu.AddItem(
+            MenuItem("next")
+        );
+    }
+    if ( node->previous != nullptr ) {
+        menu.AddItem(
+            MenuItem("previous")
+        );
+    }
 
-    menu.AddItem("quit");
+    menu.AddItem(
+        MenuItem("quit")
+    );
     
     std::string input = menu.ShowAlt();
 
@@ -1123,7 +1157,9 @@ void load_campaign() {
             continue;
         }
 
-        savefile_menu.AddItem(file.path().filename());
+        savefile_menu.AddItem(
+            MenuItem(file.path().filename())
+        );
 
         fclose(fp);
     }
@@ -1162,7 +1198,9 @@ void test_campaign() {
     }
 
     for ( const auto &item : campaigns ) {
-        menu.AddItem(item.first);
+        menu.AddItem(
+            MenuItem(item.first)
+        );
     }
 
     std::string campaign_choice = menu.ShowStandard();
@@ -1186,14 +1224,22 @@ void test_campaign() {
 int main_menu() {
     Menu menu("Main Menu", "Welcome to the game!");
 
-    menu.AddItem("New Campaign");
-    menu.AddItem("Load Campaign");
+    menu.AddItem(
+        MenuItem("New Campaign")
+    );
+    menu.AddItem(
+        MenuItem("Load Campaign")
+    );
 
 #ifdef DEV
-    menu.AddItem("Test Campaign");
+    menu.AddItem(
+        MenuItem("Test Campaign")
+    );
 #endif
 
-    menu.AddItem("Quit");
+    menu.AddItem(
+        MenuItem("Quit")
+    );
 
     while ( true ) {
 

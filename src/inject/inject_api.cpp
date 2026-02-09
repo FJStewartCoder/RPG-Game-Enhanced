@@ -8,7 +8,9 @@ std::string menu_wrapper(std::string name, std::string description, sol::table o
     Menu menu(name, description);
 
     for ( const auto &item : options ) {
-        menu.AddItem( item.second.as<std::string>() );
+        menu.AddItem( 
+            MenuItem( item.second.as<std::string>() )
+        );
     }
 
     if ( menu_type == STANDARD ) {
