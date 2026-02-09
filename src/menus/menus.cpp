@@ -172,9 +172,10 @@ std::string Menu::ShowStandard() {
 
     for ( int i = 0; i < numMenuItems; i++ ) {
         const MenuItem &item = items[i];
+        const int itemNum = i + 1;
 
         // output the item's name
-        cout << i + 1 << " - " << item.name << endl;
+        cout << itemNum << " - " << item.name << endl;
 
         const bool hasItemDesc = !item.description.empty();
         if ( hasItemDesc ) {
@@ -182,7 +183,7 @@ std::string Menu::ShowStandard() {
             // log10 of 100 = 2 because 10^2 = 100
             // this tells us how many digits a number has - 1
             // use this to create a number of spaces
-            int numSpacesForNumber = log10( i ) + 1;
+            int numSpacesForNumber = log10( itemNum ) + 1;
 
             // used to pad the description
             // 3 spaces for " - "

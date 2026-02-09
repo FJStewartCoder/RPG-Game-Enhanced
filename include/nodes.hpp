@@ -21,6 +21,8 @@ coordinates_t add_coords(coordinates_t a, coordinates_t b);
 
 int init_coords(coordinates_t *coords);
 
+std::string coords_to_str( coordinates_t *coords );
+
 
 typedef struct node_t {
     // will be used to link to the data

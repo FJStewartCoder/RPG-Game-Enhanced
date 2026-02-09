@@ -809,42 +809,66 @@ node_directions get_player_input(node_t *node) {
     // get each option
     if ( node->left != nullptr ) {
         menu.AddItem(
-            MenuItem("left")
+            MenuItem(
+                "left",
+                "Type: " + node->left->node_type + ", Coords: " + coords_to_str(&node->left->coords)
+            )
         );
     }
     if ( node->right != nullptr ) {
         menu.AddItem(
-            MenuItem("right")
+            MenuItem(
+                "right",
+                "Type: " + node->right->node_type + ", Coords: " + coords_to_str(&node->right->coords)
+            )
         );
     }
     if ( node->up != nullptr ) {
         menu.AddItem(
-            MenuItem("up")
+            MenuItem(
+                "up",
+                "Type: " + node->up->node_type + ", Coords: " + coords_to_str(&node->up->coords)
+            )
         );
     }
     if ( node->down != nullptr ) {
         menu.AddItem(
-            MenuItem("down")
+            MenuItem(
+                "down",
+                "Type: " + node->down->node_type + ", Coords: " + coords_to_str(&node->down->coords)
+            )
         );
     }
     if ( node->forward != nullptr ) {
         menu.AddItem(
-            MenuItem("forward")
+            MenuItem(
+                "forward",
+                "Type: " + node->forward->node_type + ", Coords: " + coords_to_str(&node->forward->coords)
+            )
         );
     }
     if ( node->back != nullptr ) {
         menu.AddItem(
-            MenuItem("back")
+            MenuItem(
+                "back",
+                "Type: " + node->back->node_type + ", Coords: " + coords_to_str(&node->back->coords)
+            )
         );
     }
     if ( node->next != nullptr ) {
         menu.AddItem(
-            MenuItem("next")
+            MenuItem(
+                "next",
+                "Type: " + node->next->node_type + ", Coords: " + coords_to_str(&node->next->coords)
+            )
         );
     }
     if ( node->previous != nullptr ) {
         menu.AddItem(
-            MenuItem("previous")
+            MenuItem(
+                "previous",
+                "Type: " + node->previous->node_type + ", Coords: " + coords_to_str(&node->previous->coords)
+            )
         );
     }
 
@@ -852,7 +876,7 @@ node_directions get_player_input(node_t *node) {
         MenuItem("quit")
     );
     
-    std::string input = menu.ShowAlt();
+    std::string input = menu.ShowStandard();
 
     log_trace("Menu returned: %s.", input.c_str());
 
@@ -1132,6 +1156,7 @@ void load_campaign() {
         savefiles = std::filesystem::directory_iterator(engine::directories::SAVEFILES);
     }
     catch ( std::filesystem::filesystem_error &e ) {
+        log_error("There is no \"%s\" directory", engine::directories::SAVEFILES);
         return;
     }
 
@@ -1158,7 +1183,10 @@ void load_campaign() {
         }
 
         savefile_menu.AddItem(
-            MenuItem(file.path().filename())
+            MenuItem(
+                file.path().filename(),
+                "Campaign: " + meta.campaign_name
+            )
         );
 
         fclose(fp);
@@ -1225,20 +1253,31 @@ int main_menu() {
     Menu menu("Main Menu", "Welcome to the game!");
 
     menu.AddItem(
-        MenuItem("New Campaign")
+        MenuItem(
+            "New Campaign",
+            "Create a new campaign and save to a save file"
+        )
     );
     menu.AddItem(
-        MenuItem("Load Campaign")
+        MenuItem(
+            "Load Campaign",
+            "Load an existing campaign from a save file"
+        )
     );
 
 #ifdef DEV
     menu.AddItem(
-        MenuItem("Test Campaign")
+        MenuItem(
+            "Test Campaign",
+            "Test a campaign without a save file"
+        )
     );
 #endif
 
     menu.AddItem(
-        MenuItem("Quit")
+        MenuItem(
+            "Quit"
+        )
     );
 
     while ( true ) {

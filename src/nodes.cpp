@@ -1,5 +1,9 @@
 #include "nodes.hpp"
 
+extern "C" {
+    #include "log/log.h"
+}
+
 
 coordinates_t add_coords(coordinates_t a, coordinates_t b) {
     return {
@@ -15,6 +19,10 @@ int init_coords(coordinates_t *coords) {
     coords->z = 0;
 
     return 0;
+}
+
+std::string coords_to_str( coordinates_t *coords ) {
+    return "(" + std::to_string(coords->x) + ", " + std::to_string(coords->y) + ", " + std::to_string(coords->x) + ")";
 }
 
 void node_init(node_t *node) {
