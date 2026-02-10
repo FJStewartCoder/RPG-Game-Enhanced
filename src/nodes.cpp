@@ -22,7 +22,7 @@ int init_coords(coordinates_t *coords) {
 }
 
 std::string coords_to_str( coordinates_t *coords ) {
-    return "(" + std::to_string(coords->x) + ", " + std::to_string(coords->y) + ", " + std::to_string(coords->x) + ")";
+    return "(" + std::to_string(coords->x) + ", " + std::to_string(coords->y) + ", " + std::to_string(coords->z) + ")";
 }
 
 void node_init(node_t *node) {

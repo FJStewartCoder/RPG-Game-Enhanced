@@ -10,7 +10,10 @@ function land_shop(unique, node, player)
     item_list = {}
 
     for i=1, #unique.items do
-        item_list[i] = unique.items[i].name
+        item_list[i] = {
+            unique.items[i].name,
+            "Cost: " ..unique.items[i].cost
+        }
     end 
     
     item_list[#item_list+1] = "Quit"
