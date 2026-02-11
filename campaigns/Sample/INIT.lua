@@ -21,7 +21,7 @@ village = function ()
                 { name = "Health Potion", cost = 100 }
             }
         },
-        "fbnprud"
+        "!l"
     )  -- only allow entrance left
 
     build_node("Path", -1, 0, 0, {}, "")
@@ -37,7 +37,7 @@ village = function ()
                 { name = "Rock", cost = 0 }
             }
         },
-        "fbnprud"
+        "!l"
     )  -- only allow entrance left
 
     build_node(
@@ -46,10 +46,10 @@ village = function ()
         {
             name = "Bob"
         },
-        "udlrnpb"
+        "!f"
     )  -- only allow entrace from the front
 
-    build_node("House", 0, 0, -1, {}, "udlrnpb")  -- only allow entrace from the front
+    build_node("House", 0, 0, -1, {}, "!f")  -- only allow entrace from the front
 end,
 
 --  d

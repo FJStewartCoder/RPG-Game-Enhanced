@@ -116,7 +116,7 @@ void NodeManager::build_node(
     new_node->unique_data = unique_data;
 
     new_node->coords = coords;
-    new_node->blocked_directions = blocked_directions;
+    new_node->blocked_directions = str_to_blocked_nodes( blocked_directions );
 
     // end
     return;
@@ -263,7 +263,10 @@ int NodeManager::make_connection(
 
     switch ( link ) {
         case NODE_LEFT:
-            connection_blocked = str_contains(node1_ptr->blocked_directions, 'l') || str_contains(node2_ptr->blocked_directions, 'r');            
+            connection_blocked = (
+                is_dir_blocked(node1_ptr->blocked_directions, NODE_LEFT) ||
+                is_dir_blocked(node2_ptr->blocked_directions, NODE_RIGHT)
+            );
 
             next = &node1_ptr->left;
             cur = &node2_ptr->right;
@@ -271,7 +274,10 @@ int NodeManager::make_connection(
             break;
         
         case NODE_RIGHT:
-            connection_blocked = str_contains(node1_ptr->blocked_directions, 'r') || str_contains(node2_ptr->blocked_directions, 'l');
+            connection_blocked = (
+                is_dir_blocked(node1_ptr->blocked_directions, NODE_RIGHT) ||
+                is_dir_blocked(node2_ptr->blocked_directions, NODE_LEFT)
+            );
 
             next = &node1_ptr->right;
             cur = &node2_ptr->left;
@@ -279,7 +285,10 @@ int NodeManager::make_connection(
             break;
         
         case NODE_FORWARD:
-            connection_blocked = str_contains(node1_ptr->blocked_directions, 'f') || str_contains(node2_ptr->blocked_directions, 'b');        
+            connection_blocked = (
+                is_dir_blocked(node1_ptr->blocked_directions, NODE_FORWARD) ||
+                is_dir_blocked(node2_ptr->blocked_directions, NODE_BACK)
+            );
 
             next = &node1_ptr->forward;
             cur = &node2_ptr->back;
@@ -287,7 +296,10 @@ int NodeManager::make_connection(
             break;
         
         case NODE_BACK:
-            connection_blocked = str_contains(node1_ptr->blocked_directions, 'b') || str_contains(node2_ptr->blocked_directions, 'f');
+            connection_blocked = (
+                is_dir_blocked(node1_ptr->blocked_directions, NODE_BACK) ||
+                is_dir_blocked(node2_ptr->blocked_directions, NODE_FORWARD)
+            );
 
             next = &node1_ptr->back;
             cur = &node2_ptr->forward;
@@ -295,7 +307,10 @@ int NodeManager::make_connection(
             break;
 
         case NODE_UP:
-            connection_blocked = str_contains(node1_ptr->blocked_directions, 'u') || str_contains(node2_ptr->blocked_directions, 'd');           
+            connection_blocked = (
+                is_dir_blocked(node1_ptr->blocked_directions, NODE_UP) ||
+                is_dir_blocked(node2_ptr->blocked_directions, NODE_DOWN)
+            );
 
             next = &node1_ptr->up;
             cur = &node2_ptr->down;
@@ -303,7 +318,10 @@ int NodeManager::make_connection(
             break;
         
         case NODE_DOWN:
-            connection_blocked = str_contains(node1_ptr->blocked_directions, 'd') || str_contains(node2_ptr->blocked_directions, 'u');         
+            connection_blocked = (
+                is_dir_blocked(node1_ptr->blocked_directions, NODE_DOWN) ||
+                is_dir_blocked(node2_ptr->blocked_directions, NODE_UP)
+            );
 
             next = &node1_ptr->down;
             cur = &node2_ptr->up;
@@ -311,7 +329,10 @@ int NodeManager::make_connection(
             break;
         
         case NODE_PREV:
-            connection_blocked = str_contains(node1_ptr->blocked_directions, 'p') || str_contains(node2_ptr->blocked_directions, 'n');         
+            connection_blocked = (
+                is_dir_blocked(node1_ptr->blocked_directions, NODE_PREV) ||
+                is_dir_blocked(node2_ptr->blocked_directions, NODE_NEXT)
+            );
 
             next = &node1_ptr->previous;
             cur = &node2_ptr->next;
@@ -319,7 +340,10 @@ int NodeManager::make_connection(
             break;
 
         case NODE_NEXT:
-            connection_blocked = str_contains(node1_ptr->blocked_directions, 'n') || str_contains(node2_ptr->blocked_directions, 'p');          
+            connection_blocked = (
+                is_dir_blocked(node1_ptr->blocked_directions, NODE_NEXT) ||
+                is_dir_blocked(node2_ptr->blocked_directions, NODE_PREV)
+            );
 
             next = &node1_ptr->next;
             cur = &node2_ptr->previous;

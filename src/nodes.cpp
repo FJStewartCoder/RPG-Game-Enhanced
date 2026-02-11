@@ -31,7 +31,7 @@ void node_init(node_t *node) {
     // set id to a generic value
     init_coords(&node->coords);
 
-    node->blocked_directions = "";
+    node->blocked_directions = 0;
 
     // set all directions to null
     node->left = nullptr;
@@ -124,4 +124,117 @@ node_errors traverse_node(node_t *(&node), node_directions direction) {
     }
 
     return res;
+}
+
+
+// BASIC BLOCKING (use char in brackets)
+// (l)eft, (r)ight, (u)p, (d)own, (f)orward, (b)ack, (n)ext and (p)revious
+
+// UNBLOCKING
+// use ! as the FIRST character to invert the operation i.e (l)eft will only allow left
+
+// SPECIAL
+// x, y, z and (t)eleport are for corresponding directions i.e x = lr, y = fb, z = ud and t = np
+
+int set_blocked_state( int &dest, node_directions dir, bool blocking_mode ) {
+    if ( blocking_mode ) {
+        // adding left with or
+        dest |= dir;
+    }
+    else {
+        // to remove, use and 0 with all 1s
+        // i.e not the value
+        dest &= ~dir;
+    }
+
+    return 0;
+}
+
+int str_to_blocked_nodes( std::string str ) {
+    // the buffer to store the current character in
+    char c;
+
+    int res = 0;
+    bool blocking_mode = true;
+
+    for ( int i = 0; i < str.length(); i++ ) {
+        // set the character buffer to the current character
+        c = str[i];
+
+        // if the first character is !
+        // set the res
+        if ( i == 0 && c == '!' ) {
+            // set res to all 1s
+            res = ~0;
+
+            // set the mode to unblocking mode
+            blocking_mode = false;
+
+            // don't need to continue this loop
+            continue;
+        }
+
+        switch ( c ) {
+            case 'l':
+                set_blocked_state( res, NODE_LEFT, blocking_mode );
+                break;
+
+            case 'r':
+                set_blocked_state( res, NODE_RIGHT, blocking_mode );
+                break;
+
+            case 'u':
+                set_blocked_state( res, NODE_UP, blocking_mode );
+                break;                
+
+            case 'd':
+                set_blocked_state( res, NODE_DOWN, blocking_mode );
+                break; 
+
+            case 'f':
+                set_blocked_state( res, NODE_FORWARD, blocking_mode );
+                break; 
+
+            case 'b':
+                set_blocked_state( res, NODE_BACK, blocking_mode );
+                break; 
+
+            case 'n':
+                set_blocked_state( res, NODE_NEXT, blocking_mode );
+                break; 
+                
+            case 'p':
+                set_blocked_state( res, NODE_PREV, blocking_mode );
+                break; 
+                
+            case 'x':
+                set_blocked_state( res, NODE_LEFT, blocking_mode );
+                set_blocked_state( res, NODE_RIGHT, blocking_mode );
+                break; 
+
+            case 'y':
+                set_blocked_state( res, NODE_FORWARD, blocking_mode );
+                set_blocked_state( res, NODE_BACK, blocking_mode );
+                break;
+
+            case 'z':
+                set_blocked_state( res, NODE_UP, blocking_mode );
+                set_blocked_state( res, NODE_DOWN, blocking_mode );
+                break; 
+
+            case 't':
+                set_blocked_state( res, NODE_NEXT, blocking_mode );
+                set_blocked_state( res, NODE_PREV, blocking_mode );
+                break; 
+
+            default:
+                break;
+        }
+    }
+
+    return res;
+}
+
+bool is_dir_blocked( int blocked_str, node_directions dir ) {
+    return ( blocked_str & dir ) > 0;
 }

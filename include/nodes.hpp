@@ -34,7 +34,7 @@ typedef struct node_t {
     // table of data that is unique to this node
     sol::optional<sol::table> unique_data;
 
-    std::string blocked_directions;
+    int blocked_directions;
 
     // pointers to other nodes for traversal
     struct node_t *left;
@@ -49,21 +49,23 @@ typedef struct node_t {
     struct node_t *previous;
 } node_t;
 
+
 // enum of directions you can go
+// ENUM HAS INT VALUES AS SUCH TO BE ABLE TO CREATE THE BLOCKED DIRECTIONS USING INT
 typedef enum {
-    NODE_LEFT,
-    NODE_RIGHT,
-    NODE_FORWARD,
-    NODE_BACK,
-    NODE_UP,
-    NODE_DOWN,
-    NODE_NEXT,
-    NODE_PREV,
+    NODE_LEFT = 1 << 0,
+    NODE_RIGHT = 1 << 1,
+    NODE_FORWARD = 1 << 2,
+    NODE_BACK = 1 << 3,
+    NODE_UP = 1 << 4,
+    NODE_DOWN = 1 << 5,
+    NODE_NEXT = 1 << 6,
+    NODE_PREV = 1 << 7,
 
     // use as a default
-    NODE_NONE,
+    NODE_NONE = 1 << 8,
     // quit signal
-    NODE_QUIT
+    NODE_QUIT = 1 << 9
 } node_directions;
 
 typedef enum {
@@ -86,5 +88,17 @@ node_errors traverse_node(
     node_t *(&node),  // to change where the pointer is pointing, we need reference to ptr
     node_directions direction
 );
+
+// BASIC BLOCKING (use char in brackets)
+// (l)eft, (r)ight, (u)p, (d)own, (f)orward, (b)ack, (n)ext and (p)revious
+
+// UNBLOCKING
+// use ! as the FIRST character to invert the operation i.e (l)eft will only allow left
+
+// SPECIAL
+// x, y, z and (t)eleport are for corresponding directions i.e x = lr, y = fb, z = ud and t = np
+int str_to_blocked_nodes( std::string str );
+
+bool is_dir_blocked( int blocked_str, node_directions dir );
 
 #endif // NODES_H
