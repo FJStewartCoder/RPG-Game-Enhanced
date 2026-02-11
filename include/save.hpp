@@ -10,6 +10,8 @@ namespace Write {
 
     int Int(FILE *fp, int number);
 
+    int Float(FILE *fp, float number);
+
     int Boolean(FILE *fp, bool boolean);
 
     int Nil(FILE *fp);
@@ -31,6 +33,7 @@ namespace Read {
         std::vector<std::string> vars;
         std::vector<std::string> strs;
         std::vector<int> ints;
+        std::vector<float> floats;
         std::vector<bool> bools;
         std::vector<char> chars;
         std::vector<struct TableReturn> tables;
@@ -50,6 +53,8 @@ namespace Read {
     int String(FILE *fp, std::string &dest);
 
     int Int(FILE *fp, int &dest);
+
+    int Float(FILE *fp, float &dest);
 
     int Boolean(FILE *fp, bool &dest);
 

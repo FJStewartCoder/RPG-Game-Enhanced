@@ -85,6 +85,7 @@ namespace engine {
         const char NIL = 'n';
         const char STRING = 's';
         const char INT = 'i';
+        const char FLOAT = 'f';
         const char BOOLEAN = 'b';
         const char TABLE = 't';
     };

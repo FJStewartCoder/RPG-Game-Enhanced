@@ -56,6 +56,18 @@ int Write::Int(FILE *fp, int number) {
     return 0;
 }
 
+int Write::Float(FILE *fp, float number) {
+    // write the type character
+    fputc(engine::save::FLOAT, fp);
+
+    log_debug("Writing float %lf to file", number);
+
+    // write 1 piece of data of size double with address number to the file fp
+    fwrite(&number, sizeof(float), 1, fp);
+
+    return 0;
+}
+
 int Write::Boolean(FILE *fp, bool boolean) {
     // write the type character
     fputc(engine::save::BOOLEAN, fp);
@@ -109,7 +121,12 @@ int Write::Table(FILE *fp, sol::table table) {
                 break;
             
             case sol::type::number:
-                Write::Int(fp, data.as<int>());
+                if ( data.is<int>() ) {
+                    Write::Int(fp, data.as<int>());
+                }
+                else {
+                    Write::Float(fp, data.as<float>());
+                }
                 break;
             
             case sol::type::string:
@@ -247,6 +264,20 @@ int Read::Int(FILE *fp, int &dest) {
     return 0;
 }
 
+int Read::Float(FILE *fp, float &dest) {
+    float data;
+
+    fread(&data, sizeof(float), 1, fp);
+    
+    if ( feof(fp) || ferror(fp) ) { return 1; }
+
+    log_debug("Read float %lf", data);
+
+    dest = data;
+
+    return 0;
+}
+
 int Read::Boolean(FILE *fp, bool &dest) {
     char c = fgetc(fp);
 
@@ -339,6 +370,16 @@ struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
                 log_debug("Setting table data at \"%s\" to %d", var.c_str(), res.ints.back());
                 
                 dest[var] = res.ints.back();
+                break;
+            
+            case engine::save::FLOAT:
+                // add the value to the heap
+                res.floats.push_back(0);
+                error = Read::Float(fp, res.floats.back());
+
+                log_debug("Setting table data at \"%s\" to %lf", var.c_str(), res.floats.back());
+                
+                dest[var] = res.floats.back();
                 break;
             
             case engine::save::BOOLEAN:
