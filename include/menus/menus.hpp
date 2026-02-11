@@ -19,6 +19,10 @@ class MenuItem {
         // the item description
         std::string description;
 
+        // the index in the menu that it is
+        // could be useful for hashing a result
+        int idx;
+
         // a shortened version of the name to make it easier to select menu items
         std::string alias;
         
@@ -37,7 +41,7 @@ class MenuItem {
 
 // MENU DESIGNS
 
-// BASIC
+// LIST
 // -- MENU NAME --
 // MENU DESCRIPTION
 // 1 - ITEM
@@ -48,10 +52,10 @@ class MenuItem {
 //
 // MENU MESSAGE >>>
 
-// ALTERNATIVE
+// ALIAS
 // MENU MESSAGE: (I)TEM 1, (IT)EM 2, (ITE)M 3:
 
-// ALTERNATIVE VERTICAL MODE
+// ALIAS LIST
 // -- MENU NAME --
 // MENU DESCRIPTION
 // (I)TEM 1 - ITEM DESCRIPTION
@@ -86,6 +90,12 @@ class Menu {
         void OutputHeading();
         void OutputMessage();
 
+        // gets an input for a list style menu
+        MenuItem *ListInput();
+
+        // gets an input for an alias menu
+        MenuItem *AliasInput();
+
     public:
         Menu(
             std::string name = "",
@@ -100,8 +110,9 @@ class Menu {
         MenuItem *GetDefault();
 
         // show functions
-        std::string ShowStandard();
-        std::string ShowAlt();
+        MenuItem *ShowList();
+        MenuItem *ShowAlias();
+        MenuItem *ShowAliasList();
 };
 
 

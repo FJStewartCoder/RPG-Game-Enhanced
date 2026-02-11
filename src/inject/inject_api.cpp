@@ -53,12 +53,16 @@ std::string menu_wrapper(std::string name, std::string message, sol::table optio
             log_warn("Passed variable to table item that is not a valid type");
         }
     }
+    
+    MenuItem *menu_res = NULL;
 
     if ( menu_type == STANDARD ) {
-        return menu.ShowStandard();
+        menu_res = menu.ShowList();
+        return menu_res->name;
     }
     else {
-        return menu.ShowAlt();
+        menu_res = menu.ShowAlias();
+        return menu_res->name;
     }    
 }
 

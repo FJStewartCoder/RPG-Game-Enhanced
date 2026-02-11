@@ -878,7 +878,8 @@ node_directions get_player_input(node_t *node) {
         MenuItem("quit")
     );
     
-    std::string input = menu.ShowStandard();
+    auto menu_res = menu.ShowAliasList();
+    const std::string input = menu_res->name;
 
     log_trace("Menu returned: %s.", input.c_str());
 
@@ -1128,7 +1129,9 @@ void new_campaign() {
         menu.AddItem(item.first);
     }
 
-    std::string campaign_choice = menu.ShowStandard();
+    auto menu_res = menu.ShowList();
+    const std::string campaign_choice = menu_res->name;
+
     std::string filename = get_savefile_name();
 
     Campaign campaign;
@@ -1192,7 +1195,8 @@ void load_campaign() {
         fclose(fp);
     }
 
-    std::string campaign_choice = savefile_menu.ShowStandard();
+    auto menu_res = savefile_menu.ShowList();
+    const std::string campaign_choice = menu_res->name;
 
     Campaign campaign;
     campaign.SetSavefile( campaign_choice );
@@ -1231,7 +1235,8 @@ void test_campaign() {
         );
     }
 
-    std::string campaign_choice = menu.ShowStandard();
+    auto menu_res = menu.ShowList();
+    const std::string campaign_choice = menu_res->name;
 
     Campaign campaign;
     
@@ -1282,26 +1287,27 @@ int main_menu() {
 
     while ( true ) {
 
-        std::string res = menu.ShowStandard();
+        auto res = menu.ShowList();
+        const std::string choice = res->name;
 
         // log the option the user chose
-        log_trace("User selected %s.", res.c_str());
+        log_trace("User selected %s.", choice.c_str());
 
         // NEW CAMPAIGN
-        if ( res == "New Campaign" ) {
+        if ( choice == "New Campaign" ) {
             new_campaign();
         }
-        else if ( res == "Load Campaign" ) {
+        else if ( choice == "Load Campaign" ) {
             load_campaign();
         }
 
 #ifdef DEV
-        else if ( res == "Test Campaign" ) {
+        else if ( choice == "Test Campaign" ) {
             test_campaign();
         }
 #endif
 
-        else if ( res == "Quit" ){
+        else if ( choice == "Quit" ){
             break;
         }
         else {
