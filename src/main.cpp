@@ -33,6 +33,8 @@ extern "C" {
 
 #include "save.hpp"
 
+#include "input.hpp"
+
 
 #define MAX_FILE_SYSTEM_DEPTH 5
 
@@ -1093,10 +1095,8 @@ std::string get_savefile_name() {
     std::string filename;
 
     while ( true ) {
-        std::string user_input;
+        std::string user_input = ReadStdin();
 
-        std::cin >> user_input;
-        
         filename = user_input + ".txt";
         const bool file_exists = std::filesystem::exists( engine::directories::SAVEFILES + "/" + filename );
 
