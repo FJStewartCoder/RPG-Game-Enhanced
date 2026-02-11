@@ -142,7 +142,10 @@ int Write::Table(FILE *fp, sol::table table) {
                 break;
             
             default:
-                log_warn("The data type is not supported.");
+                log_warn("The data type \"%s\" (%d) is not supported.",
+                    sol::type_name(NULL, data.get_type()).c_str(),  // get the type name for the type (lua state is NULL)
+                    data.get_type()
+                );
                 Write::Nil(fp);
                 break;
         }

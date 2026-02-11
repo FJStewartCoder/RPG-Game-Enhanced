@@ -17,6 +17,9 @@ function extend()
     -- tests validation of overwriting properties
     extend_node({bob = "gdf"})
     extend_node({name = "Alternate Name"})
+    extend_player({f = function ()
+        
+    end})
 end
 
 function environment()
