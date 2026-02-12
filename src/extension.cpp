@@ -14,6 +14,8 @@ extern "C" {
 
 // function to ensure that there are no matching globals
 int test_new_state(sol::environment &load_env, sol::environment extension) {
+    log_trace("Called function \"%s( env, table )\"", __FUNCTION__);
+
     // iterate each global in the extension state. If there is a matching one in base, we throw an error
     for ( const auto &item : extension.pairs() ) {
         const std::string key = item.first.as<std::string>();
@@ -39,6 +41,11 @@ int test_new_state(sol::environment &load_env, sol::environment extension) {
 
 // function to build the extensions
 int load_file(sol::state &lua, std::string file_name) {
+    log_trace("Called function \"%s( state, %s )\"",
+        __FUNCTION__,
+        file_name.c_str()
+    );
+
     // create a new special state to verify the file before combining with the main program
     sol::environment test_env(lua, sol::create);
 
@@ -56,6 +63,11 @@ int load_file(sol::state &lua, std::string file_name) {
 
 // function to build the extensions
 int load_file(sol::state &lua, sol::environment &load_env, std::string file_name) {
+    log_trace("Called function \"%s( state, env, %s )\"",
+        __FUNCTION__,
+        file_name.c_str()
+    );
+
     // create a new special state to verify the file before combining with the main program
     sol::environment test_env(lua, sol::create);
 

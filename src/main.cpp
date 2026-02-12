@@ -63,6 +63,8 @@ typedef struct {
 } file_metadata;
 
 file_metadata read_file_metadata(FILE *fp) {
+    log_trace("Called function \"%s( FILE )\"", __FUNCTION__);
+
     file_metadata res = {
         "",
         0,
@@ -146,6 +148,8 @@ class Campaign {
 
         // deletes all of the init variables and data from the build environment
         void deleteInit() {
+            log_trace("Called function \"%s()\"", __FUNCTION__);
+
             const std::string initVars[5] = {
                 engine::func::extension::BUILD,
                 engine::func::extension::ENVIRONMENT,
@@ -163,6 +167,11 @@ class Campaign {
         }
 
         bool initExists(std::string campaignPath) {
+            log_trace("Called function \"%s( %s )\"",
+                __FUNCTION__,
+                campaignPath.c_str()
+            );
+
             const std::string initPath = campaignPath + "/" + engine::file::INIT;
             return std::filesystem::exists(initPath);
         }
@@ -175,6 +184,11 @@ class Campaign {
 
         // returns 0 for good or 1 for bad result
         int LoadInitSettings(std::string campaignPath) {
+            log_trace("Called function \"%s( %s )\"",
+                __FUNCTION__,
+                campaignPath.c_str()
+            );
+
             log_trace("Loading init settings");
 
             sol::state initFileState;
@@ -226,6 +240,11 @@ class Campaign {
         }
 
         int RunFunctionIfExists(sol::environment &env, std::string funcName) {
+            log_trace("Called function \"%s( env, %s )\"",
+                __FUNCTION__,
+                funcName.c_str()
+            );
+
             log_debug("Checking for function \"%s\"", funcName.c_str());
 
             // run process
@@ -260,6 +279,12 @@ class Campaign {
 
         // returns 0 for good or 1 for bad result
         int RunInit(std::string campaignPath, int ignore = 0) {
+            log_trace("Called function \"%s( %s, %b )\"",
+                __FUNCTION__,
+                campaignPath.c_str(),
+                ignore
+            );
+
             log_trace("Running init file");
 
             const std::string initPath = campaignPath + "/" + engine::file::INIT;
@@ -371,6 +396,12 @@ class Campaign {
 
         // returns 0 for good or 1 for bad result
         int LoadDirectory( std::string campaignPath, int initIgnore = 0 ) {
+            log_trace("Called function \"%s( %s, %d )\"",
+                __FUNCTION__,
+                campaignPath.c_str(),
+                initIgnore
+            );
+
             // ignore typename
             std::filesystem::__cxx11::directory_iterator campaignsDir;
 
@@ -486,6 +517,8 @@ class Campaign {
         // gets all of the campaign names and directories
         // returns a map of campaign names : directory location
         static std::unordered_map<std::string, std::string> GetCampaigns() {
+            log_trace("Called function \"%s()\"", __FUNCTION__);
+
             std::unordered_map<std::string, std::string> campaigns;
 
             // ignore typename
@@ -571,6 +604,11 @@ class Campaign {
         }
 
         int LoadCampaign(std::string campaignName) {
+            log_trace("Called function \"%s( %s )\"",
+                __FUNCTION__,
+                campaignName.c_str()
+            );
+
             log_trace("Getting campaigns");
             auto campaigns = GetCampaigns();
 
@@ -634,6 +672,11 @@ class Campaign {
         }
 
         int SetSavefile(std::string filename) {
+            log_trace("Called function \"%s( %s )\"",
+                __FUNCTION__,
+                filename.c_str()
+            );
+
             if ( filename == "" ) {
                 log_error("No filename");
                 return 1;
@@ -645,6 +688,8 @@ class Campaign {
         }
 
         int SaveToFile() {
+            log_trace("Called function \"%s()\"", __FUNCTION__);
+
             // recusively save the player data table
 
             if ( SAVEFILE == "" ) {
@@ -675,8 +720,9 @@ class Campaign {
             return 0;
         }
         
-        // TODO: add validation
         int LoadFromFile() {
+            log_trace("Called function \"%s()\"", __FUNCTION__);
+
             if ( SAVEFILE == "" ) { 
                 log_error("No save file selected");
                 return 1;
@@ -780,6 +826,11 @@ class Campaign {
 
 // could return none
 sol::optional<sol::table> get_node_data(sol::environment &core_env, std::string name) {
+    log_trace("Called function \"%s( env, env, %s )\"",
+        __FUNCTION__,
+        name.c_str()
+    );
+
     sol::table node_options = core_env[engine::node::AVAILABLE];
 
     // currently is empty until we find the table
@@ -806,6 +857,8 @@ sol::optional<sol::table> get_node_data(sol::environment &core_env, std::string 
 }
 
 node_directions get_player_input(node_t *node) {
+    log_trace("Called function \"%s( node )\"", __FUNCTION__);
+
     Menu menu("", "", "Select a direction");
 
     // get each option
@@ -899,6 +952,8 @@ node_directions get_player_input(node_t *node) {
 // makes some action if required by virtual event
 // else returns the same virtual event
 VirtualEvents handle_virtual_event(Campaign &campaign) {
+    log_trace("Called function \"%s( Campaign& )\"", __FUNCTION__);
+
     // create a constant copy
     const VirtualEvents ev = campaign.event;
 
@@ -920,6 +975,8 @@ VirtualEvents handle_virtual_event(Campaign &campaign) {
 
 // returns true if the position has been moved by the script else false
 bool handle_script_movement(Campaign &campaign, node_t *(&cur_node), sol::table &player_data) {
+    log_trace("Called function \"%s( Campaign&, node, table )\"", __FUNCTION__);
+
     // stores the current location of the player
     sol::table script_player_pos = player_data[engine::player::POSITION];
 
@@ -957,6 +1014,8 @@ bool handle_script_movement(Campaign &campaign, node_t *(&cur_node), sol::table 
 }
 
 void sync_player_position(node_t *cur_node, sol::table &player_data) {
+    log_trace("Called function \"%s( node, table )\"", __FUNCTION__);
+
     // stores the current location of the player
     sol::table script_player_pos = player_data[engine::player::POSITION];
 
@@ -967,6 +1026,8 @@ void sync_player_position(node_t *cur_node, sol::table &player_data) {
 }
 
 int gameloop(Campaign &campaign, node_t *start_node) {
+    log_trace("Called function \"%s( Campaign&, node )\"", __FUNCTION__);
+
     sol::environment &core_env = campaign.core_env;
 
     // reassign the name
@@ -1091,6 +1152,8 @@ int gameloop(Campaign &campaign, node_t *start_node) {
 }
 
 std::string get_savefile_name() {
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
     std::cout << "Enter your savefile name" << std::endl;
     
     std::string filename;
@@ -1113,6 +1176,8 @@ std::string get_savefile_name() {
 }
 
 void new_campaign() {
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
     Menu menu("Campaign Selection");
 
     auto campaigns = Campaign::GetCampaigns();
@@ -1153,13 +1218,15 @@ void new_campaign() {
 
 
 void load_campaign() {
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
     std::filesystem::__cxx11::directory_iterator savefiles;
 
     try {
         savefiles = std::filesystem::directory_iterator(engine::directories::SAVEFILES);
     }
     catch ( std::filesystem::filesystem_error &e ) {
-        log_error("There is no \"%s\" directory", engine::directories::SAVEFILES);
+        log_error("There is no \"%s\" directory", engine::directories::SAVEFILES.c_str());
         return;
     }
 
@@ -1217,6 +1284,8 @@ void load_campaign() {
 
 #ifdef DEV
 void test_campaign() {
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
     Menu menu("Test Campaign Selection");
 
     auto campaigns = Campaign::GetCampaigns();
@@ -1255,6 +1324,8 @@ void test_campaign() {
 #endif
 
 int main_menu() {
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
     Menu menu("Main Menu", "Welcome to the game!");
 
     menu.AddItem(

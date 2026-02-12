@@ -6,6 +6,12 @@ extern "C" {
 
 
 coordinates_t add_coords(coordinates_t a, coordinates_t b) {
+    log_trace("Called function \"%s( %s, %s )\"",
+        __FUNCTION__,
+        coords_to_str( &a ),
+        coords_to_str( &b )
+    );
+
     return {
         (short)(a.x + b.x),
         (short)(a.y + b.y),
@@ -14,6 +20,8 @@ coordinates_t add_coords(coordinates_t a, coordinates_t b) {
 }
 
 int init_coords(coordinates_t *coords) {
+    log_trace("Called function \"%s( coords )\"", __FUNCTION__);
+
     coords->x = 0;
     coords->y = 0;
     coords->z = 0;
@@ -22,10 +30,14 @@ int init_coords(coordinates_t *coords) {
 }
 
 std::string coords_to_str( coordinates_t *coords ) {
+    log_trace("Called function \"%s( coords )\"", __FUNCTION__);
+
     return "(" + std::to_string(coords->x) + ", " + std::to_string(coords->y) + ", " + std::to_string(coords->z) + ")";
 }
 
 void node_init(node_t *node) {
+    log_trace("Called function \"%s( node )\"", __FUNCTION__);
+
     node->node_type = "";
 
     // set id to a generic value
@@ -45,6 +57,8 @@ void node_init(node_t *node) {
 }
 
 node_errors can_traverse_direction(node_t *node) {
+    log_trace("Called function \"%s( node )\"", __FUNCTION__);
+
     // check if this direction can be traversed to which would be not a nullptr
     if ( node != NULL ) {
         return NODE_OK;
@@ -55,6 +69,8 @@ node_errors can_traverse_direction(node_t *node) {
 
 // checks if it is possible to traverse from this node
 node_errors can_traverse(node_t *node) {
+    log_trace("Called function \"%s( node )\"", __FUNCTION__);
+
     // check each direction. if not null then it is possible to traverse
 
     if ( node->left != nullptr ) { return NODE_OK; }
@@ -72,6 +88,11 @@ node_errors can_traverse(node_t *node) {
 // return error code
 // sets the current node passed in to the new traversed node is no errors occur
 node_errors traverse_node(node_t *(&node), node_directions direction) {
+    log_trace("Called function \"%s( node, %d )\"",
+        __FUNCTION__,
+        direction
+    );
+
     node_errors res = NODE_OK;
 
     node_t *cur = node;
@@ -137,6 +158,13 @@ node_errors traverse_node(node_t *(&node), node_directions direction) {
 // x, y, z and (t)eleport are for corresponding directions i.e x = lr, y = fb, z = ud and t = np
 
 int set_blocked_state( int &dest, node_directions dir, bool blocking_mode ) {
+    log_trace("Called function \"%s( %b, %b, %d )\"",
+        __FUNCTION__,
+        dest,
+        dir,
+        blocking_mode
+    );
+
     if ( blocking_mode ) {
         // adding left with or
         dest |= dir;
@@ -151,6 +179,11 @@ int set_blocked_state( int &dest, node_directions dir, bool blocking_mode ) {
 }
 
 int str_to_blocked_nodes( std::string str ) {
+    log_trace("Called function \"%s( %s )\"",
+        __FUNCTION__,
+        str.c_str()
+    );
+
     // the buffer to store the current character in
     char c;
 
@@ -236,5 +269,11 @@ int str_to_blocked_nodes( std::string str ) {
 }
 
 bool is_dir_blocked( int blocked_str, node_directions dir ) {
+    log_trace("Called function \"%s( %s, %d )\"",
+        __FUNCTION__,
+        blocked_str,
+        dir
+    );
+
     return ( blocked_str & dir ) > 0;
 }

@@ -8,20 +8,29 @@ extern "C" {
 
 
 MenuItem table_to_item( const sol::table &table ) {
-    for ( const auto &item : table ) {
-        log_debug("This item has type: %d", item.second.get_type());
-    }
+    log_trace("Called function \"%s( table )\"", __FUNCTION__);
 
     // try to get both the name and description
     // if neither are available
     const std::string name = table[1].get_or<std::string>("");
     const std::string description = table[2].get_or<std::string>("");
 
+    // show a debug message of the data in the new MenuItem
+    log_debug("New MenuItem created with: name=\"%s\", description=\"%s\"", name.c_str(), description.c_str());
+
     return MenuItem( name, description );
 }
 
 // wrapper for menu functions for lua
 std::string menu_wrapper(std::string name, std::string message, sol::table options, menu_type_t menu_type) {
+    log_trace(
+        "Called function \"%s( %s, %s, table, %d )\"",
+        __FUNCTION__,
+        name.c_str(),
+        message.c_str(),
+        menu_type
+    );
+
     Menu menu(name, "", message);
 
     for ( const auto &item : options ) {
@@ -68,6 +77,11 @@ std::string menu_wrapper(std::string name, std::string message, sol::table optio
 
 
 int inject_api(sol::environment scripts_env, VirtualEvents &event) {
+    log_trace("Called function \"%s( env, %d )\"",
+        __FUNCTION__,
+        event 
+    );
+
     scripts_env.set_function(
         engine::func::scripts_api::BASIC_MENU,
     

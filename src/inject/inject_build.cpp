@@ -10,6 +10,8 @@ extern "C" {
 
 // TODO: implement later
 coordinates_t parse_coordinate_table(sol::table &coords) {
+    log_trace("Called function \"%s( table )\"", __FUNCTION__);
+
     coordinates_t parsed_coords;
 
     // initialise coordinates
@@ -33,6 +35,8 @@ coordinates_t parse_coordinate_table(sol::table &coords) {
 
 
 int build_player_extension(sol::environment &env, sol::table extension) {
+    log_trace("Called function \"%s( env, table )\"", __FUNCTION__);
+
     for ( const auto &item : extension ) {     
         const std::string var = item.first.as<std::string>();
 
@@ -52,6 +56,8 @@ int build_player_extension(sol::environment &env, sol::table extension) {
 }
 
 int build_node_extension(sol::environment &env, sol::table extension) {
+    log_trace("Called function \"%s( env, table )\"", __FUNCTION__);
+
     for ( const auto &item : extension ) {
         const std::string var = item.first.as<std::string>();
 
@@ -71,6 +77,8 @@ int build_node_extension(sol::environment &env, sol::table extension) {
 }
 
 int inject_environment_tools(sol::environment &build_env, NodeManager &nodeManager) {
+    log_trace("Called function \"%s( env, NodeManager )\"", __FUNCTION__);
+
     build_env.set_function(
         engine::func::api::BUILD_NODE,
 
@@ -99,6 +107,8 @@ int inject_environment_tools(sol::environment &build_env, NodeManager &nodeManag
 
 
 int inject_build_tools(sol::environment &build_env, sol::environment &core, NodeManager &nodeManager) {
+    log_trace("Called function \"%s( env, env, NodeManager )\"", __FUNCTION__);
+
     // add the extend player function
     build_env.set_function(engine::func::api::EXTEND_PLAYER, [&core](sol::table extension) {
         return build_player_extension(core, extension);

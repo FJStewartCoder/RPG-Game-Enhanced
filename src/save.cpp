@@ -6,6 +6,11 @@ extern "C" {
 }
 
 int Write::Var(FILE *fp, std::string var) {
+    log_trace("Called function \"%s( FILE, %s )\"",
+        __FUNCTION__,
+        var.c_str()
+    );
+
     const int var_len = var.length();
 
     log_debug("Writing variable name: \"%s\" with length %d to file", var.c_str(), var_len);
@@ -18,6 +23,11 @@ int Write::Var(FILE *fp, std::string var) {
 }
 
 int Write::TypelessString(FILE *fp, std::string str) {
+    log_trace("Called function \"%s( FILE, %s )\"",
+        __FUNCTION__,
+        str.c_str()
+    );
+
     const int str_len = str.length();
 
     log_debug("Writing typeless string: \"%s\" with length %d to file", str.c_str(), str_len);
@@ -30,6 +40,11 @@ int Write::TypelessString(FILE *fp, std::string str) {
 }
 
 int Write::String(FILE *fp, std::string str) {
+    log_trace("Called function \"%s( FILE, %s )\"",
+        __FUNCTION__,
+        str.c_str()
+    );
+
     const int str_len = str.length();
 
     log_debug("Writing string: \"%s\" with length %d to file", str.c_str(), str_len);
@@ -45,6 +60,11 @@ int Write::String(FILE *fp, std::string str) {
 }
 
 int Write::Int(FILE *fp, int number) {
+    log_trace("Called function \"%s( FILE, %d )\"",
+        __FUNCTION__,
+        number
+    );
+
     // write the type character
     fputc(engine::save::INT, fp);
 
@@ -57,6 +77,11 @@ int Write::Int(FILE *fp, int number) {
 }
 
 int Write::Float(FILE *fp, float number) {
+    log_trace("Called function \"%s( FILE, %lf )\"",
+        __FUNCTION__,
+        number
+    );
+
     // write the type character
     fputc(engine::save::FLOAT, fp);
 
@@ -69,6 +94,11 @@ int Write::Float(FILE *fp, float number) {
 }
 
 int Write::Boolean(FILE *fp, bool boolean) {
+    log_trace("Called function \"%s( FILE, %d )\"",
+        __FUNCTION__,
+        boolean
+    );
+
     // write the type character
     fputc(engine::save::BOOLEAN, fp);
 
@@ -88,6 +118,8 @@ int Write::Boolean(FILE *fp, bool boolean) {
 }
 
 int Write::Nil(FILE *fp) {
+    log_trace("Called function \"%s( FILE )\"", __FUNCTION__);
+
     // write the type character
     fputc(engine::save::NIL, fp);
 
@@ -95,6 +127,8 @@ int Write::Nil(FILE *fp) {
 }
 
 int Write::Table(FILE *fp, sol::table table) {
+    log_trace("Called function \"%s( FILE, table )\"", __FUNCTION__);
+
     // write the type character
     fputc(engine::save::TABLE, fp);
 
@@ -157,6 +191,8 @@ int Write::Table(FILE *fp, sol::table table) {
 // --------------------------------------------------------------------------------
 
 int Read::Var(FILE *fp, std::string &dest) {
+    log_trace("Called function \"%s( FILE, str& )\"", __FUNCTION__);
+
     int var_len;
     fread(&var_len, sizeof(int), 1, fp);
 
@@ -186,6 +222,8 @@ int Read::Var(FILE *fp, std::string &dest) {
 }
 
 int Read::Type(FILE *fp, char &dest) {
+    log_trace("Called function \"%s( FILE, char& )\"", __FUNCTION__);
+
     char c = fgetc(fp);
 
     if ( c == EOF ) { return 1; }
@@ -196,6 +234,8 @@ int Read::Type(FILE *fp, char &dest) {
 }
 
 int Read::TypelessString(FILE *fp, std::string &dest) {
+    log_trace("Called function \"%s( FILE, str& )\"", __FUNCTION__);
+
     int str_len;
     fread(&str_len, sizeof(int), 1, fp);
 
@@ -225,6 +265,8 @@ int Read::TypelessString(FILE *fp, std::string &dest) {
 }
 
 int Read::String(FILE *fp, std::string &dest) {
+    log_trace("Called function \"%s( FILE, str& )\"", __FUNCTION__);
+
     int str_len;
     fread(&str_len, sizeof(int), 1, fp);
 
@@ -254,6 +296,8 @@ int Read::String(FILE *fp, std::string &dest) {
 }
 
 int Read::Int(FILE *fp, int &dest) {
+    log_trace("Called function \"%s( FILE, int& )\"", __FUNCTION__);
+
     int data;
 
     fread(&data, sizeof(int), 1, fp);
@@ -268,6 +312,8 @@ int Read::Int(FILE *fp, int &dest) {
 }
 
 int Read::Float(FILE *fp, float &dest) {
+    log_trace("Called function \"%s( FILE, float& )\"", __FUNCTION__);
+
     float data;
 
     fread(&data, sizeof(float), 1, fp);
@@ -282,6 +328,8 @@ int Read::Float(FILE *fp, float &dest) {
 }
 
 int Read::Boolean(FILE *fp, bool &dest) {
+    log_trace("Called function \"%s( FILE, bool& )\"", __FUNCTION__);
+
     char c = fgetc(fp);
 
     if ( c == 0 ) {
@@ -298,10 +346,14 @@ int Read::Boolean(FILE *fp, bool &dest) {
 }
 
 int Read::Nil(FILE *fp) {
+    log_trace("Called function \"%s( FILE )\"", __FUNCTION__);
+
     return 0;
 }
 
 struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
+    log_trace("Called function \"%s( FILE, state )\"", __FUNCTION__);
+
     Read::TableReturn res;
 
     // initialiase some return variables

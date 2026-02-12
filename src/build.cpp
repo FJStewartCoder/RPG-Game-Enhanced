@@ -12,18 +12,12 @@ extern "C" {
 // CLASSLESS -----------------------------------------------------------------------------------------------------------
 
 
-bool str_contains(std::string str, char search_char) {
-    for ( const auto &c : str ) {
-        if ( c == search_char ) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-
 node_directions str_to_direction(std::string dir) {
+    log_trace("Called function \"%s( %s )\"",
+        __FUNCTION__,
+        dir.c_str()
+    );
+
     if ( dir == "left" || dir == "l" ) { return NODE_LEFT; }
     if ( dir == "right" || dir == "r" ) { return NODE_RIGHT; }
     if ( dir == "up" || dir == "u" ) { return NODE_UP; }
@@ -40,6 +34,8 @@ node_directions str_to_direction(std::string dir) {
 
 // checks to see if a node table is valid
 int check_default_node_table(sol::table &table) {
+    log_trace("Called function \"%s( table )\"", __FUNCTION__);
+
     sol::optional<std::string> name = table[engine::node::NAME];
     sol::optional<sol::function> on_land = table[engine::node::LAND];
     sol::optional<sol::function> on_leave = table[engine::node::LEAVE];
@@ -89,6 +85,13 @@ void NodeManager::build_node(
     sol::table unique_data,
     std::string blocked_directions
 ) {
+    log_trace("Called function \"%s( %s, %s, table, %s )\"",
+        __FUNCTION__,
+        node_type.c_str(),
+        coords_to_str( &coords ).c_str(),
+        blocked_directions.c_str()
+    );
+
     const bool type_exists = all_node_types.find(node_type) != all_node_types.end();
 
     if ( !type_exists ) {
@@ -123,6 +126,8 @@ void NodeManager::build_node(
 }
 
 int NodeManager::new_node_type(sol::environment &core_env, sol::table node_table) {
+    log_trace("Called function \"%s( env, table )\"", __FUNCTION__);
+
     log_trace("New node type being created");
 
     // add the node table to the new lua queue
@@ -136,6 +141,8 @@ int NodeManager::build_single_node(
     sol::table node_template,
     sol::table node_table
 ) {
+    log_trace("Called function \"%s( env, table, table )\"", __FUNCTION__);
+
     // create the new table
     sol::table new_table = core_env.create();
     std::unordered_set<std::string> availible_keys;
@@ -195,6 +202,11 @@ int NodeManager::build_single_node(
 
 // get a node from the environment
 node_t *NodeManager::get_node(coordinates_t coords) {
+    log_trace("Called function \"%s( %s )\"",
+        __FUNCTION__,
+        coords_to_str( &coords ).c_str()
+    );
+
     // get the hash
     const coord_hash hash = coords.hash;
 
@@ -217,6 +229,8 @@ node_t *NodeManager::get_node(coordinates_t coords) {
 
 // function to build the node queue
 int NodeManager::build_node_queue(sol::environment &core_env, sol::table node_template) {
+    log_trace("Called function \"%s( env, table )\"", __FUNCTION__);
+
     sol::table node_queue = core_env[engine::node::QUEUE];
 
     log_debug("Node queue has length %d", node_queue.size());
@@ -236,6 +250,15 @@ int NodeManager::make_connection(
     bool one_way,
     bool override_blocked
 ) {
+    log_trace("Called function \"%s( %s, %s, %d, %d, %d )\"",
+        __FUNCTION__,
+        coords_to_str( &node1 ),
+        coords_to_str( &node2 ),
+        link,
+        one_way,
+        override_blocked
+    );
+
     node_t *node1_ptr = get_node(node1);
     node_t *node2_ptr = get_node(node2);
 
@@ -387,6 +410,8 @@ int NodeManager::make_connection(
 }
 
 int NodeManager::make_all_connections() {
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
     log_debug("Found %d nodes to make connections.", environment.size());
 
     for ( const auto &node_pair : environment ) {
@@ -435,5 +460,7 @@ int NodeManager::make_all_connections() {
 }
 
 std::unordered_set<std::string> &NodeManager::get_all_node_types() {
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
     return all_node_types;
 }

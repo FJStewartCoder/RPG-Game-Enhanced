@@ -1,6 +1,12 @@
 #include "inject_core.hpp"
 
+extern "C" {
+    #include "log/log.h"
+}
+
 int inject_core_node_data(sol::environment &env) {
+    log_trace("Called function \"%s( env )\"", __FUNCTION__);
+
     // create a new table with the following data
     env[engine::node::TEMPLATE] = env.create_with(
         engine::node::NAME, "Node Name",
@@ -18,6 +24,8 @@ int inject_core_node_data(sol::environment &env) {
 }
 
 int inject_core_player_data(sol::environment &env) {
+    log_trace("Called function \"%s( env )\"", __FUNCTION__);
+
     env[engine::player::DATA] = env.create_with(
         engine::player::NAME, "Player Name",
         engine::player::POSITION, env.create_with(
@@ -31,6 +39,8 @@ int inject_core_player_data(sol::environment &env) {
 }
 
 int inject_core(sol::environment &env) {
+    log_trace("Called function \"%s( env )\"", __FUNCTION__);
+
     inject_core_node_data(env);
     inject_core_player_data(env);
 
