@@ -107,10 +107,12 @@ int Write::Boolean(FILE *fp, bool boolean) {
 
     // if true, write 1
     if ( boolean ) {
+        log_debug("Writing boolean TRUE to file");
         fwrite(&TRUE, sizeof(char), 1, fp);
     }
     // if false, write 0
     else {
+        log_debug("Writing boolean FALSE to file");
         fwrite(&FALSE, sizeof(char), 1, fp);
     }
     
@@ -212,11 +214,16 @@ int Read::Var(FILE *fp, std::string &dest) {
         c = fgetc(fp);
 
         // check if c is end of file, return
-        if ( c == EOF ) { return 1; }
+        if ( c == EOF ) { 
+            log_error("File ended before end of string");
+            return 1;
+        }
 
         // if not end of file, add the new character to the string
         dest += c;
     }
+
+    log_debug("Recieved var=\"%s\"", dest.c_str());
 
     return 0;
 }
@@ -227,6 +234,8 @@ int Read::Type(FILE *fp, char &dest) {
     char c = fgetc(fp);
 
     if ( c == EOF ) { return 1; }
+
+    log_debug("Read type: %c", c);
 
     dest = c;
 
@@ -255,11 +264,16 @@ int Read::TypelessString(FILE *fp, std::string &dest) {
         c = fgetc(fp);
 
         // check if c is end of file, return
-        if ( c == EOF ) { return 1; }
+        if ( c == EOF ) { 
+            log_error("File ended before end of string");
+            return 1;
+        }
 
         // if not end of file, add the new character to the string
         dest += c;
     }
+
+    log_debug("Recieved typeless string=\"%s\"", dest.c_str());
 
     return 0;
 }
@@ -286,11 +300,16 @@ int Read::String(FILE *fp, std::string &dest) {
         c = fgetc(fp);
 
         // check if c is end of file, return
-        if ( c == EOF ) { return 1; }
+        if ( c == EOF ) { 
+            log_error("File ended before end of string");
+            return 1;
+        }
 
         // if not end of file, add the new character to the string
         dest += c;
     }
+
+    log_debug("Recieved string=\"%s\"", dest.c_str());
 
     return 0;
 }
@@ -339,8 +358,11 @@ int Read::Boolean(FILE *fp, bool &dest) {
         dest = true;
     }
     else {
+        log_error("Recieved a value that was not boolean");
         return 1;
     }
+
+    log_debug("Read boolean: %d", dest);
 
     return 0;
 }

@@ -13,6 +13,11 @@ bool has_func(sol::environment &env, std::string func_name) {
 
     sol::optional<sol::function> func = env[func_name];
     
-    if ( !func ) { return false; }
+    if ( !func ) { 
+        log_trace("Function not found");
+        return false;
+    }
+
+    log_trace("Function found");
     return true;
 }

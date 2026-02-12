@@ -45,7 +45,7 @@ int build_player_extension(sol::environment &env, sol::table extension) {
         const auto player_template = env[engine::player::DATA];
         
         if ( player_template[var] != sol::nil ) {
-            log_warn("Script attempted to overwrite this property");
+            log_warn("Script attempted to overwrite property: \"%s\"", var.c_str());
             continue;
         }
 
@@ -66,7 +66,7 @@ int build_node_extension(sol::environment &env, sol::table extension) {
         const auto node_template = env[engine::node::TEMPLATE];
         
         if ( node_template[var] != sol::nil ) {
-            log_warn("Script attempted to overwrite this property");
+            log_warn("Script attempted to overwrite property: \"%s\"", var.c_str());
             continue;
         }
 
@@ -93,10 +93,6 @@ int inject_environment_tools(sol::environment &build_env, NodeManager &nodeManag
             // parse coords
             // TODO: implement later
             // const coordinates_t parsed_coords = parse_coordinate_table(coords);
-
-            log_debug("Called build function");
-            log_debug("Coordinates are (%d %d %d)", x, y, z);
-            log_debug("Blocked status is (%s)", blocked.c_str());
 
             return nodeManager.build_node(node_type, {x, y, z}, unique_data, blocked);
         }

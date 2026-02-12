@@ -104,7 +104,7 @@ file_metadata read_file_metadata(FILE *fp) {
         return res;
     }
 
-    log_debug("Read campaign \"%s\"", res.campaign_name.c_str());
+    log_debug("Read campaign name \"%s\"", res.campaign_name.c_str());
 
     return res;
 }
@@ -189,8 +189,6 @@ class Campaign {
                 campaignPath.c_str()
             );
 
-            log_trace("Loading init settings");
-
             sol::state initFileState;
 
             const std::string initPath = campaignPath + "/" + engine::file::INIT;
@@ -245,12 +243,8 @@ class Campaign {
                 funcName.c_str()
             );
 
-            log_debug("Checking for function \"%s\"", funcName.c_str());
-
             // run process
             if ( has_func(env, funcName) ) {
-                log_trace("Function \"%s\" exists", funcName.c_str());
-
                 sol::protected_function func = env[funcName];
 
                 auto res = func();
@@ -263,7 +257,6 @@ class Campaign {
                 }               
             }
             else {
-                log_error("Function does not exists \"%s\"", funcName.c_str());
                 return 1;
             }
 
@@ -285,8 +278,6 @@ class Campaign {
                 ignore
             );
 
-            log_trace("Running init file");
-
             const std::string initPath = campaignPath + "/" + engine::file::INIT;
 
             if ( !initExists(campaignPath) ) {
@@ -299,7 +290,7 @@ class Campaign {
 
             // if not ok return fail
             if ( res != 0 ) {
-                log_error("Failed to load init file. Deleting init data");
+                log_error("Failed to load init file");
 
                 // delete init just in case
                 deleteInit();
@@ -316,8 +307,6 @@ class Campaign {
 
                 res = RunFunctionIfExists(build_env, engine::func::extension::EXTEND);
                 if ( res != 0 ) {
-                    log_error("Extend function failed");
-
                     deleteInit();
                     return 1;
                 }
@@ -331,8 +320,6 @@ class Campaign {
 
                 res = RunFunctionIfExists(build_env, engine::func::extension::BUILD);
                 if ( res != 0 ) {
-                    log_error("Build function failed");
-
                     deleteInit();
                     return 1;
                 }
@@ -346,31 +333,21 @@ class Campaign {
 
                 // build the nodes
                 // MUST BE PERFORMED BEFORE RUNNING THE ENVIRONMENT FUNCTION
-                log_trace("Building node queue");
-
                 res = nodeManager.build_node_queue(core_env, core_env[engine::node::TEMPLATE]);
                 if ( res != 0 ) {
-                    log_error("Node queue failed to build");
-
                     deleteInit();
                     return 1;
                 }
 
                 res = RunFunctionIfExists(build_env, engine::func::extension::ENVIRONMENT);
                 if ( res != 0 ) {
-                    log_error("Environment function failed");
-
                     deleteInit();
                     return 1;
                 }
 
-                log_trace("Making all connections between nodes");
-
                 // make all of the connections
                 res = nodeManager.make_all_connections();
                 if ( res != 0 ) {
-                    log_error("Make connections functions failed");
-
                     deleteInit();
                     return 1;
                 }
@@ -380,7 +357,7 @@ class Campaign {
                 log_trace("Ignoring environment function in init file");
             }
 
-            log_info("Successfully ran init file");
+            log_trace("Successfully ran init file");
 
             // delete all init data from the build env to prevent being overwritten later
             // or causing issues where the same function is run several times
@@ -496,14 +473,11 @@ class Campaign {
 
             }
 
-            log_trace("Running init file");
-
             // run the init file once all files are loaded in
             int res = RunInit( campaignPath, initIgnore );
 
             // if we fail to run the init file return 1
             if ( res != 0 ) {
-                log_error("Init file failed to execute");
                 return 1;
             }
 
@@ -590,7 +564,7 @@ class Campaign {
                 // if the campaign does not already exist, add it to the map
                 // else show error message
                 if ( !campaign_exists ) {
-                    log_info("Adding campaign with name: \"%s\"", campaign_name.c_str());
+                    log_trace("Adding campaign with name: \"%s\"", campaign_name.c_str());
                     
                     // map the campaign name to the full file path to the directory
                     campaigns[campaign_name] = std::filesystem::canonical(item.path());
@@ -609,7 +583,6 @@ class Campaign {
                 campaignName.c_str()
             );
 
-            log_trace("Getting campaigns");
             auto campaigns = GetCampaigns();
 
             const bool noCampaigns = campaigns.empty();
@@ -660,7 +633,6 @@ class Campaign {
                 }
             }
 
-            log_trace("Loading \"%s\"", campaignPath.c_str());
             res = LoadDirectory( campaignPath );
             if ( res != 0 ) {
                 log_error("Loading directory failed");
@@ -715,6 +687,9 @@ class Campaign {
 
             Write::Var(fp, engine::player::DATA);
             Write::Table(fp, core_env[engine::player::DATA]);
+
+            // inform the user that the campaign has been saved successfully
+            log_info("Successfully saved campaign");
 
             fclose(fp);
             return 0;
@@ -934,7 +909,7 @@ node_directions get_player_input(node_t *node) {
     auto menu_res = menu.ShowAliasList();
     const std::string input = menu_res->name;
 
-    log_trace("Menu returned: %s.", input.c_str());
+    log_debug("Menu returned: %s.", input.c_str());
 
     // if block again for correct return
     if ( input == "left" ) { return NODE_LEFT; }
@@ -962,7 +937,7 @@ VirtualEvents handle_virtual_event(Campaign &campaign) {
         case VirtualEvents::NONE:
             break;
         case VirtualEvents::QUIT:
-            log_trace("Virtual Event: Quit called");
+            log_debug("Virtual Event: Quit called");
             break;
     }
 
@@ -1058,7 +1033,7 @@ int gameloop(Campaign &campaign, node_t *start_node) {
         auto cur_node_data = get_node_data(core_env, cur_node->node_type);
 
         if ( cur_node_data ) {
-            log_info("Current node has type: \"%s\", with ID: %lld", cur_node->node_type.c_str(), cur_node->coords.hash);
+            log_debug("Current node has type: \"%s\", with ID: %lld", cur_node->node_type.c_str(), cur_node->coords.hash);
         }
 
         // get the player data table
@@ -1072,7 +1047,7 @@ int gameloop(Campaign &campaign, node_t *start_node) {
             auto res = on_land(cur_node->unique_data, cur_node_data.value(), player_data);
 
             if ( !res.valid() ) {
-                log_error("Landing function failed.");
+                log_warn("Landing function failed.");
 
                 // error details
                 sol::error error = res;
@@ -1126,7 +1101,7 @@ int gameloop(Campaign &campaign, node_t *start_node) {
             auto res = on_leave(cur_node->unique_data, cur_node_data.value(), player_data);
 
             if ( !res.valid() ) {
-                log_error("Leaving function failed.");
+                log_warn("Leaving function failed.");
 
                 // error message
                 sol::error error = res;
@@ -1393,6 +1368,8 @@ int main_menu() {
 int main() {
     // open the log file
     FILE *fp = fopen("log.txt", "w");
+
+    // log_set_level(1);
 
     // will always log
     // log_add_fp(fp, 0);

@@ -65,14 +65,21 @@ std::string menu_wrapper(std::string name, std::string message, sol::table optio
     
     MenuItem *menu_res = NULL;
 
+    // create a menu and save the result
     if ( menu_type == STANDARD ) {
         menu_res = menu.ShowList();
-        return menu_res->name;
     }
     else {
         menu_res = menu.ShowAlias();
-        return menu_res->name;
     }    
+
+    // debug print the return value
+    log_debug("Script menu returned: name=\"%s\", idx=%d",
+        menu_res->name.c_str(),
+        menu_res->idx
+    );
+
+    return menu_res->name;
 }
 
 

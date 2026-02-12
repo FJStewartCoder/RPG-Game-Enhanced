@@ -8,19 +8,30 @@ extern "C" {
 coordinates_t add_coords(coordinates_t a, coordinates_t b) {
     log_trace("Called function \"%s( %s, %s )\"",
         __FUNCTION__,
-        coords_to_str( &a ).c_str(),
-        coords_to_str( &b ).c_str()
+        coords_to_str( &a, true ).c_str(),
+        coords_to_str( &b, true ).c_str()
+    );
+    
+    coordinates_t new_coords;
+    init_coords( &new_coords );
+    
+    // must initialise coords then set the values otherwise the hash will be wrong
+    new_coords.x = (short)(a.x + b.x);
+    new_coords.y = (short)(a.y + b.y);
+    new_coords.z = (short)(a.z + b.z);
+
+    log_debug("Added coordinations are: %s",
+        coords_to_str( &new_coords, true ).c_str()
     );
 
-    return {
-        (short)(a.x + b.x),
-        (short)(a.y + b.y),
-        (short)(a.z + b.z)
-    };
+    return new_coords;
 }
 
 int init_coords(coordinates_t *coords) {
     log_trace("Called function \"%s( coords )\"", __FUNCTION__);
+
+    // initialise the hash to 0 since x, y, z don't cover the full 64 bits
+    coords->hash = 0;
 
     coords->x = 0;
     coords->y = 0;
@@ -29,10 +40,31 @@ int init_coords(coordinates_t *coords) {
     return 0;
 }
 
-std::string coords_to_str( coordinates_t *coords ) {
-    log_trace("Called function \"%s( coords )\"", __FUNCTION__);
+std::string coords_to_str( coordinates_t *coords, bool show_hash ) {
 
-    return "(" + std::to_string(coords->x) + ", " + std::to_string(coords->y) + ", " + std::to_string(coords->z) + ")";
+#ifndef REMOVE_ANNOYING_TRACE
+    // THIS TRACE IS VERY ANNOYING
+    log_trace("Called function \"%s( coords, %d )\"",
+        __FUNCTION__,
+        show_hash
+    );
+
+#endif // REMOVE_ANNOYING_TRACE
+
+    // this currently is as such "(x, y, z"
+    std::string res = "(" + std::to_string(coords->x) + ", " + std::to_string(coords->y) + ", " + std::to_string(coords->z);
+
+    if ( show_hash ) {
+        // convert the hash into a hex representation since it is shorter
+        char hex_buf[64];
+        sprintf(hex_buf, "%lx", coords->hash);
+
+        // if chosen to show hash add on ", h=h"
+        res += ", h=" + std::string(hex_buf);
+    }
+    
+    // finalise the string with ")"
+    return res + ")";
 }
 
 void node_init(node_t *node) {
@@ -56,6 +88,7 @@ void node_init(node_t *node) {
     node->previous = nullptr;
 }
 
+// TODO: I don't know what this is meant to do but I don't think that it does it
 node_errors can_traverse_direction(node_t *node) {
     log_trace("Called function \"%s( node )\"", __FUNCTION__);
 
@@ -90,7 +123,7 @@ node_errors can_traverse(node_t *node) {
 node_errors traverse_node(node_t *(&node), node_directions direction) {
     log_trace("Called function \"%s( node, %d (%s) )\"",
         __FUNCTION__,
-        direction, dir_to_string( direction )
+        direction, dir_to_string( direction ).c_str()
     );
 
     node_errors res = NODE_OK;

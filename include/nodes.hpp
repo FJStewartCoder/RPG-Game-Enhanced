@@ -7,6 +7,9 @@
 
 typedef long long int coord_hash;
 
+// NOTE TO READER: HASH IS STORED AS IT WANTS TO BE
+// THIS HAPPENS TO BE IN THE FORMAT Z Y X
+// IF THE HASH SEEMS WRONG, CONSIDER THIS
 typedef union {
     struct {
         short x;
@@ -21,7 +24,8 @@ coordinates_t add_coords(coordinates_t a, coordinates_t b);
 
 int init_coords(coordinates_t *coords);
 
-std::string coords_to_str( coordinates_t *coords );
+// HASH IS FORMATTED Z Y X. CONSIDER THIS WHEN READING THE HASH
+std::string coords_to_str( coordinates_t *coords, bool show_hash = false );
 
 
 typedef struct node_t {

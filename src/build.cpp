@@ -17,19 +17,43 @@ node_directions str_to_direction(std::string dir) {
         __FUNCTION__,
         dir.c_str()
     );
+    
+    // create return value and set to default return
+    node_directions res = NODE_NONE;
 
-    if ( dir == "left" || dir == "l" ) { return NODE_LEFT; }
-    if ( dir == "right" || dir == "r" ) { return NODE_RIGHT; }
-    if ( dir == "up" || dir == "u" ) { return NODE_UP; }
-    if ( dir == "down" || dir == "d" ) { return NODE_DOWN; }
+    if ( dir == "left" || dir == "l" ) { 
+        res = NODE_LEFT;
+    }
+    if ( dir == "right" || dir == "r" ) {
+        res = NODE_RIGHT;
+    }
+    if ( dir == "up" || dir == "u" ) {
+        res = NODE_UP;
+    }
+    if ( dir == "down" || dir == "d" ) {
+        res = NODE_DOWN;
+    }
 
-    if ( dir == "forward" || dir == "f" ) { return NODE_FORWARD; }
-    if ( dir == "back" || dir == "b" ) { return NODE_BACK; }
-    if ( dir == "next" || dir == "n" ) { return NODE_NEXT; }
-    if ( dir == "previous" || dir == "prev" || dir == "p" ) { return NODE_PREV; }
+    if ( dir == "forward" || dir == "f" ) {
+        res = NODE_FORWARD;
+    }
+    if ( dir == "back" || dir == "b" ) {
+        res = NODE_BACK;
+    }
+    if ( dir == "next" || dir == "n" ) {
+        res = NODE_NEXT;
+    }
+    if ( dir == "previous" || dir == "prev" || dir == "p" ) {
+        res = NODE_PREV;
+    }
+
+    log_debug("String \"%s\" converts to \"%s\"",
+        dir.c_str(),
+        dir_to_string( res ).c_str()
+    );
 
     // if nothing
-    return NODE_NONE;
+    return res;
 }
 
 // checks to see if a node table is valid
@@ -77,6 +101,8 @@ NodeManager::~NodeManager() {
 
         delete node;
     }
+
+    log_trace("Destruction complete");
 }
 
 void NodeManager::build_node(
@@ -88,7 +114,7 @@ void NodeManager::build_node(
     log_trace("Called function \"%s( %s, %s, table, %s )\"",
         __FUNCTION__,
         node_type.c_str(),
-        coords_to_str( &coords ).c_str(),
+        coords_to_str( &coords, true ).c_str(),
         blocked_directions.c_str()
     );
 
@@ -128,8 +154,6 @@ void NodeManager::build_node(
 int NodeManager::new_node_type(sol::environment &core_env, sol::table node_table) {
     log_trace("Called function \"%s( env, table )\"", __FUNCTION__);
 
-    log_trace("New node type being created");
-
     // add the node table to the new lua queue
     core_env[engine::node::QUEUE].get<sol::table>().add(node_table);
 
@@ -147,6 +171,8 @@ int NodeManager::build_single_node(
     sol::table new_table = core_env.create();
     std::unordered_set<std::string> availible_keys;
 
+    log_trace("Copying node template into new table");
+
     // copy the template into the new table
     for ( const auto &pair : node_template ) {
         new_table[pair.first] = pair.second;
@@ -154,6 +180,8 @@ int NodeManager::build_single_node(
         // add the key to the set
         availible_keys.insert(pair.first.as<std::string>());
     }
+
+    log_trace("Populating new table with values passed in by script");
 
     // iterate all of the new pairs
     for ( const auto &new_pair : node_table ) {
@@ -195,7 +223,7 @@ int NodeManager::build_single_node(
     avail.add(new_table);
 
     // log
-    log_info("Added new node type with name %s", new_table[engine::node::NAME].get<std::string>().c_str());
+    log_trace("Successfully, added new node type with name %s", new_table[engine::node::NAME].get<std::string>().c_str());
 
     return 0;
 }
@@ -204,7 +232,7 @@ int NodeManager::build_single_node(
 node_t *NodeManager::get_node(coordinates_t coords) {
     log_trace("Called function \"%s( %s )\"",
         __FUNCTION__,
-        coords_to_str( &coords ).c_str()
+        coords_to_str( &coords, true ).c_str()
     );
 
     // get the hash
@@ -217,11 +245,19 @@ node_t *NodeManager::get_node(coordinates_t coords) {
     const bool node_found = search_res != environment.end();
 
     if ( !node_found ) {
+        log_error("Node with coordinates %s does not exist",
+            coords_to_str( &coords, true ).c_str()
+        );
+
         return NULL;
     }   
 
     // does exist so get the node * from the pair
     node_t* node = search_res->second;
+
+    log_trace("Node with coordinates %s exists",
+        coords_to_str( &coords, true ).c_str()
+    );
 
     // return the found node
     return node;
@@ -252,8 +288,8 @@ int NodeManager::make_connection(
 ) {
     log_trace("Called function \"%s( %s, %s, %d (%s), %d, %d )\"",
         __FUNCTION__,
-        coords_to_str( &node1 ).c_str(),
-        coords_to_str( &node2 ).c_str(),
+        coords_to_str( &node1, true ).c_str(),
+        coords_to_str( &node2, true ).c_str(),
 
         link, dir_to_string( link ).c_str(),
 
@@ -379,8 +415,6 @@ int NodeManager::make_connection(
             break;
     }
 
-    log_debug("%d %d", connection_blocked, override_blocked);
-
     // if there are no pointers then we can't continue processing
     if ( cur == NULL || next == NULL ) {
         log_error("Either the current or next node does not exist. Likely due to invalid direction");
@@ -403,11 +437,15 @@ int NodeManager::make_connection(
     *next = node2_ptr;
 
     // if one way, then we don't need to make the other connection
-    if ( one_way ) { return 0; }
+    if ( one_way ) { 
+        log_trace("Successfully made one-way connection");
+        return 0;
+    }
 
     // if not one way, make the connection from the next node to the current node
     *cur = node1_ptr;
 
+    log_trace("Successfully made connection");
     return 0;
 }
 
@@ -439,22 +477,11 @@ int NodeManager::make_all_connections() {
 
             log_debug(
                 "Trying to make connection between (%d %d %d, %lld) and (%d %d %d, %lld)",
-                cur_coords.x,
-                cur_coords.y,
-                cur_coords.z,
-                cur_coords.hash,
-                new_coords.x,
-                new_coords.y,
-                new_coords.z,
-                new_coords.hash
+                cur_coords.x, cur_coords.y, cur_coords.z, cur_coords.hash,
+                new_coords.x, new_coords.y, new_coords.z, new_coords.hash
             );
 
-            make_connection(
-                cur_coords,
-                new_coords,
-                item.second
-            );
-
+            make_connection( cur_coords, new_coords, item.second );
         }
     }
 

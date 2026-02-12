@@ -51,7 +51,7 @@ int load_file(sol::state &lua, std::string file_name) {
 
     try {
         lua.safe_script_file(file_name);
-        log_info("%s has been opened", file_name.c_str());
+        log_trace("%s has been opened", file_name.c_str());
     }
     catch ( const sol::error &e ) {
         log_error("File %s open with error\n%s", file_name.c_str(), e.what());
@@ -73,7 +73,7 @@ int load_file(sol::state &lua, sol::environment &load_env, std::string file_name
 
     try {
         lua.safe_script_file(file_name, test_env);
-        log_info("%s has been opened", file_name.c_str());
+        log_trace("%s has been opened", file_name.c_str());
     }
     catch ( const sol::error &e ) {
         log_error("File %s open with error\n%s", file_name.c_str(), e.what());

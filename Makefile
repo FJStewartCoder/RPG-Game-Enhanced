@@ -33,7 +33,7 @@ log.o:
 	${CC} src/log/log.c -Iinclude/log -c -o $@
 
 nodes.o: src/nodes.cpp
-	${CPPC} $^ -Iinclude -c -o $@
+	${CPPC} $^ -Iinclude -c -o $@ -DREMOVE_ANNOYING_TRACE
 
 input.o: src/input.cpp
 	${CPPC} $^ -Iinclude -c -o $@
