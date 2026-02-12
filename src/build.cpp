@@ -250,11 +250,13 @@ int NodeManager::make_connection(
     bool one_way,
     bool override_blocked
 ) {
-    log_trace("Called function \"%s( %s, %s, %d, %d, %d )\"",
+    log_trace("Called function \"%s( %s, %s, %d (%s), %d, %d )\"",
         __FUNCTION__,
-        coords_to_str( &node1 ),
-        coords_to_str( &node2 ),
-        link,
+        coords_to_str( &node1 ).c_str(),
+        coords_to_str( &node2 ).c_str(),
+
+        link, dir_to_string( link ).c_str(),
+
         one_way,
         override_blocked
     );

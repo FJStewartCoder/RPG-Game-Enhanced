@@ -8,8 +8,8 @@ extern "C" {
 coordinates_t add_coords(coordinates_t a, coordinates_t b) {
     log_trace("Called function \"%s( %s, %s )\"",
         __FUNCTION__,
-        coords_to_str( &a ),
-        coords_to_str( &b )
+        coords_to_str( &a ).c_str(),
+        coords_to_str( &b ).c_str()
     );
 
     return {
@@ -88,9 +88,9 @@ node_errors can_traverse(node_t *node) {
 // return error code
 // sets the current node passed in to the new traversed node is no errors occur
 node_errors traverse_node(node_t *(&node), node_directions direction) {
-    log_trace("Called function \"%s( node, %d )\"",
+    log_trace("Called function \"%s( node, %d (%s) )\"",
         __FUNCTION__,
-        direction
+        direction, dir_to_string( direction )
     );
 
     node_errors res = NODE_OK;
@@ -158,10 +158,10 @@ node_errors traverse_node(node_t *(&node), node_directions direction) {
 // x, y, z and (t)eleport are for corresponding directions i.e x = lr, y = fb, z = ud and t = np
 
 int set_blocked_state( int &dest, node_directions dir, bool blocking_mode ) {
-    log_trace("Called function \"%s( %b, %b, %d )\"",
+    log_trace("Called function \"%s( %b, %b (%s), %d )\"",
         __FUNCTION__,
         dest,
-        dir,
+        dir, dir_to_string( dir ).c_str(),
         blocking_mode
     );
 
@@ -269,11 +269,69 @@ int str_to_blocked_nodes( std::string str ) {
 }
 
 bool is_dir_blocked( int blocked_str, node_directions dir ) {
-    log_trace("Called function \"%s( %s, %d )\"",
+    log_trace("Called function \"%s( %b, %d (%s) )\"",
         __FUNCTION__,
         blocked_str,
-        dir
+        dir, dir_to_string( dir ).c_str()
     );
 
     return ( blocked_str & dir ) > 0;
+}
+
+// converts a direction to a string
+const std::string dir_to_string( node_directions direction ) {
+    log_trace("Called function \"%s( %d )\"",
+        __FUNCTION__,
+        direction
+    );
+
+    std::string res = "";
+
+    switch ( direction ) {
+        case NODE_LEFT:
+            res = "Left";
+            break;
+
+        case NODE_RIGHT:
+            res = "Right";
+            break;
+
+        case NODE_UP:
+            res = "Up";
+            break;
+        
+        case NODE_DOWN:
+            res = "Down";
+            break;
+
+        case NODE_FORWARD:
+            res = "Forward";
+            break;
+
+        case NODE_BACK:
+            res = "Back";
+            break;
+
+        case NODE_NEXT:
+            res = "Next";
+            break;
+
+        case NODE_PREV:
+            res = "Previous";
+            break;
+
+        case NODE_QUIT:
+            res = "Quit";
+            break;
+
+        case NODE_NONE:
+            res = "None";
+            break;
+        
+        default:
+            res = "<UNKNOWN>";
+            break;
+    }
+
+    return res;
 }
