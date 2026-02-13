@@ -4,7 +4,7 @@ Menu Items have 2 available fields: **name** and **description**.
 Menu Items can either be a `string` or a `table`.  
 
 For a `string` item, simply write the item **name**.  
-For a `table` item, use the following format: `{ "name", "description" }`.  
+For a `table` item, use the following format: `{ string name, string description }`.  
 
 Use a string if you only need the name. Use a table if you need to include a description.
 

@@ -116,9 +116,13 @@ int inject_build_tools(sol::environment &build_env, sol::environment &core, Node
     });
 
     // add the add node function
-    build_env.set_function(engine::func::api::ADD_NODE_TYPE, [&core, &nodeManager](sol::table table) {
-        return nodeManager.new_node_type(core, table);
-    });
+    build_env.set_function(
+        engine::func::api::ADD_NODE_TYPE,
+        
+        [&core, &nodeManager](sol::table table) {
+            return nodeManager.new_node_type(core, table);
+        }
+    );
 
     // add the make connection function
     build_env.set_function(

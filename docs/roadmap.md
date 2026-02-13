@@ -1,14 +1,28 @@
-TODO: Upgrade campaignless directory. Instead of a single directory have separate modules. So each directory in campaignless is a different module with its own init.
+# Road Map
+## Documentation (CURRENT)
+Add documentation to the entire program including better headers and .md files for the API.
 
-Then, make each dir in campaignless requirable so that you don’t have to add as much stuff to your campaign
+## Reworked Nodes
+Instead of having a main node_template, each node type has its own unique_data template.  
+This could allow for each node type to be better customisable.  
+Why? because the current extend_node is useless. It's difficult to integrate because each node type requires seperate data fields.  
+This would be fixed by unique_data templates for each node type.  
+This could come with an upgrade to the add_node function.
+The function could be changed to add_node( string name, function on_land, function on_leave, table unique_data_template ).
 
-ROAD MAP:
--Documentation
--unique_data templates
--Better require system for modules
--Better load from save file ( combine the template and read data instead of overwriting ). might help with corruption or invalid data types
+## Better Modules
+Better require system for modules similar to how NeoVim works.  
 
-For last point: Create a combine_table function that combines two tables. This can take an argument of int ( bit field of enum ) for combination strategy
+Upgrade campaignless directory. Instead of a single directory, have separate modules. So each directory in campaignless is a different module with its own init.
+
+Then, make each dir in campaignless requirable so that you don’t have to add as much stuff to your campaign. When required, automatically run the init file.
+
+Could overwrite the require function for custom functionality or do some other thing.
+
+## Better Save File
+Combine the template and read data instead of overwriting. might help with corruption or invalid data types
+
+Create a combine_table function that combines two tables. This can take an argument of int ( bit field of enum ) for combination strategy
 
 For example: an option to only override data and don’t include new fields or options to preserve original type etc
 
