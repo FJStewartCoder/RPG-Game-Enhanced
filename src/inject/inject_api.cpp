@@ -83,10 +83,27 @@ std::string menu_wrapper(std::string name, std::string message, sol::table optio
 }
 
 
+int inject_virtual_events( sol::environment &scripts_env, VirtualEvents &event ) {
+    log_trace("Called function \"%s( env, VirtualEvent& )\"",
+        __FUNCTION__
+    );
+
+    // function to cause the virtual event QUIT
+    scripts_env.set_function(
+        engine::func::scripts_api::virtual_events::QUIT,
+
+        [&event]() {
+            event = VirtualEvents::QUIT;
+        }
+    );
+
+    return 0;
+}
+
+
 int inject_api(sol::environment scripts_env, VirtualEvents &event) {
-    log_trace("Called function \"%s( env, %d )\"",
-        __FUNCTION__,
-        event 
+    log_trace("Called function \"%s( env, VirtualEvent& )\"",
+        __FUNCTION__
     );
 
     scripts_env.set_function(
@@ -113,14 +130,7 @@ int inject_api(sol::environment scripts_env, VirtualEvents &event) {
         }
     );
 
-    // function to cause the virtual event QUIT
-    scripts_env.set_function(
-        engine::func::scripts_api::virtual_events::QUIT,
-
-        [&event]() {
-            event = VirtualEvents::QUIT;
-        }
-    );
+    inject_virtual_events( scripts_env, event );
 
     return 0;
 }
