@@ -80,7 +80,7 @@ Every node gains these new fields regardless of type.
 The extension table is relevant to the node type and each instance of a node type can **NOT** have different data.  
 [Unique Data](./campaign.md#unique-data) can be used to achieve this, instead.  
 
-#### example
+#### Example
 `extend_node({
     show_player_data = false,
     mission = mission1
@@ -91,10 +91,26 @@ Will add **show_player_data** and **mission** to the default node data table wit
 ### Usage
 `void environment()`  
 Is one of the three required functions to create a campaign. **not required for campaignless modules*
-CURRENT
+The environment function is responsible for actually creating the world.
 
 ### Adding a Node
-build_node
+#### Usage
+`void build_node({
+    string name,
+    short x, y, z,
+    table unique_data,
+    string blocked
+})`  
+**name** is the name of the node you want to build. Each node made with [`add_node()`](#adding-a-node) is available for use here.  
+**x**, **y**, **z** are the coordinates that the node will be built.  
+**unique_data** is a table of data unique to this node. This is passed to the on_land and on_leave functions.  
+**blocked** is a string of characters used to allow or disallow traversal between adjacent nodes.
+
+#### Blocked String
+...
+
+#### Example
+...
 
 ### Making Connections
 make_connection
