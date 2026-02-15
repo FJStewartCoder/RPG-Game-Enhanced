@@ -104,13 +104,58 @@ The environment function is responsible for actually creating the world.
 **name** is the name of the node you want to build. Each node made with [`add_node()`](#adding-a-node) is available for use here.  
 **x**, **y**, **z** are the coordinates that the node will be built.  
 **unique_data** is a table of data unique to this node. This is passed to the on_land and on_leave functions.  
-**blocked** is a string of characters used to allow or disallow traversal between adjacent nodes.
+**blocked** is a string of characters used to allow or disallow traversal between adjacent nodes. More can be read [here](#blocked-string).
 
 #### Blocked String
-...
+The blocked string is made up of lower-case character to block certain directions.  
+The characters: l, r, u, d, f, b, n and p can be used to block the directions: left, right, up, down, forward, back, next and previous respectively.  
+By using any of these characters in the blocked string will block a connection from being possible in that direction.  
+Use the ! character to invert the effect. By default ! will block all direction and each character will unblock a direction.  
+Some special characters are available as aliases of other character strings.  
+x, y, z and t ( t for teleport directions ) are used as such. x = lr, y = fb, z = ud and t = np.  
+x, y, z and t are also compatible with !
 
 #### Example
-...
+`build_node(
+    "Shop",
+    1, 0, 5,
+    {
+        shop-name = "Fish Market"
+    },
+    "!xz"
+)`  
+Will create a new node of type **Shop** at **(1, 0, 5)** with **unique data** where the **shop-name** is **"Fish Market"**. Connections will only be made in the **x** and **z** directions.
 
 ### Making Connections
-make_connection
+#### Usage
+`int make_connection(
+    int x1, y1, z1,
+    int x2, y2, z2,
+    string link,
+    boolean one_way,
+    boolean override_blocked
+)`  
+**x1**, **y1** and **x1** make up the coordinates of the **source** node.  
+**x2**, **y2** and **x2** make up the coordinates of the **destination** node.
+
+**link** is the direction in which **destination** will be connected to **source**.  
+Link can be any of the following ( brackets indicate different combinations e.g [(a)b]c means a, ab and abc are availible):  
+(l)eft, (r)ight, (u)p, (d)own, (f)orward, (b)ack, (n)ext, [(p)rev]ious
+
+**one_way** is if you want to create a connection but only one way.  
+**override_blocked** is an option to allow you to bypass blocked parameters.  
+
+#### Example
+`make_connection(
+    0, 0, 0,
+    10, 5, 3,
+    "next",
+    false,
+    false
+)`  
+Will create a connection between **(0, 0, 0)** and **(10, 5, 3)** whilst respecting blocking.
+It will create a connection from **(0, 0, 0)**, in direction **next**, to **(10, 5, 3)**;
+and a connection from **(10, 5, 3)**, in direction **previous**, to **(0, 0, 0)**.
+
+An example of when you could use bypass block is if you have lots of houses but one happens to have a hole in the wall.
+This would allow you to create a hole in the house wall without creating a seperate node type.
