@@ -146,10 +146,47 @@ The above code will create a new **House** node at **(0, 0, 0)** with no [unique
 **IMPORTANT NOTICE:** Whichever node is at **(0, 0, 0)** is considered to be the **start** node. When loading in the first time, you will be placed there.
 
 ### Unique Data
-...
+Unique data is a templateless table of data that is passed to each individual node. Each node's unique data is unique to that node.  
+This can be used to create nodes with different data. For example, a "Shop" node type could optionally have unique data to define the shop's items and name.  
 
 ### Blocking Directions
-More detailed information [here](./init.md#blocked-string).
+The blocking string blocks certain directions when making connections.
+
+Use the first letter of a direction to block that direction. (left, right, up, down, forward, back, next, previous) or x, y, z and t for combined directions.  
+Use ! as the first character to invert the operation.
+
+For full details on the blocking string, read [here](./init.md#blocked-string).  
 
 ### Complete Example
-...
+``` lua
+function environment()
+    build_node(
+        "Path",
+        0, 0, 0,
+        {
+
+        },
+        ""
+    )
+
+    build_node(
+        "House",
+        1, 0, 0,
+        {
+            owner = "Bob"
+        },
+        "!l"
+    )
+
+    build_node(
+        "House",
+        -1, 0, 0,
+        {
+            owner = "Lucy"
+        },
+        "!r"
+    )
+end
+```  
+The above example shows a path in the middle and two houses at each side. The house on the right can only be entered from the left and the house on the left can only be entered from the left.  
+The house on the left has the **owner** "Lucy" and the house on the right has an **owner** "Bob".
