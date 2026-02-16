@@ -3,10 +3,7 @@
 It is just the normal roadmap but with a clearer direction for a developer. It will be more technically detailed and may include sub-steps to each goal.
 
 ## Road Map
-### Documentation (CURRENT)
-Add documentation to the entire program including better headers and .md files for the API.
-
-### Better Modules
+### Better Modules (CURRENT)
 Create a function `bool require_module( string module_name )` that will load in the required module from the campaignless directory.  
 Rename "campaignless" to "modules".  
 Take inspiration from how NeoVim works. That is, when the module is loaded, load the init file.  
@@ -49,3 +46,6 @@ Could even allow for the removal of the node_queue thing.
 ### Better Save File
 Combine the template and read data instead of overwriting. might help with corruption or invalid data types.  
 Use the functions made in [table combination](#table-combination-scripts).
+
+### Header Documentation
+Add documentation to the entire program including better headers.

@@ -1,8 +1,5 @@
 # Road Map
-## Documentation (CURRENT)
-Add documentation to the program.
-
-## Better Modules
+## Better Modules (CURRENT)
 Allow a better system to only included needed modules, from the campaignless directory.
 
 ## Reworked Nodes
