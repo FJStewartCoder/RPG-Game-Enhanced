@@ -37,7 +37,12 @@ This could allow for each node type to be better customisable.
 Why? because the current extend_node is useless. It's difficult to integrate because each node type requires seperate data fields.  
 This would be fixed by unique_data templates for each node type.  
 This could come with an upgrade to the add_node function.
-The function could be changed to add_node( string name, function on_land, function on_leave, table unique_data_template ).  
+
+The function could be changed to `new_node_type( string type_name, function on_land, function on_leave, table unique_data_template )`.  
+Also change build_node to `build_node( string type, string location_name, coords, unique_data, blocked )`.  
+**location_name** will be used in the where you want to go bit so that each specific location has an optional name instead of the node type.  
+If left blank, use the node type instead.
+
 Then, when a node is made use the table combination scripts to combine the tables.  
 Could even allow for the removal of the node_queue thing.  
 
