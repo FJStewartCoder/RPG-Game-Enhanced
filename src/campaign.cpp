@@ -169,6 +169,25 @@ int Campaign::LoadInitSettings(std::string campaignPath) {
         log_trace("Setting \"%s\" was not found", engine::settings::CAMPAIGN_NAME.c_str());
     }
     
+    // if the data exists, then update the options
+    sol::optional<sol::table> modules = initFileState[engine::settings::MODULES];
+    if ( modules ) {
+        log_debug("\"%s\" setting found", engine::settings::MODULES.c_str());
+
+        // empty the array
+        MODULES.clear();
+
+        for ( const auto &item : modules.value() ) {
+            const std::string mod_name = item.second.as<std::string>();
+
+            MODULES.push_back(mod_name);
+            log_debug("Requested module: \"%s\"", mod_name.c_str());
+        }
+    }
+    else {
+        log_trace("Setting \"%s\" was not found", engine::settings::MODULES.c_str());
+    }
+
     // return ok
     return 0;
 }
@@ -423,15 +442,6 @@ int Campaign::LoadDirectory( std::string campaignPath, int initIgnore ) {
     return 0;
 }
 
-int Campaign::LoadModule( std::string moduleName ) {
-    log_trace("Called function \"%s( %s )\"",
-        __FUNCTION__,
-        moduleName.c_str() 
-    );
-
-    return LoadDirectory( engine::directories::MODULES + "/" + moduleName, (int)Ignore::ENVIRONMENT );
-}
-
 // gets all of the campaign names and directories
 // returns a map of campaign names : directory location
 std::unordered_map<std::string, std::string> Campaign::GetCampaigns() {
@@ -483,7 +493,7 @@ std::unordered_map<std::string, std::string> Campaign::GetCampaigns() {
             // jump out of the if statement since the file is broken
             if ( !file_success ) {
                 log_error("init file is not valid.");
-                goto add_file;
+                continue;
             }
 
             sol::optional<std::string> check_name = lua[engine::settings::CAMPAIGN_NAME];
@@ -499,9 +509,6 @@ std::unordered_map<std::string, std::string> Campaign::GetCampaigns() {
             log_error("Campaign \"%s\" does not have an init file", campaign_name.c_str());
             continue;
         }
-
-        // goto for escaping the if block
-        add_file:
 
         const bool campaign_exists = campaigns.find(campaign_name) != campaigns.end();
 
@@ -574,6 +581,24 @@ int Campaign::LoadCampaign(std::string campaignName) {
         if ( res != 0 ) {
             log_error("Generic directory failed to load");
             return 1;
+        }
+    }
+
+    const bool wantsModules = !MODULES.empty();
+    if ( wantsModules ) {
+        log_trace("Loading %d modules", MODULES.size());
+
+        for ( const auto &module : MODULES ) {
+            const std::string modulePath = engine::directories::MODULES + "/" + module;
+
+            log_debug("Loading module \"%s\" with path \"%s\"", module.c_str(), modulePath.c_str());
+
+            res = LoadDirectory( modulePath, (int)Ignore::ENVIRONMENT );
+
+            if ( res != 0 ) {
+                log_error("Module \"%s\" failed to load.", module.c_str());
+                return 1;
+            }
         }
     }
 

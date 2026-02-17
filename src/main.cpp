@@ -403,7 +403,8 @@ void new_campaign() {
 
     Menu menu("Campaign Selection");
 
-    auto campaigns = Campaign::GetCampaigns();
+    Campaign campaign;
+    auto campaigns = campaign.GetCampaigns();
 
     const bool empty = campaigns.size() == 0;
 
@@ -422,7 +423,6 @@ void new_campaign() {
 
     std::string filename = get_savefile_name();
 
-    Campaign campaign;
     campaign.SetSavefile( filename );
     
     if ( campaign.LoadCampaign(campaign_choice) ) {
@@ -511,7 +511,8 @@ void test_campaign() {
 
     Menu menu("Test Campaign Selection");
 
-    auto campaigns = Campaign::GetCampaigns();
+    Campaign campaign;
+    auto campaigns = campaign.GetCampaigns();
 
     const bool empty = campaigns.size() == 0;
 
@@ -529,8 +530,6 @@ void test_campaign() {
 
     auto menu_res = menu.ShowList();
     const std::string campaign_choice = menu_res->name;
-
-    Campaign campaign;
     
     if ( campaign.LoadCampaign(campaign_choice) ) {
         log_error("Loading campaign failed");

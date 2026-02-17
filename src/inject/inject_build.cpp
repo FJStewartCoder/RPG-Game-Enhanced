@@ -76,20 +76,6 @@ int build_node_extension(sol::environment &env, sol::table extension) {
     return 0;
 }
 
-int inject_module(Campaign &campaign) {
-    campaign.build_env.set_function(
-        engine::func::api::REQUIRE_MODULE,
-
-        [&campaign](
-            std::string module_name
-        ) {
-            return campaign.LoadModule( module_name );
-        }
-    );
-
-    return 0;
-}
-
 int inject_environment_tools(sol::environment &build_env, NodeManager &nodeManager) {
     log_trace("Called function \"%s( env, NodeManager )\"", __FUNCTION__);
 
@@ -117,7 +103,7 @@ int inject_environment_tools(sol::environment &build_env, NodeManager &nodeManag
 
 
 int inject_build_tools(Campaign &campaign) {
-    log_trace("Called function \"%s( env, env, NodeManager )\"", __FUNCTION__);
+    log_trace("Called function \"%s( Campaign& )\"", __FUNCTION__);
 
     // add the extend player function
     campaign.build_env.set_function(engine::func::api::EXTEND_PLAYER, [&campaign](sol::table extension) {

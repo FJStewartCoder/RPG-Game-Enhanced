@@ -60,6 +60,9 @@ class Campaign {
         // whether or not use the generic directory
         bool USE_GENERIC = false;
 
+        // list of module names to be loaded
+        std::vector<std::string> MODULES;
+
         // the name of the savefile
         // if blank, no file is selected
         std::string SAVEFILE = "";
@@ -101,12 +104,9 @@ class Campaign {
         int LoadDirectory( std::string campaignPath, int initIgnore = 0 );
 
     public:
-        // a LoadDirectory wrapper
-        int LoadModule( std::string moduleName );
-
         // gets all of the campaign names and directories
         // returns a map of campaign names : directory location
-        static std::unordered_map<std::string, std::string> GetCampaigns();
+        std::unordered_map<std::string, std::string> GetCampaigns();
 
         int SetSavefile(std::string filename);
 

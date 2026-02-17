@@ -34,3 +34,8 @@ if not exists
     return error
 
 Load directory
+
+NEW MODULE LOAD SYSTEM:
+Have a global table called MODULES
+When loading init settings, save requested modules
+Try to load each of the modules before loading the rest of the campaign
