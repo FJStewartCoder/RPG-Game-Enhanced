@@ -91,7 +91,6 @@ void Campaign::deleteInit() {
         engine::func::extension::ENVIRONMENT,
         engine::func::extension::EXTEND,
         engine::settings::CAMPAIGN_NAME,
-        engine::settings::USE_GENERIC
     };
 
     for ( const auto &item : initVars ) {
@@ -148,16 +147,6 @@ int Campaign::LoadInitSettings(std::string campaignPath) {
     } 
 
     // extract data out of the init file
-
-    // if the data exists, then update the options
-    sol::optional<bool> useGeneric = initFileState[engine::settings::USE_GENERIC];
-    if ( useGeneric ) { 
-        USE_GENERIC = useGeneric.value();
-        log_debug("\"%s\" setting found and set to: %d", engine::settings::USE_GENERIC.c_str(), USE_GENERIC);
-    }
-    else {
-        log_trace("Setting \"%s\" was not found", engine::settings::USE_GENERIC.c_str());
-    }
 
     // if the data exists, then update the options
     sol::optional<std::string> campaignName = initFileState[engine::settings::CAMPAIGN_NAME];
@@ -572,18 +561,7 @@ int Campaign::LoadCampaign(std::string campaignName) {
         return 1;
     }
 
-    // if we want to use the generic functions, load them in
-    if ( USE_GENERIC ) {
-        log_trace("Campaign uses general functions. Loading generic functions");
-
-        res = LoadDirectory( engine::directories::GENERIC, (int)Ignore::ENVIRONMENT );
-
-        if ( res != 0 ) {
-            log_error("Generic directory failed to load");
-            return 1;
-        }
-    }
-
+    // if the script wants modules
     const bool wantsModules = !MODULES.empty();
     if ( wantsModules ) {
         log_trace("Loading %d modules", MODULES.size());

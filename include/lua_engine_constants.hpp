@@ -69,13 +69,11 @@ namespace engine {
 
     namespace settings {
         const std::string CAMPAIGN_NAME = "CAMPAIGN_NAME";
-        const std::string USE_GENERIC = "USE_GENERIC";
         const std::string MODULES = "MODULES";
     };
 
     namespace directories {
         const std::string CAMPAIGNS = "campaigns";
-        const std::string GENERIC = "campaignless";
 
         const std::string MODULES = "modules";
 

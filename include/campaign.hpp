@@ -57,9 +57,6 @@ class Campaign {
         // just the name
         std::string CAMPAIGN_NAME = "";
 
-        // whether or not use the generic directory
-        bool USE_GENERIC = false;
-
         // list of module names to be loaded
         std::vector<std::string> MODULES;
 
