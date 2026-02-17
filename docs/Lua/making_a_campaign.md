@@ -27,8 +27,13 @@ An optional step that you can take is to name your campaign to something other t
 You can do this with the following code; Assume we are creating a campaign called "Spaceship Game".  
 `CAMPAIGN_NAME = "Spaceship Game"`  
 
-If you want to use functions that are non-specific to a campaign, include the below line. **This is optional and is defaulted to false*  
-`USE_GENERIC = true`  
+If you want to use functions that are non-specific to a campaign, you can include modules from the modules directory. This can be done as shown below. **This is optional and no modules are imported*  
+``` lua
+MODULES = {
+    "module_name_1",
+    "module_name_2"
+}
+```  
 
 ### Required Functions
 There are 3 required functions for the campaign to work. Each one should only contain the functions specified for it.  

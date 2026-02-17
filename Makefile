@@ -38,11 +38,14 @@ nodes.o: src/nodes.cpp
 input.o: src/input.cpp
 	${CPPC} $^ -Iinclude -c -o $@
 
-all: src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o save.o ${INJECT} input.o
+campaign.o: src/campaign.cpp
+	${CPPC} $^ -Iinclude -c -o $@
+
+all: src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o save.o ${INJECT} input.o campaign.o
 	${CPPC} $^ -Iinclude -Llib -llua54 -lm -g
 
 # make all but with the DEV macro defined
-dev: src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o save.o ${INJECT} input.o
+dev: src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o save.o ${INJECT} input.o campaign.o
 	${CPPC} $^ -Iinclude -Llib -llua54 -lm -g -DDEV
 
 clean:

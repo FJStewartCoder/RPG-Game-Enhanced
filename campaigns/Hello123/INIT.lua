@@ -1,5 +1,3 @@
-USE_GENERIC = true
-
 function abc()
     print("ABC")
 end

@@ -1,4 +1,7 @@
-USE_GENERIC = true
+MODULES = {
+    "abc",
+    "123"
+}
 
 function build()
     do_something_funny()

@@ -5,7 +5,7 @@ Place a file named "INIT.lua" in the root of your campaign directory.
 # Settings
 ## Introduction
 Settings are used to set some information about a campaign.  
-Settings are not read if included in an INIT file in the "campaignless" directory.
+Settings are not read if included in an INIT file in the "modules" directory.
 
 ## Campaign Name
 ### Usage
@@ -17,15 +17,20 @@ By default, this is set to the name of the campaign directory.
 `CAMPAIGN_NAME = "Test Campaign"`  
 Will set the name of the campaign to "Test Campaign".
 
-## Use Campaignless Functions
+## Modules 
 ### Usage
-`boolean USE_GENERIC`  
-Can be used to set if you want to use data defined in the "campaignless" directory.  
-By default, this is set to FALSE.  
+`table MODULES`  
+This is a list of modules that you would like to import into your project from the modules directory.  
+Each module is the name of the directory excluding "modules/".
 
 ### Example
-`USE_GENERIC = true`  
-Will pull in functions and data from the campaignless directory for you to use.  
+``` lua
+MODULES = {
+    "fight",
+    "shop"
+}
+```  
+Will import "modules/fight" and "modules/shop" and will allow you to use the functions and nodes defined in these modules.
 
 # Functions
 ## Introduction

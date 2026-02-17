@@ -102,34 +102,34 @@ int inject_environment_tools(sol::environment &build_env, NodeManager &nodeManag
 } 
 
 
-int inject_build_tools(sol::environment &build_env, sol::environment &core, NodeManager &nodeManager) {
-    log_trace("Called function \"%s( env, env, NodeManager )\"", __FUNCTION__);
+int inject_build_tools(Campaign &campaign) {
+    log_trace("Called function \"%s( Campaign& )\"", __FUNCTION__);
 
     // add the extend player function
-    build_env.set_function(engine::func::api::EXTEND_PLAYER, [&core](sol::table extension) {
-        return build_player_extension(core, extension);
+    campaign.build_env.set_function(engine::func::api::EXTEND_PLAYER, [&campaign](sol::table extension) {
+        return build_player_extension(campaign.core_env, extension);
     });
 
     // add the extend node function
-    build_env.set_function(engine::func::api::EXTEND_NODE, [&core](sol::table extension) {
-        return build_node_extension(core, extension);
+    campaign.build_env.set_function(engine::func::api::EXTEND_NODE, [&campaign](sol::table extension) {
+        return build_node_extension(campaign.core_env, extension);
     });
 
     // add the add node function
-    build_env.set_function(
+    campaign.build_env.set_function(
         engine::func::api::ADD_NODE_TYPE,
         
-        [&core, &nodeManager](sol::table table) {
-            return nodeManager.new_node_type(core, table);
+        [&campaign](sol::table table) {
+            return campaign.nodeManager.new_node_type(campaign.core_env, table);
         }
     );
 
     // add the make connection function
-    build_env.set_function(
+    campaign.build_env.set_function(
         engine::func::api::ARBITRARY_CONNECTION,
 
         // TODO: improve with parse coordinates once implemented
-        [&core, &nodeManager](
+        [&campaign](
             short x1,
             short y1,
             short z1,
@@ -140,7 +140,7 @@ int inject_build_tools(sol::environment &build_env, sol::environment &core, Node
             bool one_way = false,
             bool override_blocking = false
         ) {
-            return nodeManager.make_connection(
+            return campaign.nodeManager.make_connection(
                 {x1, y1, z1},
                 {x2, y2, z2},
                 str_to_direction(dir),
@@ -150,7 +150,7 @@ int inject_build_tools(sol::environment &build_env, sol::environment &core, Node
         }
     );
 
-    inject_environment_tools(build_env, nodeManager);
+    inject_environment_tools(campaign.build_env, campaign.nodeManager);
 
     return 0;
 }

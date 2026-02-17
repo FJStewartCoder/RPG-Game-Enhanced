@@ -38,7 +38,7 @@ namespace engine {
             const std::string ADD_NODE_TYPE = "add_node";
             const std::string EXTEND_NODE = "extend_node";
             const std::string EXTEND_PLAYER = "extend_player";
-            
+
             // functions to environment creation
             const std::string BUILD_NODE = "build_node";
             const std::string ARBITRARY_CONNECTION = "make_connection";
@@ -69,12 +69,13 @@ namespace engine {
 
     namespace settings {
         const std::string CAMPAIGN_NAME = "CAMPAIGN_NAME";
-        const std::string USE_GENERIC = "USE_GENERIC";
+        const std::string MODULES = "MODULES";
     };
 
     namespace directories {
         const std::string CAMPAIGNS = "campaigns";
-        const std::string GENERIC = "campaignless";
+
+        const std::string MODULES = "modules";
 
         const std::string SAVEFILES = "savefiles";
     };
