@@ -1,4 +1,3 @@
-USE_GENERIC = false
 CAMPAIGN_NAME = "Sample Game"
 
 -- array of functions for building the environment

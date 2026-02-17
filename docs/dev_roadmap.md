@@ -3,16 +3,6 @@
 It is just the normal roadmap but with a clearer direction for a developer. It will be more technically detailed and may include sub-steps to each goal.
 
 ## Road Map
-### Documentation (CURRENT)
-Add documentation to the entire program including better headers and .md files for the API.
-
-### Better Modules
-Create a function `bool require_module( string module_name )` that will load in the required module from the campaignless directory.  
-Rename "campaignless" to "modules".  
-Take inspiration from how NeoVim works. That is, when the module is loaded, load the init file.  
-
-Upgrade campaignless directory. Instead of a single directory, have separate modules. So each directory in campaignless is a different module with its own init.
-
 ### Table Combination Scripts
 Create a combine_table function that combines two tables. This can take an argument of int ( bit field of enum ) for combination strategy
 

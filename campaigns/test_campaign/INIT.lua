@@ -1,5 +1,3 @@
-USE_GENERIC = true
-
 MODULES = {
     "abc",
     "123"
