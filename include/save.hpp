@@ -1,3 +1,6 @@
+#ifndef SAVE_HPP
+#define SAVE_HPP
+
 #include <sol/sol.hpp>
 #include <iostream>
 
@@ -62,3 +65,5 @@ namespace Read {
 
     struct TableReturn Table(FILE *fp, sol::state &lua);
 }
+
+#endif  // SAVE_HPP

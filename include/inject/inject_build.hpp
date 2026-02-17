@@ -13,10 +13,11 @@ extern "C" {
 }
 
 #include "build.hpp"
+#include "campaign.hpp"
 
 
 // injects build tools
-int inject_build_tools(sol::environment &build_env, sol::environment &core, NodeManager &nodeManager);
+int inject_build_tools(Campaign &campaign);
 
 
 #endif // INJECT_BUILD_HPP

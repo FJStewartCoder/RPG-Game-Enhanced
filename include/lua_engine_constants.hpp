@@ -38,6 +38,8 @@ namespace engine {
             const std::string ADD_NODE_TYPE = "add_node";
             const std::string EXTEND_NODE = "extend_node";
             const std::string EXTEND_PLAYER = "extend_player";
+
+            const std::string REQUIRE_MODULE = "require_module";
             
             // functions to environment creation
             const std::string BUILD_NODE = "build_node";
@@ -75,6 +77,8 @@ namespace engine {
     namespace directories {
         const std::string CAMPAIGNS = "campaigns";
         const std::string GENERIC = "campaignless";
+
+        const std::string MODULES = "modules";
 
         const std::string SAVEFILES = "savefiles";
     };
