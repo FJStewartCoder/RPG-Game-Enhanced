@@ -3,31 +3,9 @@
 It is just the normal roadmap but with a clearer direction for a developer. It will be more technically detailed and may include sub-steps to each goal.
 
 ## Road Map
-### Table Combination Scripts
-Create a combine_table function that combines two tables. This can take an argument of int ( bit field of enum ) for combination strategy
-
-For example: an option to only override data and don’t include new fields or options to preserve original type etc
-
-STRATEGIES:
-Override:
-Iterate the combining list ( not the original ) and place all of the data into the original overwriting any original data. This means that missing data in the combining list will have defaults from original.
-
-OVERWRITE_EXISTING | ADD_NEW_PROPERTIES
-
-Field Override:
-Iterate the original table and if the combining table has that field, overwrite the data in the original. The prevents new fields being added but keeps defaults if not available.
-
-OVERWRITE_EXISTING
-
-Preserve Original:
-Iterate the original, if the combining table has the same field with the same data type, overwrite the data. Same benefits as before but type is maintained as well
-
-OVERWRITE_EXISTING | PRESERVE_TYPES
-
-Additions Only:
-Iterate combining list, if the original does not have the data, add it to the original table and ignore overwriting existing data. As the name suggests, additions only.
-
-ADD_NEW_PROPERTIES
+### Better Save File (CURRENT)
+Combine the template and read data instead of overwriting. might help with corruption or invalid data types.  
+Use the functions made in "table combination".
 
 ### Reworked Nodes
 Instead of having a main node_template, each node type has its own unique_data template.  
@@ -43,10 +21,6 @@ If left blank, use the node type instead.
 
 Then, when a node is made use the table combination scripts to combine the tables.  
 Could even allow for the removal of the node_queue thing.  
-
-### Better Save File
-Combine the template and read data instead of overwriting. might help with corruption or invalid data types.  
-Use the functions made in [table combination](#table-combination-scripts).
 
 ### Header Documentation
 Add documentation to the entire program including better headers.
