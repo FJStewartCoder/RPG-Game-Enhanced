@@ -71,7 +71,7 @@ std::string ObjectToString( const sol::object &obj ) {
             break;
 
         case sol::type::string:
-            res = obj.as<std::string>();
+            res = "\"" + obj.as<std::string>() + "\"";
             break;
         
         case sol::type::table:
@@ -176,46 +176,43 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
             const sol::type valType = val.get_type();
             const sol::type otherValType = otherVal.get_type();
 
-            // if we are not preserving types, 
-            // copy the value from other to source at key
-            // ( if table, need to make a copy )
-            if ( !rules.preserve_types ) {
-                if ( otherValType == sol::type::table ) {
-                    // need to make a type copy to pass as a reference
-                    sol::table t = otherVal;
+            const bool typeMatches = (valType == otherValType );
 
-                    // copy the table to the source
-                    source[key] = CopyTable( lua, t );
-                }
-                else {
-                    source[key] = otherVal;
-                }
-
-                // complete this loop so repeat for next value
+            // if we want to preserve types and they do not match, continue
+            // this is invalid
+            if ( rules.preserve_types && !typeMatches ) {
                 continue;
             }
 
-            // perform type checking
-            // if the types are not the same, don't copy
-            if ( valType != otherValType ) {
-                continue;
-            }
+            // from all points here, the values are either the same type or we don't care the type
+            // so we can just copy over regardless
 
-            // values here have the same type
-            // if the type is not a table, copy the value simply return to start of loop
-            if ( valType != sol::type::table ) {
+            // specific table handling
+            if ( otherValType != sol::type::table ) {
+                // copy over the value
                 source[key] = otherVal;
                 continue;
             }
 
-            sol::table valAsTable = val;
+            // table handling from here
+            // THERE ARE TWO SCENARIOS: both tables or only other is a table
+
+            // make a copy to be used as a reference
             sol::table otherAsTable = otherVal;
 
-            // if we don't want to deep combine, simply make a copy
-            if ( !rules.deep_combine ) {
+            // if type does not match, then only other is a table
+            // or, we don't want to deep combine
+            // so just make a copy and assign
+            if ( !typeMatches || !rules.deep_combine ) {
                 source[key] = CopyTable( lua, otherAsTable );
+                // continue since there is no more processing
                 continue;
             }
+
+            // final scenario is both are tables that want to be deep combined
+
+            // temporary value to be used as a reference
+            sol::table valAsTable = val;
 
             // if we want to deep combine and both are table, combine using same rules
             CombineTable::ToSource( lua, valAsTable, otherAsTable, ruleset );
@@ -230,7 +227,7 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
             const auto key = item.first;
             const auto val = item.second;
 
-            const bool sourceHasKey = other[key].valid();
+            const bool sourceHasKey = source[key].valid();
 
             // if source has the key, then we are not proceding since we are not adding new data
             if ( sourceHasKey ) {
@@ -241,6 +238,7 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
             const sol::type valType = val.get_type();
 
             if ( valType == sol::type::table ) {
+                // create a temporary table to use as a reference
                 sol::table t = val;
                 source[key] = CopyTable( lua, t );
             }

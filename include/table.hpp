@@ -26,7 +26,7 @@ namespace CombineTable {
         // if this is off, a property from other being written into source will be combined regardless of type
         PRESERVE_TYPES = 1 << 2,
 
-        // will deep combine tables, if preserving types
+        // will deep combine tables
         // if this is on, will attempt to combine tables within the main table using the same rules
         // if this is off, will create a copy of the table based on the rules
         DEEP = 1 << 3,

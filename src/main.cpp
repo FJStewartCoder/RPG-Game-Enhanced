@@ -614,7 +614,7 @@ int main_menu() {
     return 0;
 }
 
-int main() {
+bool test() {
     log_set_quiet(true);
 
     sol::state lua;
@@ -624,20 +624,20 @@ int main() {
 
     a["b"] = 5;
     a["c"] = lua.create_table();
-    a["c"]["d"] = 23;
+    a["c"]["d"] = "hello";
 
     sol::table b = CopyTable(lua, a);
 
     b["c"]["d"] = 45;
     b["b"] = 8;
 
+    a["e"] = "THIS DOES NOT EXIST IN B";
+
     ShowTable(a);
     std::cout << std::endl;
     ShowTable(b);
 
-    sol::table c = CombineTable::ToNew( lua, b, a, CombineTable::OVERWRITE_EXISTING );
-
-    CombineTable::ToSource( lua, a, b, CombineTable::OVERWRITE_EXISTING );
+    sol::table c = CombineTable::ToNew( lua, b, a, CombineTable::OVERWRITE_EXISTING | CombineTable::ADD_NEW_PROPERTIES | CombineTable::DEEP | CombineTable::PRESERVE_TYPES );
 
     std::cout << "FINAL TABLES [a, b, c]:" << std::endl;
     ShowTable(a);
@@ -646,8 +646,18 @@ int main() {
     std::cout << std::endl;
     ShowTable(c);
 
-    return 0;
+    CombineTable::ToSource( lua, a, b, CombineTable::OVERWRITE_EXISTING );
 
+    std::cout << "After combining to source" << std::endl;
+
+    ShowTable(a);
+    std::cout << std::endl;
+    ShowTable(b);
+
+    return 0;
+}
+
+int main() {
     // open the log file
     FILE *fp = fopen("log.txt", "w");
 
