@@ -12,14 +12,22 @@ STRATEGIES:
 Override:
 Iterate the combining list ( not the original ) and place all of the data into the original overwriting any original data. This means that missing data in the combining list will have defaults from original.
 
+OVERWRITE_EXISTING | ADD_NEW_PROPERTIES
+
 Field Override:
 Iterate the original table and if the combining table has that field, overwrite the data in the original. The prevents new fields being added but keeps defaults if not available.
+
+OVERWRITE_EXISTING
 
 Preserve Original:
 Iterate the original, if the combining table has the same field with the same data type, overwrite the data. Same benefits as before but type is maintained as well
 
+OVERWRITE_EXISTING | PRESERVE_TYPES
+
 Additions Only:
 Iterate combining list, if the original does not have the data, add it to the original table and ignore overwriting existing data. As the name suggests, additions only.
+
+ADD_NEW_PROPERTIES
 
 ### Reworked Nodes
 Instead of having a main node_template, each node type has its own unique_data template.  
