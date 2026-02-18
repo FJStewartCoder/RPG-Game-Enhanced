@@ -42,7 +42,7 @@ campaign.o: src/campaign.cpp
 	${CPPC} $^ -Iinclude -c -o $@
 
 table.o: src/table.cpp
-	${CPPC} $^ -Iinclude -c -o $@
+	${CPPC} $^ -Iinclude -c -o $@ -DREMOVE_ANNOYING_LOG
 
 SOURCES = src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o save.o ${INJECT} input.o campaign.o table.o
 

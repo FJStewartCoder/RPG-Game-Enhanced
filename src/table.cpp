@@ -48,7 +48,10 @@ sol::table CopyTable( sol::state &lua, sol::table &table ) {
 
 // converts a sol object to a string
 std::string ObjectToString( const sol::object &obj ) {
+
+#ifndef REMOVE_ANNOYING_LOG
     log_trace("Called function \"%s( sol::object )\"", __FUNCTION__);
+#endif
 
     const sol::type type = obj.get_type();
     std::string res = "";
@@ -95,20 +98,25 @@ std::string ObjectToString( const sol::object &obj ) {
             break;
     }
 
+#ifndef REMOVE_ANNOYING_LOG
     log_debug(
         "Returning object with type \"%s\" as string: %s",
         sol::type_name(NULL, type).c_str(),
         res.c_str()
     );
+#endif
 
     return res;
 }
 
 void ShowTableReal( sol::table &table, int depth ) {
+
+#ifndef REMOVE_ANNOYING_LOG
     log_trace("Called function \"%s( table, %d )\"",
         __FUNCTION__,
         depth
     );
+#endif
 
     for ( const auto &item : table ) {
         const auto key = item.first;
@@ -210,7 +218,7 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
             // else continue processing
             if ( !otherHasKey ) {
                 log_debug(
-                    "Other table does not have key %s",
+                    "Other table does not have key %s. Not adding this property.",
                     ObjectToString( key ).c_str()
                 );
                 continue;
