@@ -37,6 +37,8 @@ extern "C" {
 
 #include "campaign.hpp"
 
+#include "table.hpp"
+
 
 
 // all errors in a namespace
@@ -613,6 +615,39 @@ int main_menu() {
 }
 
 int main() {
+    log_set_quiet(true);
+
+    sol::state lua;
+
+    lua["a"] = lua.create_table();
+    sol::table a = lua["a"];
+
+    a["b"] = 5;
+    a["c"] = lua.create_table();
+    a["c"]["d"] = 23;
+
+    sol::table b = CopyTable(lua, a);
+
+    b["c"]["d"] = 45;
+    b["b"] = 8;
+
+    ShowTable(a);
+    std::cout << std::endl;
+    ShowTable(b);
+
+    sol::table c = CombineTable::ToNew( lua, b, a, CombineTable::OVERWRITE_EXISTING );
+
+    CombineTable::ToSource( lua, a, b, CombineTable::OVERWRITE_EXISTING );
+
+    std::cout << "FINAL TABLES [a, b, c]:" << std::endl;
+    ShowTable(a);
+    std::cout << std::endl;
+    ShowTable(b);
+    std::cout << std::endl;
+    ShowTable(c);
+
+    return 0;
+
     // open the log file
     FILE *fp = fopen("log.txt", "w");
 
