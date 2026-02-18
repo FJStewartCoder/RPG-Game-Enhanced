@@ -615,8 +615,6 @@ int main_menu() {
 }
 
 bool test() {
-    log_set_quiet(true);
-
     sol::state lua;
 
     lua["a"] = lua.create_table();

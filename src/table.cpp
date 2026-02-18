@@ -16,11 +16,20 @@ sol::table CopyTable( sol::state &lua, sol::table &table ) {
         // get some data for better readability
         const auto key = item.first;
         const auto val = item.second;
-        const sol::type valType = val.get_type(); 
+        const sol::type valType = val.get_type();
+
+        log_debug(
+            "Got %s=%s with type %s",
+            ObjectToString(key).c_str(),
+            ObjectToString(val).c_str(),
+            sol::type_name(NULL, valType).c_str()
+        );
 
         // if table, copy the table
         if ( valType == sol::type::table ) {
+            // temporary table to be used as a reference
             sol::table subTable = val.as<sol::table>();
+
             result[key] = CopyTable( lua, subTable );
         }
 
@@ -29,6 +38,8 @@ sol::table CopyTable( sol::state &lua, sol::table &table ) {
             result[key] = val;
         }
     }
+    
+    log_trace("Finished copying table");
 
     return result;
 }
@@ -84,6 +95,12 @@ std::string ObjectToString( const sol::object &obj ) {
             break;
     }
 
+    log_debug(
+        "Returning object with type \"%s\" as string: %s",
+        sol::type_name(NULL, type).c_str(),
+        res.c_str()
+    );
+
     return res;
 }
 
@@ -138,11 +155,27 @@ table_rules_t parse_rules( const int ruleset ) {
         ruleset
     );
 
+    // set all of the values as constant booleans
+    const bool overwrite_existing_properties = (ruleset & CombineTable::OVERWRITE_EXISTING) != 0;
+    const bool add_new_properties = (ruleset & CombineTable::ADD_NEW_PROPERTIES) != 0;
+    const bool preserve_types = (ruleset & CombineTable::PRESERVE_TYPES) != 0;
+    const bool deep_combine = (ruleset & CombineTable::DEEP) != 0;
+
+    // output the booleans
+    log_debug(
+        "Rules: OVERWRITE_EXISTING=%d, ADD_NEW_PROPERTIES=%d, PRESERVE_TYPES=%d, DEEP=%d",
+        overwrite_existing_properties,
+        add_new_properties,
+        preserve_types,
+        deep_combine
+    );
+
+    // return a struct using the pre-calculated values
     return {
-        (ruleset & CombineTable::OVERWRITE_EXISTING) > 0,
-        (ruleset & CombineTable::ADD_NEW_PROPERTIES) > 0,
-        (ruleset & CombineTable::PRESERVE_TYPES) > 0,
-        (ruleset & CombineTable::DEEP) > 0
+        overwrite_existing_properties,
+        add_new_properties,
+        preserve_types,
+        deep_combine
     };
 }
 
@@ -157,11 +190,18 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
 
     // if overwrite existing properties, iterate the source list and check if other has them
     if ( rules.overwrite_existing_properties ) {
-        ShowTable( source );
+        log_trace("Started overwriting existing properties");
 
         for ( const auto &item : source ) {
+            // get the key and value
             const auto key = item.first;
             const auto val = item.second;
+
+            log_debug(
+                "Source has %s=%s",
+                ObjectToString( key ).c_str(),
+                ObjectToString( val ).c_str()
+            );
 
             const auto otherVal = other[key];
             const bool otherHasKey = otherVal.valid();
@@ -169,18 +209,35 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
             // if the other table does not have the same key, continue to next item 
             // else continue processing
             if ( !otherHasKey ) {
+                log_debug(
+                    "Other table does not have key %s",
+                    ObjectToString( key ).c_str()
+                );
                 continue;
             }
+
+            log_debug(
+                "Other has %s=%s",
+                ObjectToString( key ).c_str(),
+                ObjectToString( val ).c_str()
+            );
 
             // get the types for the values
             const sol::type valType = val.get_type();
             const sol::type otherValType = otherVal.get_type();
+
+            log_debug(
+                "VAL has type %s and OTHER_VAL has type %s",
+                sol::type_name(NULL, valType).c_str(),
+                sol::type_name(NULL, otherValType).c_str()
+            );
 
             const bool typeMatches = (valType == otherValType );
 
             // if we want to preserve types and they do not match, continue
             // this is invalid
             if ( rules.preserve_types && !typeMatches ) {
+                log_trace("Types do not match and PRESERVE_TYPES=true; Not processing this value.");
                 continue;
             }
 
@@ -189,10 +246,18 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
 
             // specific table handling
             if ( otherValType != sol::type::table ) {
+                log_debug(
+                    "Copying value %s to source table at key: %s",
+                    ObjectToString(otherVal).c_str(),
+                    ObjectToString(key).c_str()
+                );
+
                 // copy over the value
                 source[key] = otherVal;
                 continue;
             }
+
+            log_trace("Other value is a table");
 
             // table handling from here
             // THERE ARE TWO SCENARIOS: both tables or only other is a table
@@ -204,6 +269,13 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
             // or, we don't want to deep combine
             // so just make a copy and assign
             if ( !typeMatches || !rules.deep_combine ) {
+                log_trace("Either value is not a table or not deep combining");
+
+                log_debug(
+                    "Copying other table to source at key: %s",
+                    ObjectToString(key).c_str()
+                );
+
                 source[key] = CopyTable( lua, otherAsTable );
                 // continue since there is no more processing
                 continue;
@@ -211,26 +283,37 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
 
             // final scenario is both are tables that want to be deep combined
 
+            log_trace("Deep combining tables");
+
             // temporary value to be used as a reference
             sol::table valAsTable = val;
 
             // if we want to deep combine and both are table, combine using same rules
             CombineTable::ToSource( lua, valAsTable, otherAsTable, ruleset );
         }
+
+        log_trace("Finished overwriting existing properties");
     }
 
     // if adding new properties, iterate the other list and check if source doesn't have them
     if ( rules.add_new_properties ) {
-        ShowTable( other );
+        log_trace("Started adding new properties");
 
         for ( const auto &item : other ) {
             const auto key = item.first;
             const auto val = item.second;
 
+            log_debug(
+                "Other has %s=%s",
+                ObjectToString( key ).c_str(),
+                ObjectToString( val ).c_str()
+            );
+
             const bool sourceHasKey = source[key].valid();
 
             // if source has the key, then we are not proceding since we are not adding new data
             if ( sourceHasKey ) {
+                log_trace("Source already has this key");
                 continue;
             }
             
@@ -238,15 +321,30 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
             const sol::type valType = val.get_type();
 
             if ( valType == sol::type::table ) {
+                log_debug(
+                    "Copying table to source with key %s",
+                    ObjectToString(key).c_str()
+                );
+
                 // create a temporary table to use as a reference
                 sol::table t = val;
                 source[key] = CopyTable( lua, t );
             }
             else {
+                log_debug(
+                    "Copying value %s to source table at key: %s",
+                    ObjectToString(val).c_str(),
+                    ObjectToString(key).c_str()
+                );
+
                 source[key] = val;
             }
         }
+
+        log_trace("Finished adding new properties");
     }
+
+    log_trace("Finished combining tables");
 
     return 0;
 }
