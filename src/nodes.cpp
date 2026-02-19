@@ -40,6 +40,17 @@ int init_coords(coordinates_t *coords) {
     return 0;
 }
 
+coordinates_t create_coords( short x, short y, short z ) {
+    coordinates_t coords;
+    init_coords( &coords );
+
+    coords.x = x;
+    coords.y = y;
+    coords.z = z;
+
+    return coords;
+}
+
 std::string coords_to_str( coordinates_t *coords, bool show_hash ) {
 
 #ifndef REMOVE_ANNOYING_TRACE
@@ -70,8 +81,8 @@ std::string coords_to_str( coordinates_t *coords, bool show_hash ) {
 void node_init(node_t *node) {
     log_trace("Called function \"%s( node )\"", __FUNCTION__);
 
-    // set the node_type pointer to NULL
-    node->node_type = NULL;
+    // set the node type name to blank
+    node->node_type = "";
 
     // set the name to blank
     node->unique_name = "";

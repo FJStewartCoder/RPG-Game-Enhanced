@@ -13,16 +13,6 @@ namespace engine {
     // version 1.0.0
     const unsigned int VERSION = 100;
 
-    namespace node {
-        const std::string TEMPLATE = "NODE_DATA_TEMPLATE";
-        const std::string AVAILABLE = "AVAILIBLE_NODES";
-        const std::string QUEUE = "NODE_QUEUE";
-
-        const std::string NAME = "name";
-        const std::string LAND = "on_land";
-        const std::string LEAVE = "on_leave";
-    };
-
     namespace func {
         namespace extension {
             // function that is called that should contain the add_nodes
@@ -35,8 +25,7 @@ namespace engine {
 
         namespace api {
             // functions to extend the functionalities
-            const std::string ADD_NODE_TYPE = "add_node";
-            const std::string EXTEND_NODE = "extend_node";
+            const std::string ADD_NODE_TYPE = "new_node_type";
             const std::string EXTEND_PLAYER = "extend_player";
 
             // functions to environment creation

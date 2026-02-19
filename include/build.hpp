@@ -25,7 +25,8 @@ class NodeManager {
 
         // function to build a node
         void build_node(
-            std::string node_type,  // the name of the type
+            sol::state &lua,  // required for copying and combining tables
+            std::string type_name,  // the name of the type
             std::string location_name,  // a name of the specific node ( e.g name's house )
             coordinates_t coords,  // where the node should be placed
             sol::table unique_data,  // a table of data

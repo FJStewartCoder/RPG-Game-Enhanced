@@ -277,14 +277,6 @@ int Campaign::RunInit(std::string campaignPath, int ignore) {
 
     if ( !ignoreEnvironment ) {
 
-        // build the nodes
-        // MUST BE PERFORMED BEFORE RUNNING THE ENVIRONMENT FUNCTION
-        res = nodeManager.build_node_queue(core_env, core_env[engine::node::TEMPLATE]);
-        if ( res != 0 ) {
-            deleteInit();
-            return 1;
-        }
-
         res = RunFunctionIfExists(build_env, engine::func::extension::ENVIRONMENT);
         if ( res != 0 ) {
             deleteInit();

@@ -1,25 +1,22 @@
+--[[
 MODULES = {
     "abc",
     "123"
 }
+]]
 
 function build()
-    do_something_funny()
+    -- do_something_funny()
 
-    add_node({name = "Start", on_land = start, on_leave = start_leave, random = 2})
-    add_node({name = "2", on_land = function () end, on_leave = function () end})
-    add_node({name = "3", on_land = function () end, on_leave = function () end})
-    add_node({name = "4", on_land = function () end, on_leave = function () end})
+    new_node_type("Start", start, start_leave, {})
+    new_node_type("2", function () end, function () end, {})
+    new_node_type("3", function () end, function () end, {})
+    new_node_type("4", function () end, function () end, {})
 
     return 0
 end
 
 function extend()
-    extend_node({bob = "abc"})
-
-    -- tests validation of overwriting properties
-    extend_node({bob = "gdf"})
-    extend_node({name = "Alternate Name"})
     extend_player({f = function ()
         
     end})
@@ -27,13 +24,13 @@ end
 
 function environment()
     -- TEST IS BLOCKING WORKS ON ALL DIRECTIONS
-    build_node("Start", 0, 0, 0, {}, "rudfbnp")
-    build_node("2", 1, 0, 0, {}, "")
-    build_node("2", -1, 0, 0, {}, "")
-    build_node("2", 0, 1, 0, {}, "")
-    build_node("2", 0, -1, 0, {}, "")
-    build_node("2", 0, 0, 1, {}, "")
-    build_node("2", 0, 0, -1, {}, "")
+    build_node("Start", "", 0, 0, 0, {}, "rudfbnp")
+    build_node("2", "", 1, 0, 0, {}, "")
+    build_node("2", "", -1, 0, 0, {}, "")
+    build_node("2", "", 0, 1, 0, {}, "")
+    build_node("2", "", 0, -1, 0, {}, "")
+    build_node("2", "", 0, 0, 1, {}, "")
+    build_node("2", "", 0, 0, -1, {}, "")
 
     make_connection(0, 0, 0, 0, 1, 0, "next", false, true)
 

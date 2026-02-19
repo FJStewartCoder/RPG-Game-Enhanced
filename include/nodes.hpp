@@ -24,6 +24,9 @@ coordinates_t add_coords(coordinates_t a, coordinates_t b);
 
 int init_coords(coordinates_t *coords);
 
+// creates a new set of coordinates
+coordinates_t create_coords( short x, short y, short z );
+
 // HASH IS FORMATTED Z Y X. CONSIDER THIS WHEN READING THE HASH
 std::string coords_to_str( coordinates_t *coords, bool show_hash = false );
 
@@ -43,7 +46,7 @@ typedef struct {
 
 typedef struct node_t {
     // will be used to link to the data
-    node_type_t *node_type;
+    std::string node_type;
 
     // the name uniquely given to this node
     std::string unique_name;

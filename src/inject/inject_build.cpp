@@ -56,35 +56,15 @@ int build_player_extension(sol::environment &env, sol::table extension) {
     return 0;
 }
 
-int build_node_extension(sol::environment &env, sol::table extension) {
-    log_trace("Called function \"%s( env, table )\"", __FUNCTION__);
+int inject_environment_tools( Campaign &campaign ) {
+    log_trace("Called function \"%s( Campaign& )\"", __FUNCTION__);
 
-    for ( const auto &item : extension ) {
-        const std::string var = item.first.as<std::string>();
-
-        log_info("Extend node called with extension: \"%s\"", var.c_str());
-        
-        const auto node_template = env[engine::node::TEMPLATE];
-        
-        if ( node_template[var] != sol::nil ) {
-            log_warn("Script attempted to overwrite property: \"%s\"", var.c_str());
-            continue;
-        }
-
-        node_template[var] = item.second;
-    }
-
-    return 0;
-}
-
-int inject_environment_tools(sol::environment &build_env, NodeManager &nodeManager) {
-    log_trace("Called function \"%s( env, NodeManager )\"", __FUNCTION__);
-
-    build_env.set_function(
+    campaign.build_env.set_function(
         engine::func::api::BUILD_NODE,
 
-        [&nodeManager](
+        [&campaign](
             std::string node_type,
+            std::string location_name,
             short x,
             short y,
             short z,
@@ -95,13 +75,19 @@ int inject_environment_tools(sol::environment &build_env, NodeManager &nodeManag
             // TODO: implement later
             // const coordinates_t parsed_coords = parse_coordinate_table(coords);
 
-            return nodeManager.build_node(node_type, {x, y, z}, unique_data, blocked);
+            return campaign.nodeManager.build_node(
+                campaign.lua,
+                node_type,
+                location_name,
+                create_coords( x, y, z ),
+                unique_data,
+                blocked
+            );
         }
     );
 
     return 0;
 } 
-
 
 int inject_build_tools(Campaign &campaign) {
     log_trace("Called function \"%s( Campaign& )\"", __FUNCTION__);
@@ -111,17 +97,22 @@ int inject_build_tools(Campaign &campaign) {
         return build_player_extension(campaign.core_env, extension);
     });
 
-    // add the extend node function
-    campaign.build_env.set_function(engine::func::api::EXTEND_NODE, [&campaign](sol::table extension) {
-        return build_node_extension(campaign.core_env, extension);
-    });
-
     // add the add node function
     campaign.build_env.set_function(
         engine::func::api::ADD_NODE_TYPE,
         
-        [&campaign](sol::table table) {
-            return campaign.nodeManager.new_node_type(campaign.core_env, table);
+        [&campaign](
+            std::string type_name,
+            sol::function on_land,
+            sol::function on_leave,
+            sol::table unique_data_template
+        ) {
+            return campaign.nodeManager.new_node_type(
+                type_name,
+                on_land,
+                on_leave,
+                unique_data_template
+            );
         }
     );
 
@@ -142,8 +133,8 @@ int inject_build_tools(Campaign &campaign) {
             bool override_blocking = false
         ) {
             return campaign.nodeManager.make_connection(
-                {x1, y1, z1},
-                {x2, y2, z2},
+                create_coords( x1, y1, z1 ),
+                create_coords( x2, y2, z2 ),
                 str_to_direction(dir),
                 one_way,
                 override_blocking
@@ -151,7 +142,7 @@ int inject_build_tools(Campaign &campaign) {
         }
     );
 
-    inject_environment_tools(campaign.build_env, campaign.nodeManager);
+    inject_environment_tools( campaign );
 
     return 0;
 }

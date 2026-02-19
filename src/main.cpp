@@ -49,38 +49,6 @@ enum class errors {
     EXTEND
 };
 
-// could return none
-sol::optional<sol::table> get_node_data(sol::environment &core_env, std::string name) {
-    log_trace("Called function \"%s( env, env, %s )\"",
-        __FUNCTION__,
-        name.c_str()
-    );
-
-    sol::table node_options = core_env[engine::node::AVAILABLE];
-
-    // currently is empty until we find the table
-    sol::optional<sol::table> found_table;
-
-    // iterate the list of nodes and check if the node has the name that we are looking for
-    for ( const auto &node : node_options ) {
-        auto node_table = node.second.as<sol::optional<sol::table>>();
-
-        // skip if the node table does not exist as a table or is not a valid table/
-        if ( !node_table ) {
-            continue;
-        }
-
-        // if the names match, set found to the current table and break
-        if ( node_table.value()[engine::node::NAME] == name ) {
-            found_table = node_table;
-            break;
-        }
-    }
-
-    // return no matter what is found
-    return found_table;
-}
-
 node_directions get_player_input(node_t *node) {
     log_trace("Called function \"%s( node )\"", __FUNCTION__);
 
@@ -261,6 +229,9 @@ int gameloop(Campaign &campaign, node_t *start_node) {
     // the running state
     bool running = true;
 
+    // get a reference to all of the node types
+    TYPE_MAP &node_types = campaign.nodeManager.get_all_node_types();
+
     // STEPS:
     // get node data
     // on land ( ensures that the start activates )
@@ -280,21 +251,22 @@ int gameloop(Campaign &campaign, node_t *start_node) {
 
     while ( running ) {
         // get the current node data
-        auto cur_node_data = get_node_data(core_env, cur_node->node_type);
+        node_type_t cur_node_data = node_types[cur_node->node_type];
 
-        if ( cur_node_data ) {
-            log_debug("Current node has type: \"%s\", with ID: %lld", cur_node->node_type.c_str(), cur_node->coords.hash);
-        }
+        log_debug("Current node has type: \"%s\", with ID: %lld", cur_node->node_type.c_str(), cur_node->coords.hash);
 
         // get the player data table
         sol::table player_data = core_env[engine::player::DATA];
 
+        // get the landing function
+        auto on_land = cur_node_data.on_land;
+
         // if data exists run on land
-        if ( cur_node_data ) {
-            sol::protected_function on_land = cur_node_data.value()[engine::node::LAND];
+        if ( on_land ) {
+            auto func = on_land.value();
 
             // pass in the unique data, the node data and the player data
-            auto res = on_land(cur_node->unique_data, cur_node_data.value(), player_data);
+            auto res = func(cur_node->unique_data, player_data);
 
             if ( !res.valid() ) {
                 log_warn("Landing function failed.");
@@ -343,17 +315,20 @@ int gameloop(Campaign &campaign, node_t *start_node) {
 
         sync_player_position(cur_node, player_data);
 
-        // if data exists run on leave
-        if ( cur_node_data ) {
-            sol::protected_function on_leave = cur_node_data.value()[engine::node::LEAVE];
+        // get the landing function
+        auto on_leave = cur_node_data.on_leave;
+
+        // if on_leave exists, run on_leave
+        if ( on_leave ) {
+            auto func = on_leave.value();
 
             // pass in the unique data, the node data and the player data
-            auto res = on_leave(cur_node->unique_data, cur_node_data.value(), player_data);
+            auto res = func(cur_node->unique_data, player_data);
 
             if ( !res.valid() ) {
                 log_warn("Leaving function failed.");
 
-                // error message
+                // error details
                 sol::error error = res;
                 log_debug("\n%s", error.what());
             }

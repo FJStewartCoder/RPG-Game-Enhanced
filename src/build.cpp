@@ -8,6 +8,8 @@ extern "C" {
     #include "log/log.h"
 }
 
+#include "table.hpp"
+
 
 // CLASSLESS -----------------------------------------------------------------------------------------------------------
 
@@ -56,30 +58,6 @@ node_directions str_to_direction(std::string dir) {
     return res;
 }
 
-// checks to see if a node table is valid
-int check_default_node_table(sol::table &table) {
-    log_trace("Called function \"%s( table )\"", __FUNCTION__);
-
-    sol::optional<std::string> name = table[engine::node::NAME];
-    sol::optional<sol::function> on_land = table[engine::node::LAND];
-    sol::optional<sol::function> on_leave = table[engine::node::LEAVE];
-
-    if ( !name ) {
-        log_error("Node data does not contain name field.");
-        return 1;
-    }
-    else if ( !on_land ) {
-        log_error("Node with name \"%s\" does not have landing function.", name.value().c_str());
-        return 1;
-    }
-    else if ( !on_leave ) {
-        log_error("Node with name \"%s\" does not have leaving function.", name.value().c_str());
-        return 1;
-    }
-
-    return 0;
-}
-
 
 // CLASS ---------------------------------------------------------------------------------------------------------------
 
@@ -97,7 +75,7 @@ NodeManager::~NodeManager() {
     for ( const auto &item : environment ) {
         const node_t *node = item.second;
 
-        log_debug("Deleting node: %s", node->node_type->type_name.c_str());
+        log_debug("Deleting node: %s", node->node_type.c_str());
 
         delete node;
     }
@@ -106,30 +84,33 @@ NodeManager::~NodeManager() {
 }
 
 void NodeManager::build_node(
-    std::string node_type,
+    sol::state &lua,
+
+    std::string type_name,
     std::string location_name,
     coordinates_t coords,
     sol::table unique_data,
     std::string blocked_directions
 ) {
-    log_trace("Called function \"%s( %s, %s, table, %s )\"",
+    log_trace("Called function \"%s( sol::state&, %s, %s, %s, table, %s )\"",
         __FUNCTION__,
-        node_type.c_str(),
+        type_name.c_str(),
+        location_name.c_str(),
         coords_to_str( &coords, true ).c_str(),
         blocked_directions.c_str()
     );
 
-    const bool type_exists = all_node_types.find(node_type) != all_node_types.end();
+    // search for the node and store the result
+    const auto node_search_res = all_node_types.find( type_name );
+
+    // check if this node search is valid
+    const bool type_exists = node_search_res != all_node_types.end();
 
     if ( !type_exists ) {
         throw CustomException("This node type: does not exist or is malformed.");
     }
 
-    // allocate heap space for the new node
-    // this is done to ensure that the pointers always point to the same location
-    node_t *new_node = new node_t;
-    node_init(new_node);
-
+    // check if the coordinates are taken
     // get the hash of the coordinates requests
     const coord_hash hash = coords.hash;
     const bool position_taken = environment.find(hash) != environment.end();
@@ -138,18 +119,73 @@ void NodeManager::build_node(
         throw CustomException("These coordinates are already taken");
     }
 
+    // allocate heap space for the new node
+    // this is done to ensure that the pointers always point to the same location
+    node_t *new_node = new node_t;
+    node_init(new_node);
+
     // add the node to the new environment is the coordinates are not already taken
     environment[hash] = new_node;
 
-    // set the name, unique data, coordinates and blocked direction
-    new_node->node_type = node_type;
-    new_node->unique_data = unique_data;
+    // INITIALISE DATA ------------------------------------------------------------------------
 
-    new_node->coords = coords;
+    // initialise and set coordinates
+    new_node->coords = create_coords( coords.x, coords.y, coords.z );
+
+    // parse blocked directions
     new_node->blocked_directions = str_to_blocked_nodes( blocked_directions );
 
-    // end
-    return;
+    // set the location name and type name
+    new_node->unique_name = location_name;
+    new_node->node_type = type_name;
+
+    // PROCESS UNIQUE DATA
+
+    // create a final table
+    sol::table processed_unique_data;
+    // get the node type data
+    node_type_t node_type = ( *node_search_res ).second;
+
+    // if list, iterate the unique data and set the data in the template to the result
+    if ( IsList( unique_data ) ) {
+        // copy the template
+        processed_unique_data = CopyTable( lua, node_type.unique_data_template );
+
+        // idx stores the index in processed_unique_data
+        size_t idx = 1;
+
+        // iterate the unique data passed in and set each value
+        for ( const auto &item : unique_data ) {
+            const auto key = item.first;
+            const auto value = item.second;
+
+            auto source_value = processed_unique_data[ idx ];
+            const bool atEnd = source_value == sol::nil;
+
+            if ( atEnd ) {
+                break;
+            }
+
+            // set the source value to the new value
+            source_value = value;
+
+            idx++;
+        }
+    }
+    // else, merge the tables based on names values
+    else {
+        // combine the tables
+        // only overwrite
+        new_node->unique_data = CombineTable::ToNew(
+            lua,
+            node_type.unique_data_template,
+            unique_data,
+            CombineTable::OVERWRITE_EXISTING
+        );
+    }
+
+    // set the unique data to the processed data
+    new_node->unique_data = processed_unique_data;
 }
 
 int NodeManager::new_node_type(
@@ -158,10 +194,38 @@ int NodeManager::new_node_type(
     sol::function on_leave,
     sol::table unique_data_template
 ) {
-    log_trace("Called function \"%s( env, table )\"", __FUNCTION__);
+    log_trace("Called function \"%s( %s, function, function, table )\"",
+        __FUNCTION__,
+        type_name.c_str()
+    );
 
-    // add the node table to the new lua queue
-    core_env[engine::node::QUEUE].get<sol::table>().add(node_table);
+    // check if the type already exists
+    const bool type_exists = all_node_types.find( type_name ) != all_node_types.end();
+
+    if ( type_exists ) {
+        log_error(
+            "Node type \"%s\" already exists",
+            type_name.c_str()
+        );
+
+        return 1;
+    }
+    
+    // only create the new type once we know it is valid
+    node_type_t new_type = {
+        type_name,
+        on_land,
+        on_leave,
+        unique_data_template
+    };
+
+    // add the new type to the list
+    all_node_types[ type_name ] = new_type;
+
+    log_trace(
+        "New node type added: \"%s\"",
+        type_name.c_str()
+    );
 
     return 0;
 }
