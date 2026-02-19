@@ -4,11 +4,9 @@ It is just the normal roadmap but with a clearer direction for a developer. It w
 
 ## Road Map
 ### Reworked Nodes (CURRENT)
-TEST ALL NEW CHANGES
+campaign.md at #node-data needs to be re-written. Write in detail about the new system.
+Re-write making_a_campaign.md
 FIX DOCUMENTATION
-
-### Fix Logging
-Fix logging for newly modified functions
 
 ### Gameloop From Save
 Need to load the position first before making any actions when loading from save file. Also don't run the landing function

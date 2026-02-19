@@ -42,20 +42,35 @@ The `environment` function is excluded from INIT files in the "campaignless" dir
 `void build()`  
 Is one of three required functions to create a campaign.  
 The build function is responsible for creating the different node types.  
-Node types can be created using the [`add_node` function](#adding-node-types).  
+Node types can be created using the [`new_node_type` function](#adding-node-types).  
 
 ### Adding Node Types
 #### Usage
-`int add_node( table node_table )`
-**node_table** is a table that stores data about the node type. The data stored in it is determined by the default node table and the extensions added.  
-You can read about the default node table [here](./campaign.md#node-data).
+``` lua
+int new_node_type(
+    string type_name,
+    function on_land,
+    function on_leave,
+    table unique_data_template
+)
+```  
+
+**type_name** is the name given to this node type.  
+**on_land** is the function that is run when you land on this node.  
+**on_leave** is the function that is run when you leave this node.  
+**unique_data_template** is a table that is used as a template when building a node.  
 
 #### Example
-`add_node({
-    name = "Shop",
-    on_land = land_shop,
-    on_leave = leave_shop
-})`  
+``` lua
+new_node_type(
+    "Shop",
+    land_shop,
+    leave_shop,
+    {
+
+    }
+)
+```  
 
 ## Extend Function
 ### Usage
@@ -76,22 +91,6 @@ The extend function is used to add node and player extensions to allow nodes to 
 })`  
 Will add **health**, **damage** and **shield** to the player data table with the default values set.
 
-### Extend Node
-#### Usage
-`int extend_node( table extension_table )`  
-**extension_table** is a table that is used to extend the default node table with new data.
-
-Every node gains these new fields regardless of type.  
-The extension table is relevant to the node type and each instance of a node type can **NOT** have different data.  
-[Unique Data](./campaign.md#unique-data) can be used to achieve this, instead.  
-
-#### Example
-`extend_node({
-    show_player_data = false,
-    mission = mission1
-})`  
-Will add **show_player_data** and **mission** to the default node data table with the default values set.
-
 ## Environment Function
 ### Usage
 `void environment()`  
@@ -101,14 +100,17 @@ The environment function is responsible for actually creating the world.
 ### Adding a Node
 #### Usage
 `void build_node({
-    string name,
+    string node_type,
+    string location_name,
     short x, y, z,
     table unique_data,
     string blocked
 })`  
-**name** is the name of the node you want to build. Each node made with [`add_node()`](#adding-a-node) is available for use here.  
+
+**node_type** is the name of the node you want to build. Each node made with [`add_node()`](#adding-a-node) is available for use here.  
+**location_name** is the name of the location. It is used to show the user what the name of the location is seperately from the node type. This can be left blank.  
 **x**, **y**, **z** are the coordinates that the node will be built.  
-**unique_data** is a table of data unique to this node. This is passed to the on_land and on_leave functions.  
+**unique_data** is a table of data unique to this node. It is combined with the unique data template of the node type. This is passed to the on_land and on_leave functions.  
 **blocked** is a string of characters used to allow or disallow traversal between adjacent nodes. More can be read [here](#blocked-string).
 
 #### Blocked String
@@ -123,13 +125,14 @@ x, y, z and t are also compatible with !
 #### Example
 `build_node(
     "Shop",
+    "Bob's Shop",
     1, 0, 5,
     {
         shop-name = "Fish Market"
     },
     "!xz"
 )`  
-Will create a new node of type **Shop** at **(1, 0, 5)** with **unique data** where the **shop-name** is **"Fish Market"**. Connections will only be made in the **x** and **z** directions.
+Will create a new node of type **Shop** at **(1, 0, 5)** with **unique data** where the **shop-name** is **"Fish Market"**. Connections will only be made in the **x** and **z** directions. When showing this location in the traversal menu, the description will show **"Bob's Shop"** instead of **"Shop"**.  
 
 ### Making Connections
 #### Usage
