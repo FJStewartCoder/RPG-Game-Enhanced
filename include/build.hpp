@@ -7,6 +7,7 @@
 
 
 using NODE_MAP = std::unordered_map<coord_hash, node_t*>;
+using TYPE_MAP = std::unordered_map<std::string, node_type_t>;
 
 
 class NodeManager {
@@ -15,13 +16,7 @@ class NodeManager {
         NODE_MAP environment;
 
         // all of the types of nodes which can be used for validation 
-        std::unordered_set<std::string> all_node_types;
-
-        int build_single_node(
-            sol::environment &core_env,
-            sol::table node_template,
-            sol::table node_table
-        );
+        TYPE_MAP all_node_types;
 
     public:
         // constructor and destructor
@@ -30,9 +25,10 @@ class NodeManager {
 
         // function to build a node
         void build_node(
-            std::string node_type,
-            coordinates_t coords,
-            sol::table unique_data = sol::table(),
+            std::string node_type,  // the name of the type
+            std::string location_name,  // a name of the specific node ( e.g name's house )
+            coordinates_t coords,  // where the node should be placed
+            sol::table unique_data,  // a table of data
             std::string blocked_directions = ""  // string of blocked directions e.g "lr" would be left and right is blocked
         );
 
@@ -51,12 +47,14 @@ class NodeManager {
         node_t *get_node(coordinates_t coords);
 
         // function that is passed to lua to build new nodes
-        int new_node_type(sol::environment &core_env, sol::table node_table);
+        int new_node_type(
+            std::string type_name,  // the name of the type
+            sol::function on_land,  // landing function
+            sol::function on_leave,  // leaving function
+            sol::table unique_data_template  // a template for unique data for this specific node type
+        );
 
-        // function to build the node queue
-        int build_node_queue(sol::environment &core_env, sol::table node_template);
-
-        std::unordered_set<std::string> &get_all_node_types();
+        TYPE_MAP &get_all_node_types();
 };
 
 node_directions str_to_direction(std::string dir);

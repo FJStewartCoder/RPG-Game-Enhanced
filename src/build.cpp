@@ -97,7 +97,7 @@ NodeManager::~NodeManager() {
     for ( const auto &item : environment ) {
         const node_t *node = item.second;
 
-        log_debug("Deleting node: %s", node->node_type.c_str());
+        log_debug("Deleting node: %s", node->node_type->type_name.c_str());
 
         delete node;
     }
@@ -107,6 +107,7 @@ NodeManager::~NodeManager() {
 
 void NodeManager::build_node(
     std::string node_type,
+    std::string location_name,
     coordinates_t coords,
     sol::table unique_data,
     std::string blocked_directions
@@ -151,79 +152,16 @@ void NodeManager::build_node(
     return;
 }
 
-int NodeManager::new_node_type(sol::environment &core_env, sol::table node_table) {
+int NodeManager::new_node_type(
+    std::string type_name,
+    sol::function on_land,
+    sol::function on_leave,
+    sol::table unique_data_template
+) {
     log_trace("Called function \"%s( env, table )\"", __FUNCTION__);
 
     // add the node table to the new lua queue
     core_env[engine::node::QUEUE].get<sol::table>().add(node_table);
-
-    return 0;
-}
-
-int NodeManager::build_single_node(
-    sol::environment &core_env,
-    sol::table node_template,
-    sol::table node_table
-) {
-    log_trace("Called function \"%s( env, table, table )\"", __FUNCTION__);
-
-    // create the new table
-    sol::table new_table = core_env.create();
-    std::unordered_set<std::string> availible_keys;
-
-    log_trace("Copying node template into new table");
-
-    // copy the template into the new table
-    for ( const auto &pair : node_template ) {
-        new_table[pair.first] = pair.second;
-
-        // add the key to the set
-        availible_keys.insert(pair.first.as<std::string>());
-    }
-
-    log_trace("Populating new table with values passed in by script");
-
-    // iterate all of the new pairs
-    for ( const auto &new_pair : node_table ) {
-        // if the key already exists in the table, set the value at that key to the new value passed in
-        if ( availible_keys.find( new_pair.first.as<std::string>() ) != availible_keys.end() ) {
-            new_table[new_pair.first] = new_pair.second;
-        }
-        else {
-            log_warn("Script tried to pass key to node with key %s that is not in the template.", new_pair.first.as<std::string>().c_str() );
-        }
-    }
-
-    // validation of the default node table
-
-    // FIXES BELOW ERROR:
-    //     could experience an error where the node_table that is passed in overrights default parameters with other invalid types
-    //     ensure that when the node table is passed in, all integral data is of the correct type.
-
-    const bool default_table_invalid = check_default_node_table(new_table) != 0;
-
-    if ( default_table_invalid ) {
-        return 1;
-    }
-
-    // insert the new element to the node_types
-    const std::string node_name = new_table["name"].get<std::string>();
-    const bool node_name_found = all_node_types.find(node_name) != all_node_types.end();
-
-    if ( node_name_found ) {
-        log_error("Node \"%s\" already exists", node_name.c_str());
-        return 1;
-    }
-    
-    // add the new node_name into the node_types list
-    all_node_types.insert(node_name);
-
-    // insert back into lua
-    sol::table avail = core_env[engine::node::AVAILABLE];
-    avail.add(new_table);
-
-    // log
-    log_trace("Successfully, added new node type with name %s", new_table[engine::node::NAME].get<std::string>().c_str());
 
     return 0;
 }
@@ -261,22 +199,6 @@ node_t *NodeManager::get_node(coordinates_t coords) {
 
     // return the found node
     return node;
-}
-
-// function to build the node queue
-int NodeManager::build_node_queue(sol::environment &core_env, sol::table node_template) {
-    log_trace("Called function \"%s( env, table )\"", __FUNCTION__);
-
-    sol::table node_queue = core_env[engine::node::QUEUE];
-
-    log_debug("Node queue has length %d", node_queue.size());
-
-    for ( const auto &table : node_queue ) {
-        // second because first is the index
-        build_single_node(core_env, node_template, table.second);
-    }
-
-    return 0;
 }
 
 int NodeManager::make_connection(
@@ -488,7 +410,7 @@ int NodeManager::make_all_connections() {
     return 0;
 }
 
-std::unordered_set<std::string> &NodeManager::get_all_node_types() {
+TYPE_MAP &NodeManager::get_all_node_types() {
     log_trace("Called function \"%s()\"", __FUNCTION__);
 
     return all_node_types;

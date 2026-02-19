@@ -45,6 +45,9 @@ typedef struct node_t {
     // will be used to link to the data
     node_type_t *node_type;
 
+    // the name uniquely given to this node
+    std::string unique_name;
+
     // essentially just the index in the array
     coordinates_t coords;
 

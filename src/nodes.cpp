@@ -70,22 +70,27 @@ std::string coords_to_str( coordinates_t *coords, bool show_hash ) {
 void node_init(node_t *node) {
     log_trace("Called function \"%s( node )\"", __FUNCTION__);
 
-    node->node_type = "";
+    // set the node_type pointer to NULL
+    node->node_type = NULL;
 
-    // set id to a generic value
-    init_coords(&node->coords);
+    // set the name to blank
+    node->unique_name = "";
 
+    // initialise coordinates
+    init_coords( &node->coords );
+
+    // block no directions
     node->blocked_directions = 0;
 
-    // set all directions to null
-    node->left = nullptr;
-    node->right = nullptr;
-    node->up = nullptr;
-    node->down = nullptr;
-    node->forward = nullptr;
-    node->back = nullptr;
-    node->next = nullptr;
-    node->previous = nullptr;
+    // set all travel pointers to NULL
+    node->left = NULL;
+    node->right = NULL;
+    node->forward = NULL;
+    node->back = NULL;
+    node->up = NULL;
+    node->down = NULL;
+    node->next = NULL;
+    node->previous = NULL;
 }
 
 // TODO: I don't know what this is meant to do but I don't think that it does it
@@ -106,14 +111,14 @@ node_errors can_traverse(node_t *node) {
 
     // check each direction. if not null then it is possible to traverse
 
-    if ( node->left != nullptr ) { return NODE_OK; }
-    if ( node->right != nullptr ) { return NODE_OK; }
-    if ( node->up != nullptr ) { return NODE_OK; }
-    if ( node->down != nullptr ) { return NODE_OK; }
-    if ( node->forward != nullptr ) { return NODE_OK; }
-    if ( node->back != nullptr ) { return NODE_OK; }
-    if ( node->next != nullptr ) { return NODE_OK; }
-    if ( node->previous != nullptr ) { return NODE_OK; }
+    if ( node->left != NULL ) { return NODE_OK; }
+    if ( node->right != NULL ) { return NODE_OK; }
+    if ( node->up != NULL ) { return NODE_OK; }
+    if ( node->down != NULL ) { return NODE_OK; }
+    if ( node->forward != NULL ) { return NODE_OK; }
+    if ( node->back != NULL ) { return NODE_OK; }
+    if ( node->next != NULL ) { return NODE_OK; }
+    if ( node->previous != NULL ) { return NODE_OK; }
 
     return NODE_ERROR;
 }
@@ -129,7 +134,7 @@ node_errors traverse_node(node_t *(&node), node_directions direction) {
     node_errors res = NODE_OK;
 
     node_t *cur = node;
-    node_t *next = nullptr;
+    node_t *next = NULL;
 
     switch (direction) {
         case NODE_LEFT:
