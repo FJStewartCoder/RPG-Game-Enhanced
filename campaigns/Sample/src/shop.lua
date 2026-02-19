@@ -1,9 +1,7 @@
-function land_shop(unique, node, player)
-    if unique.name ~= nil then
-        print("SHOP: " ..unique.name)
-    end
+function land_shop(unique, player)
+    print("SHOP: " ..unique.name)
 
-    if ( unique.items == nil or #unique.items == 0 ) then
+    if ( #unique.items == 0 ) then
         print("Shop has no items")
     end
 

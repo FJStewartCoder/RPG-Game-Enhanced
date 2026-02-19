@@ -1,4 +1,4 @@
-function land_fight(unique, node, player)
+function land_fight(unique, player)
     print("You have landed on a fight")
     
     -- if the dragon boss is already defeated, return

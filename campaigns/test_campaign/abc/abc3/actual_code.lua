@@ -1,5 +1,5 @@
 -- gets the player name
-function start(data, node, player)
+function start(data, player)
     print("Hello this is a node type of " ..node.name)
     node.abc = "New thing"
 
@@ -17,7 +17,7 @@ function start(data, node, player)
     player.position.z = 1
 end
 
-function start_leave(data, node, player)
+function start_leave(data, player)
     -- manage position from the script
     --player.position.x = 3
 

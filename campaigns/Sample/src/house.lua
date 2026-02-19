@@ -1,7 +1,5 @@
-function land_house(unique, node, player)
-    if unique.name ~= nil then
-        print("Welcome to " ..unique.name .."'s house!")
-    end
+function land_house(unique, player)
+    print("Welcome to " ..unique.name .."'s house!")
 
     money_to_steal = 50
 
@@ -13,7 +11,7 @@ function land_house(unique, node, player)
     end
 end
 
-function leave_house(unique, node, player)
+function leave_house(unique, player)
     print("Thank you for visiting!")
 
     random_number = math.random(0, 1);

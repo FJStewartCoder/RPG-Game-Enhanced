@@ -1,4 +1,4 @@
-function land_start(unique, node, player)
+function land_start(unique, player)
     print("Welcome to the sample game! This is the landing function.")
 
     if player.name == "Player Name" then

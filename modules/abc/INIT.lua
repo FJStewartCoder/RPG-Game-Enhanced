@@ -1,5 +1,5 @@
 function build()
-    add_node({name = "5", on_land = thingorsomething, on_leave = thingorsomething, random = 2})
+    new_node_type("5", thingorsomething, thingorsomething, {})
 end
 
 function extend()

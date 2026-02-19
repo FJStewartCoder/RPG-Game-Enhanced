@@ -258,7 +258,7 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
             log_debug(
                 "Other has %s=%s",
                 ObjectToString( key ).c_str(),
-                ObjectToString( val ).c_str()
+                ObjectToString( otherVal ).c_str()
             );
 
             // get the types for the values

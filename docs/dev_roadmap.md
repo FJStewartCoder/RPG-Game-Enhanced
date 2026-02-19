@@ -4,7 +4,8 @@ It is just the normal roadmap but with a clearer direction for a developer. It w
 
 ## Road Map
 ### Reworked Nodes (CURRENT)
-FIX SAMPLE, MODULES AND DOCUMENTATION
+TEST ALL NEW CHANGES
+FIX DOCUMENTATION
 
 ### Fix Logging
 Fix logging for newly modified functions

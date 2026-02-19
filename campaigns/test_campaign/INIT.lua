@@ -1,9 +1,7 @@
---[[
 MODULES = {
     "abc",
     "123"
 }
-]]
 
 function build()
     -- do_something_funny()

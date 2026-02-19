@@ -10,23 +10,27 @@ build_env = {
 -- (H)ouse, (S)tart, (p)ath, (s)hop
 
 village = function ()
-    build_node("Path", 0, 0, 1, {}, "")
+    build_node("Path", "", 0, 0, 1, {}, "")
     build_node(
         "Shop",
+        "",
         1, 0, 1,
+
+        -- CAN MAKE USE OF TEMPLATE TO NOT INCLUDE KEYS
         {
-            name = "Items",
-            items = {
+            "Items",
+            {
                 { name = "Health Potion", cost = 100 }
             }
         },
         "!l"
     )  -- only allow entrance left
 
-    build_node("Path", -1, 0, 0, {}, "")
-    build_node("Start", 0, 0, 0, {}, "")
+    build_node("Path", "", -1, 0, 0, {}, "")
+    build_node("Start", "", 0, 0, 0, {}, "")
     build_node(
         "Shop",
+        "",
         1, 0, 0,
         {
             name = "Weapons",
@@ -41,6 +45,7 @@ village = function ()
 
     build_node(
         "House",
+        "",
         -1, 0, -1,
         {
             name = "Bob"
@@ -48,7 +53,7 @@ village = function ()
         "!f"
     )  -- only allow entrace from the front
 
-    build_node("House", 0, 0, -1, {}, "!f")  -- only allow entrace from the front
+    build_node("House", "", 0, 0, -1, {}, "!f")  -- only allow entrace from the front
 end,
 
 --  d
@@ -58,17 +63,25 @@ end,
 -- (V)illage, (d)ragon
 
 dragon = function ()
-    build_node("Fight", 0, 0, 2, {}, "")
+    build_node("Fight", "", 0, 0, 2, {}, "")
 end
 
 }
 
 function build()
-    add_node({name = "Start", on_land = land_start, on_leave = leave_start})
-    add_node({name = "Fight", on_land = land_fight, on_leave = leave_fight})
-    add_node({name = "Shop", on_land = land_shop, on_leave = leave_shop})
-    add_node({name = "House", on_land = land_house, on_leave = leave_house})
-    add_node({name = "Path"})
+    new_node_type("Start", land_start, leave_start, {})
+    new_node_type("Fight", land_fight, leave_fight, {})
+
+    new_node_type("Shop", land_shop, leave_shop, {
+        name = "Default Shop Name",
+        items = {}
+    })
+
+    new_node_type("House", land_house, leave_house, {
+        name = "Owner Name"
+    }) 
+
+    new_node_type("Path", function () end, function () end, {})
 end
 
 function extend()

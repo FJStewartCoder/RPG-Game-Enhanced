@@ -148,41 +148,81 @@ void NodeManager::build_node(
 
     // if list, iterate the unique data and set the data in the template to the result
     if ( IsList( unique_data ) ) {
+        log_trace("Unique data is list type");
+
         // copy the template
         processed_unique_data = CopyTable( lua, node_type.unique_data_template );
 
         // idx stores the index in processed_unique_data
         size_t idx = 1;
 
-        // iterate the unique data passed in and set each value
-        for ( const auto &item : unique_data ) {
+        // iterate the data template
+        // we need to iterate the template since when trying to index values, names values do not work
+        // so, we must think the other way around becauae this gives us the correct keys
+        for ( const auto &item : processed_unique_data ) {
+            // the key and value from the template
             const auto key = item.first;
             const auto value = item.second;
 
-            auto source_value = processed_unique_data[ idx ];
-            const bool atEnd = source_value == sol::nil;
+            log_debug(
+                "Got %s=%s while iterating unique data template",
+                ObjectToString(key).c_str(),
+                ObjectToString(value).c_str()
+            );
+            
+            // the value recieved from the passed-in unique data
+            auto recieved_value = unique_data[ idx ];
 
-            if ( atEnd ) {
+            log_debug(
+                "Recieved unique data, at idx: %d = %s",
+                idx,
+                ObjectToString(recieved_value).c_str()
+            );
+
+            // check if at end
+            const bool atEnd = recieved_value == sol::nil;
+
+            // if at the end break the loop
+            if ( atEnd ) { 
+                log_warn("Got to end of unique data before end of template");
                 break;
             }
 
-            // set the source value to the new value
-            source_value = value;
+            // if table, make a copy
+            if ( recieved_value.get_type() == sol::type::table ) {
+                // create a temporary table to be used as a reference
+                sol::table t = recieved_value;
+                processed_unique_data[ key ] = CopyTable( lua, t );
+            }
 
+            // else do a simple value copy
+            else {
+                // set the source value to the new value
+                processed_unique_data[ key ] = recieved_value;
+            }
+
+            // increment the current index to get new data in the passed-in table
             idx++;
         }
     }
+
     // else, merge the tables based on names values
     else {
+        log_trace("Unique data is dictionary-like");
+
         // combine the tables
         // only overwrite
-        new_node->unique_data = CombineTable::ToNew(
+        processed_unique_data = CombineTable::ToNew(
             lua,
             node_type.unique_data_template,
             unique_data,
+            // TODO: CONSIDER CHANGING THIS TO A DIFFERENT VALUE
             CombineTable::OVERWRITE_EXISTING
         );
     }
+
+    // debugging
+    ShowTable(processed_unique_data);
 
     // set the unique data to the processed data
     new_node->unique_data = processed_unique_data;
