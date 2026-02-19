@@ -6,14 +6,31 @@ extern "C" {
     #include "log/log.h"
 }
 
+#include "table.hpp"
+
 
 MenuItem table_to_item( const sol::table &table ) {
     log_trace("Called function \"%s( table )\"", __FUNCTION__);
 
     // try to get both the name and description
     // if neither are available
-    const std::string name = table[1].get_or<std::string>("");
-    const std::string description = table[2].get_or<std::string>("");
+    std::string name;
+    std::string description;
+
+    // if table is a list, assume { name, description }
+    if ( IsList( table ) ) {
+        log_trace("Table type is list");
+
+        name = table[1].get_or<std::string>("");
+        description = table[2].get_or<std::string>("");
+    }
+    // if dictionary-like, assume { name="name", description="description" }
+    else {
+        log_trace("Table type is dictionary-like");
+
+        name = table["name"].get_or<std::string>("");
+        description = table["description"].get_or<std::string>("");
+    }
 
     // show a debug message of the data in the new MenuItem
     log_debug("New MenuItem created with: name=\"%s\", description=\"%s\"", name.c_str(), description.c_str());

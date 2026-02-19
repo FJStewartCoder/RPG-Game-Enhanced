@@ -151,7 +151,7 @@ void ShowTable( sol::table &table ) {
 // HELPER SCRIPTS -----------------------------------------------------------------------------
 
 // iterate each key to look for the pattern 1, 2, 3, 4, 5, ...
-bool IsList( sol::table &table ) {
+bool IsList( const sol::table &table ) {
     log_trace("Called function \"%s( table )\"", __FUNCTION__);
 
     // the expected first value of the pair to be a list

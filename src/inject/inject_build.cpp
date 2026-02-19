@@ -9,6 +9,7 @@ extern "C" {
 
 
 // TODO: implement later
+// ABLE TO USE IsList from table.hpp
 coordinates_t parse_coordinate_table(sol::table &coords) {
     log_trace("Called function \"%s( table )\"", __FUNCTION__);
 

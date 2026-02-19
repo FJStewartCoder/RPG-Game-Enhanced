@@ -3,11 +3,7 @@
 It is just the normal roadmap but with a clearer direction for a developer. It will be more technically detailed and may include sub-steps to each goal.
 
 ## Road Map
-### Better Save File (CURRENT)
-Combine the template and read data instead of overwriting. might help with corruption or invalid data types.  
-Use the functions made in "table combination".
-
-### Reworked Nodes
+### Reworked Nodes (CURRENT)
 Instead of having a main node_template, each node type has its own unique_data template.  
 This could allow for each node type to be better customisable.  
 Why? because the current extend_node is useless. It's difficult to integrate because each node type requires seperate data fields.  
@@ -22,8 +18,8 @@ If left blank, use the node type instead.
 Then, when a node is made use the table combination scripts to combine the tables.  
 Could even allow for the removal of the node_queue thing.  
 
-### Header Documentation
-Add documentation to the entire program including better headers.
-
 ### Gameloop From Save
 Need to load the position first before making any actions when loading from save file. Also don't run the landing function
+
+### Header Documentation
+Add documentation to the entire program including better headers.
