@@ -9,6 +9,9 @@ std::string ObjectToString( const sol::object &obj );
 
 void ShowTable( sol::table &table );
 
+// checks if a table is a list or dictionary like
+bool IsList( sol::table &table );
+
 namespace CombineTable {
     typedef enum {
         // will overwrite existing properties in the table

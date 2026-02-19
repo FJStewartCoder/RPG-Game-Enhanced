@@ -464,9 +464,10 @@ struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
                 error = Read::Boolean(fp, bool_var);
                 res.bools.push_back(bool_var);
 
-                log_debug("Setting table data at \"%s\" to %i", var.c_str(), res.bools.back());
+                log_debug("Setting table data at \"%s\" to %d", var.c_str(), res.bools.back());
 
-                dest[var] = res.bools.back();
+                // needs to be cast to bool otherwise it is considered "userdata"
+                dest[var] = (bool)res.bools.back();
                 break;
             
             case engine::save::NIL:

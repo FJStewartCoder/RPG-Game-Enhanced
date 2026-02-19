@@ -148,6 +148,37 @@ void ShowTable( sol::table &table ) {
     ShowTableReal( table, 0 );
 }
 
+// HELPER SCRIPTS -----------------------------------------------------------------------------
+
+// iterate each key to look for the pattern 1, 2, 3, 4, 5, ...
+bool IsList( sol::table &table ) {
+    log_trace("Called function \"%s( table )\"", __FUNCTION__);
+
+    // the expected first value of the pair to be a list
+    size_t expected = 1;
+
+    for ( const auto &item : table ) {
+        const auto key = item.first;
+
+        // if the key is not an index (int), then it is not a list
+        if ( !key.is<int>() ) {
+            return false;
+        }
+
+        // if the indexes do not match up, it is not a list
+        // this is because it is possible to create a dictionary-like with ints as keys
+        if ( item.first.as<int>() != expected ) {
+            return false;
+        }
+
+        // increment the expected index
+        expected++;
+    }
+
+    // if every item passes, it is a list
+    return true;
+}
+
 // COMBINATION SCRIPTS ------------------------------------------------------------------------
 
 typedef struct {

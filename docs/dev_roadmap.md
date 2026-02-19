@@ -24,3 +24,6 @@ Could even allow for the removal of the node_queue thing.
 
 ### Header Documentation
 Add documentation to the entire program including better headers.
+
+### Gameloop From Save
+Need to load the position first before making any actions when loading from save file. Also don't run the landing function
