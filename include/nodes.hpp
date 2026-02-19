@@ -126,4 +126,6 @@ bool is_dir_blocked( int blocked_str, node_directions dir );
 
 const std::string dir_to_string( node_directions direction );
 
+node_t *get_node_in_direction( node_t &node, node_directions dir );
+
 #endif // NODES_H

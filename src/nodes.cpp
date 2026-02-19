@@ -144,47 +144,7 @@ node_errors traverse_node(node_t *(&node), node_directions direction) {
 
     node_errors res = NODE_OK;
 
-    node_t *cur = node;
-    node_t *next = NULL;
-
-    switch (direction) {
-        case NODE_LEFT:
-            next = cur->left;
-            break;
-        
-        case NODE_RIGHT:
-            next = cur->right;
-            break;
-        
-        case NODE_UP:
-            next = cur->up;
-            break;
-        
-        case NODE_DOWN:
-            next = cur->down;
-            break;
-        
-        case NODE_FORWARD:
-            next = cur->forward;
-            break;
-        
-        case NODE_BACK:
-            next = cur->back;
-            break;
-        
-        case NODE_NEXT:
-            next = cur->next;
-            break;
-        
-        case NODE_PREV:
-            next = cur->previous;
-            break;
-
-        // literally not even possible
-        default:
-            res = NODE_HOW;
-            break;
-    }
+    node_t *next = get_node_in_direction( *node, direction );
 
     res = can_traverse_direction(next);
 
@@ -379,6 +339,46 @@ const std::string dir_to_string( node_directions direction ) {
         
         default:
             res = "<UNKNOWN>";
+            break;
+    }
+
+    return res;
+}
+
+node_t *get_node_in_direction( node_t &node, node_directions dir ) {
+    node_t *res = NULL;
+
+    switch ( dir ) {
+        case NODE_LEFT:
+            res = node.left;
+            break;
+
+        case NODE_RIGHT:
+            res = node.right;
+            break;
+
+        case NODE_UP:
+            res = node.up;
+            break;
+
+        case NODE_DOWN:
+            res = node.down;
+            break;
+
+        case NODE_FORWARD:
+            res = node.forward;
+            break;
+
+        case NODE_BACK:
+            res = node.back;
+            break;
+
+        case NODE_NEXT:
+            res = node.next;
+            break;
+
+        case NODE_PREV:
+            res = node.previous;
             break;
     }
 

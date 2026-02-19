@@ -54,74 +54,54 @@ node_directions get_player_input(node_t *node) {
 
     Menu menu("", "", "Select a direction");
 
-    // get each option
-    if ( node->left != nullptr ) {
-        menu.AddItem(
-            MenuItem(
-                "left",
-                "Type: " + node->left->node_type + ", Coords: " + coords_to_str(&node->left->coords)
-            )
-        );
-    }
-    if ( node->right != nullptr ) {
-        menu.AddItem(
-            MenuItem(
-                "right",
-                "Type: " + node->right->node_type + ", Coords: " + coords_to_str(&node->right->coords)
-            )
-        );
-    }
-    if ( node->up != nullptr ) {
-        menu.AddItem(
-            MenuItem(
-                "up",
-                "Type: " + node->up->node_type + ", Coords: " + coords_to_str(&node->up->coords)
-            )
-        );
-    }
-    if ( node->down != nullptr ) {
-        menu.AddItem(
-            MenuItem(
-                "down",
-                "Type: " + node->down->node_type + ", Coords: " + coords_to_str(&node->down->coords)
-            )
-        );
-    }
-    if ( node->forward != nullptr ) {
-        menu.AddItem(
-            MenuItem(
-                "forward",
-                "Type: " + node->forward->node_type + ", Coords: " + coords_to_str(&node->forward->coords)
-            )
-        );
-    }
-    if ( node->back != nullptr ) {
-        menu.AddItem(
-            MenuItem(
-                "back",
-                "Type: " + node->back->node_type + ", Coords: " + coords_to_str(&node->back->coords)
-            )
-        );
-    }
-    if ( node->next != nullptr ) {
-        menu.AddItem(
-            MenuItem(
-                "next",
-                "Type: " + node->next->node_type + ", Coords: " + coords_to_str(&node->next->coords)
-            )
-        );
-    }
-    if ( node->previous != nullptr ) {
-        menu.AddItem(
-            MenuItem(
-                "previous",
-                "Type: " + node->previous->node_type + ", Coords: " + coords_to_str(&node->previous->coords)
-            )
-        );
+    // create a list of all of the directions you can move
+    node_directions directions[8] = {
+        NODE_LEFT,
+        NODE_RIGHT,
+        NODE_UP,
+        NODE_DOWN,
+        NODE_FORWARD,
+        NODE_BACK,
+        NODE_NEXT,
+        NODE_PREV
+    };
+
+    // iterate each direction in directions
+    for ( int i = 0; i < 8; i++ ) {
+        // get the direction
+        const node_directions dir = directions[i];
+
+        // get the node in a specific direction
+        node_t *node_in_dir = get_node_in_direction( *node, dir );
+
+        // if the new node is null, don't add it to the menu
+        if ( node_in_dir == NULL ) {
+            continue;
+        }
+
+        // if the unique_name is blank, show the user the type of the node
+        if ( node_in_dir->unique_name == "" ) {
+            menu.AddItem(
+                MenuItem(
+                    dir_to_string( dir ),
+                    "Type: " + node_in_dir->node_type + ", Coords: " + coords_to_str(&node_in_dir->coords)
+                )
+            );
+        }
+
+        // if the node has a unique name, show the user the name
+        else {
+            menu.AddItem(
+                MenuItem(
+                    dir_to_string( dir ),
+                    "Name: " + node_in_dir->unique_name + ", Coords: " + coords_to_str(&node_in_dir->coords)
+                )
+            );
+        }
     }
 
     menu.AddItem(
-        MenuItem("quit")
+        MenuItem("Quit")
     );
     
     auto menu_res = menu.ShowAliasList();
@@ -130,14 +110,14 @@ node_directions get_player_input(node_t *node) {
     log_debug("Menu returned: %s.", input.c_str());
 
     // if block again for correct return
-    if ( input == "left" ) { return NODE_LEFT; }
-    else if ( input == "right" ) { return NODE_RIGHT; }
-    else if ( input == "up" ) { return NODE_UP; }
-    else if ( input == "down" ) { return NODE_DOWN; }
-    else if ( input == "forward" ) { return NODE_FORWARD; }
-    else if ( input == "back" ) { return NODE_BACK; }
-    else if ( input == "next" ) { return NODE_NEXT; }
-    else if ( input == "previous" ) { return NODE_PREV; }
+    if ( input == "Left" ) { return NODE_LEFT; }
+    else if ( input == "Right" ) { return NODE_RIGHT; }
+    else if ( input == "Up" ) { return NODE_UP; }
+    else if ( input == "Down" ) { return NODE_DOWN; }
+    else if ( input == "Forward" ) { return NODE_FORWARD; }
+    else if ( input == "Back" ) { return NODE_BACK; }
+    else if ( input == "Next" ) { return NODE_NEXT; }
+    else if ( input == "Previous" ) { return NODE_PREV; }
 
     return NODE_QUIT;
 }

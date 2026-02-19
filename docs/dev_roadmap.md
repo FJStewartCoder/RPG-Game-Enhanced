@@ -4,7 +4,7 @@ It is just the normal roadmap but with a clearer direction for a developer. It w
 
 ## Road Map
 ### Reworked Nodes (CURRENT)
-IMPLEMENT THE LOCATION NAME SYSTEM
+FIX SAMPLE, MODULES AND DOCUMENTATION
 
 ### Fix Logging
 Fix logging for newly modified functions

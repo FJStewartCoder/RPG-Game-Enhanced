@@ -24,7 +24,7 @@ end
 
 function environment()
     -- TEST IS BLOCKING WORKS ON ALL DIRECTIONS
-    build_node("Start", "", 0, 0, 0, {}, "rudfbnp")
+    build_node("Start", "The Beginning", 0, 0, 0, {}, "rudfbnp")
     build_node("2", "", 1, 0, 0, {}, "")
     build_node("2", "", -1, 0, 0, {}, "")
     build_node("2", "", 0, 1, 0, {}, "")
