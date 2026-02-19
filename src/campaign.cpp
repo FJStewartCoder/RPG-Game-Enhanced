@@ -32,6 +32,8 @@ extern "C" {
 
 #include "input.hpp"
 
+#include "table.hpp"
+
 
 // CODE STARTS HERE --------------------------------------------------------------------------
 
@@ -696,17 +698,20 @@ int Campaign::LoadFromFile() {
         return 1;
     }
 
-    // write the loaded table to the core_env
-    // the expectation is that this is the player data
-    core_env[var] = player_data.value;
+    // get the default table
+    sol::table default_table = core_env[var];
 
-    for ( const auto &var : player_data.vars ) {
-        std::cout << var << std::endl;
-    }
+    // deep combine whilst presevering types and overwriting defaults and add new
+    // add new because inventory system
+    const int combination_rules =
+        CombineTable::DEEP | CombineTable::PRESERVE_TYPES | CombineTable::OVERWRITE_EXISTING | CombineTable::ADD_NEW_PROPERTIES;
 
-    for ( const auto &item : player_data.value ) {
-        log_debug( "%s %d", item.first.as<std::string>().c_str(), item.second.get_type());
-    }
+    // combine the tables to the source of default table
+    CombineTable::ToSource( lua, default_table, player_data.value, combination_rules );
+
+    // show the player table and final table
+    ShowTable( player_data.value );
+    ShowTable( default_table );
 
     fclose(fp);
     return 0;
