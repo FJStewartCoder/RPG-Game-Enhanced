@@ -34,7 +34,7 @@ coordinates_t parse_coordinate_table(sol::table &coords) {
     return parsed_coords;
 }
 
-
+// TODO: change both below functions to use the new table merge system
 int build_player_extension(sol::environment &env, sol::table extension) {
     log_trace("Called function \"%s( env, table )\"", __FUNCTION__);
 

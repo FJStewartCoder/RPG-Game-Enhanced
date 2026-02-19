@@ -28,9 +28,22 @@ int init_coords(coordinates_t *coords);
 std::string coords_to_str( coordinates_t *coords, bool show_hash = false );
 
 
+typedef struct {
+    // the name of the type
+    std::string type_name;
+
+    // the function called when landing on the node
+    sol::optional<sol::function> on_land;
+    // the function called when leaving the node
+    sol::optional<sol::function> on_leave;
+
+    // a data template used to make unique data better
+    sol::table unique_data_template;
+} node_type_t;
+
 typedef struct node_t {
     // will be used to link to the data
-    std::string node_type;
+    node_type_t *node_type;
 
     // essentially just the index in the array
     coordinates_t coords;
