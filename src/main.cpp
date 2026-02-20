@@ -212,6 +212,14 @@ int gameloop(Campaign &campaign, node_t *start_node) {
     // get a reference to all of the node types
     TYPE_MAP &node_types = campaign.nodeManager.get_all_node_types();
 
+    // get the player data
+    sol::table player_data = core_env[engine::player::DATA];
+
+    // check if the the player has tried to move
+    handle_script_movement( campaign, cur_node, player_data );
+    // sync the player's position
+    sync_player_position( cur_node, player_data );
+
     // STEPS:
     // get node data
     // on land ( ensures that the start activates )
@@ -236,7 +244,7 @@ int gameloop(Campaign &campaign, node_t *start_node) {
         log_debug("Current node has type: \"%s\", with ID: %lld", cur_node->node_type.c_str(), cur_node->coords.hash);
 
         // get the player data table
-        sol::table player_data = core_env[engine::player::DATA];
+        player_data = core_env[engine::player::DATA];
 
         // get the landing function
         auto on_land = cur_node_data.on_land;

@@ -5,7 +5,7 @@ It is just the normal roadmap but with a clearer direction for a developer. It w
 ## Road Map
 ### Polishing (CURRENT)
 #### Gameloop From Save (CURRENT)
-Need to load the position first before making any actions when loading from save file. Also don't run the landing function
+Consider not running the landing function when loading from save file.
 
 #### Fix TODOs
 Check all TODOs. Either fix or remove.
