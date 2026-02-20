@@ -1,7 +1,13 @@
 # Making a Campaign
 ## Introduction
 This is a simple guide to creating a simple campaign and using the functionality available.  
-Most of this guide applies to creating a campaignless module but some functions are not used.
+Most of this guide applies to creating a module but some functions are not used.
+
+A sample/example campaign is included [here](../../campaigns/Sample/).  
+The sample does **NOT** mirror this guide.
+
+If you want to see the limits of what is available, see the [test campaign](../../campaigns/test_campaign).  
+This shows everything you could do including every functions and its options, modules and deep directories.
 
 ## Campaign Directory
 To begin creating a new campaign, you need to create you campaign directory.  
@@ -75,35 +81,29 @@ end
 
 Here a table is passed to the function with the data to be extended. **You can not override existing data fields*
 
-### Node
-Although is not as useful, you can also extend the node data. This can be done in a similar fashion:  
-
-``` lua
-function extend()
-    extend_node({
-        mission = "No Mission"
-    })
-end 
-``` 
-
 ## Node Types
 ### Introduction
 To actually begin building up your toolkit of nodes, you need to create a new node type.
-Node types are created in the **build** function using the **add_node** function as such:  
+Node types are created in the **build** function using the **new_node_type** function as such:  
 
 ``` lua
 function build()
-    add_node({
-        name = "Spaceship",
-        on_land = land_spaceship,
-        on_leave = leave_spaceship,
-        mission = "No Mission"
-    })
+    add_node(
+        "Spaceship",
+        land_spaceship,
+        leave_spaceship,
+        {
+            mission = "No Mission"
+        }
+    )
 end
 ```  
-Here, a new node type has been added with name **Spaceship**. **mission** is here because we extended the node data earlier to now include this.  
-**name**, **on_land** and **on_leave** are all **REQUIRED** because these are used by the game engine.  
-**on_land** and **on_leave** are functions that are called where these actions occur. How to create one is covered next.  
+Here, a new node type has been added with name **Spaceship**.
+
+**Spaceship** is the node name.  
+**land_spaceship** is the landing function. This is called when you land on this node. More will be discussed on these later.  
+**leave_spaceship** is the leaving function. This is called when you leave this node.  
+The table is the unique data template. This is the data that will be passed to your functions. **data will be filled in differently but will use these fields*
 
 ### Making a Landing and Leaving Function
 It would now be recommended to create a new file in your campaign directory for this node type.  
@@ -112,18 +112,17 @@ The names of these functions can be anything but this example uses the scheme **
 
 In our new file create 2 functions as such:
 ``` lua
-function land_spaceship( unique, node, player )
+function land_spaceship( unique, player )
     -- YOUR CODE HERE
 end
 
-function leave_spaceship( unique, node, player )
+function leave_spaceship( unique, player )
     -- YOUR CODE HERE
 end
 ```
 
-The arguments **unique**, **node** and **player** are passed in by the game engine. These can be used to manipulate the relevant data.  
-**unique** is the unique data for this node.  
-**node** is the node data for this node.  
+The arguments **unique** and **player** are passed in by the game engine. These can be used to manipulate the relevant data.  
+**unique** is the unique data for this node. This is based on the unique data template.
 **player** is the current player data.  
 
 There is no specified return type for these functions but the return value is **NOT** read.  
@@ -138,6 +137,7 @@ Building the environment is done in the **environment** function with the **buil
 function environment()
     build_node(
         "House",
+        "Bob's House"
         0, 0, 0,
         {
 
@@ -146,11 +146,13 @@ function environment()
     )
 end
 ```  
-The above code will create a new **House** node at **(0, 0, 0)** with no [unique data](#unique-data) and no [blocking data](#blocking-directions).
+The above code will create a new **House** node at **(0, 0, 0)** with no [unique data](#unique-data) and no [blocking data](#blocking-directions).  
+The **House**'s unique name is **"Bob's House"** this will be seen by the player when navigating.  
 
 **IMPORTANT NOTICE:** Whichever node is at **(0, 0, 0)** is considered to be the **start** node. When loading in the first time, you will be placed there.
 
 ### Unique Data
+<!-- This is actually now a template REWRITE -->
 Unique data is a templateless table of data that is passed to each individual node. Each node's unique data is unique to that node.  
 This can be used to create nodes with different data. For example, a "Shop" node type could optionally have unique data to define the shop's items and name.  
 
@@ -163,6 +165,7 @@ Use ! as the first character to invert the operation.
 For full details on the blocking string, read [here](./init.md#blocked-string).  
 
 ### Complete Example
+<!--Add unique names for each node and mention the templates TODO -->
 ``` lua
 function environment()
     build_node(
