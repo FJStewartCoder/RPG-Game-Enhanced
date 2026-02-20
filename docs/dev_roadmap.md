@@ -10,9 +10,6 @@ Consider not running the landing function when loading from save file.
 #### Fix TODOs
 Check all TODOs. Either fix or remove.
 
-### LICENSES
-Find a suitable license for the engine
-
 ### Documentation
 Add documentation to the entire program including better headers.
 Finish README.md
