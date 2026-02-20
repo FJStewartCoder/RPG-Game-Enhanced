@@ -216,7 +216,9 @@ int gameloop(Campaign &campaign, node_t *start_node) {
     sol::table player_data = core_env[engine::player::DATA];
 
     // check if the the player has tried to move
-    handle_script_movement( campaign, cur_node, player_data );
+    bool player_moved_before_start =
+        handle_script_movement( campaign, cur_node, player_data );
+
     // sync the player's position
     sync_player_position( cur_node, player_data );
 
