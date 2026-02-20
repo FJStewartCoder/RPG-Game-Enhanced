@@ -702,8 +702,11 @@ int Campaign::LoadFromFile() {
     CombineTable::ToSource( lua, default_table, player_data.value, combination_rules );
 
     // show the player table and final table
+    // TODO: only show if in debug mode or something
+    /*
     ShowTable( player_data.value );
     ShowTable( default_table );
+    */
 
     fclose(fp);
     return 0;

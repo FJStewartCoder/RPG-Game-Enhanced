@@ -152,9 +152,10 @@ The **House**'s unique name is **"Bob's House"** this will be seen by the player
 **IMPORTANT NOTICE:** Whichever node is at **(0, 0, 0)** is considered to be the **start** node. When loading in the first time, you will be placed there.
 
 ### Unique Data
-<!-- This is actually now a template REWRITE -->
-Unique data is a templateless table of data that is passed to each individual node. Each node's unique data is unique to that node.  
-This can be used to create nodes with different data. For example, a "Shop" node type could optionally have unique data to define the shop's items and name.  
+Unique data is a table of data that is passed to each individual node. Each node's unique data is unique to that node.  
+The data is combined with the unique data template for the corresponsing node type.
+
+This can be used to create nodes with different data. For example, a "Shop" node type could have unique data to define the shop's items and name.  
 
 ### Blocking Directions
 The blocking string blocks certain directions when making connections.
@@ -165,11 +166,11 @@ Use ! as the first character to invert the operation.
 For full details on the blocking string, read [here](./init.md#blocked-string).  
 
 ### Complete Example
-<!--Add unique names for each node and mention the templates TODO -->
 ``` lua
 function environment()
     build_node(
         "Path",
+        "",
         0, 0, 0,
         {
 
@@ -179,6 +180,7 @@ function environment()
 
     build_node(
         "House",
+        "Bob's House",
         1, 0, 0,
         {
             owner = "Bob"
@@ -188,6 +190,7 @@ function environment()
 
     build_node(
         "House",
+        "Lucy's House",
         -1, 0, 0,
         {
             owner = "Lucy"
@@ -197,4 +200,6 @@ function environment()
 end
 ```  
 The above example shows a path in the middle and two houses at each side. The house on the right can only be entered from the left and the house on the left can only be entered from the left.  
-The house on the left has the **owner** "Lucy" and the house on the right has an **owner** "Bob".
+When naviagating, the two houses will show **"Bob's House"** and **"Lucy's House"**. The **Path** will show the node type since the value is blank.  
+The house on the left has the **owner** "Lucy" and the house on the right has an **owner** "Bob".  
+**"Bob's House"** is the start node.

@@ -14,12 +14,10 @@ table PLAYER_DATA = {
 **position** allows for location sync between the engine and the scripts.
 
 ## Saving
-<!-- FINISH THIS -->
 Only the player data is saved when saving a campaign. Extend the player data to save more data.
 
-Types that can be saved: int, float, str, bool, table, nil.  
-Other types are not supported so will be saved as nil.  
-
+Only some data types are supported. Passing in a type that is not available will be saved as nil.
+The types that can be saved are: int, float, str, bool, table, nil.  
 
 # Node Data
 ## Type Data
@@ -60,7 +58,9 @@ Each value set here is considered to the default value. This template will only 
 
 ### Arguments
 The arguments that are passed use the above base template and are per **node** rather than per **node type**.
-Arguments can either be a list or dictionary-like. Dictionary-like is prefered for readability but lists are accepted.
+Arguments can either be a list or dictionary-like. Dictionary-like is prefered for readability but lists are accepted.  
+**one risk of using list is inconsitency. ONLY use this approach with templates with either one or two keys*  
+\*\**despite examples showing more keys/value pairs are possible, it does not actually work*  
 
 Arguments are merged into the template by only overwriting existing parameters. This is a shallow merge.  
 This means that tables in the main table are entirely overwriten rather than continuing the merge within each table.  

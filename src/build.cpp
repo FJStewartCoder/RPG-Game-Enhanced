@@ -222,7 +222,11 @@ void NodeManager::build_node(
     }
 
     // debugging
+    // TODO: only show if in debug mode or something
+    /*
     ShowTable(processed_unique_data);
+    std::cout << std::endl;
+    */
 
     // set the unique data to the processed data
     new_node->unique_data = processed_unique_data;

@@ -1,5 +1,9 @@
 -- gets the player name
 function start(data, player)
+    node = {
+        name = "NO LONGER IMPLEMENTED"
+    }
+
     print("Hello this is a node type of " ..node.name)
     node.abc = "New thing"
 
