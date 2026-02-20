@@ -216,17 +216,17 @@ void NodeManager::build_node(
             lua,
             node_type.unique_data_template,
             unique_data,
-            // TODO: CONSIDER CHANGING THIS TO A DIFFERENT VALUE
+            // THIS MAY BE SUBJECT TO CHANGE
             CombineTable::OVERWRITE_EXISTING
         );
     }
 
+#ifdef DEV
+    log_debug("The final processed unique data table is as follows:");
     // debugging
-    // TODO: only show if in debug mode or something
-    /*
     ShowTable(processed_unique_data);
     std::cout << std::endl;
-    */
+#endif
 
     // set the unique data to the processed data
     new_node->unique_data = processed_unique_data;

@@ -701,12 +701,16 @@ int Campaign::LoadFromFile() {
     // combine the tables to the source of default table
     CombineTable::ToSource( lua, default_table, player_data.value, combination_rules );
 
+#ifdef DEV
     // show the player table and final table
-    // TODO: only show if in debug mode or something
-    /*
+    log_debug("The saved table is shown below:");
     ShowTable( player_data.value );
+    std::cout << std::endl;
+
+    log_debug("The processed and loaded table is shown below:");
     ShowTable( default_table );
-    */
+    std::cout << std::endl;
+#endif
 
     fclose(fp);
     return 0;

@@ -6,11 +6,9 @@ It is just the normal roadmap but with a clearer direction for a developer. It w
 ### Polishing (CURRENT)
 #### Fix TODOs
 Check all TODOs. Either fix or remove.
+
 inject_build @ 11, 37, 75, 123
-build.cpp @ 219, 225
-campaign.cpp @ 705
 main.cpp @ 284
-nodes.cpp @ 207
 
 ### Documentation
 Add documentation to the entire program including better headers.
@@ -27,3 +25,4 @@ Currently undecided on this.
 
 #### Unique Data Merge Strategy
 Consider changing the merge strategy for the unique data and template
+build.cpp @ line ~220

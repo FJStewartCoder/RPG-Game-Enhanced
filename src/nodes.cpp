@@ -104,7 +104,7 @@ void node_init(node_t *node) {
     node->previous = NULL;
 }
 
-// TODO: I don't know what this is meant to do but I don't think that it does it
+// I don't know what this is meant to do but I don't think that it does it
 node_errors can_traverse_direction(node_t *node) {
     log_trace("Called function \"%s( node )\"", __FUNCTION__);
 

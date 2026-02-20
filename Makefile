@@ -51,6 +51,8 @@ all: ${SOURCES}
 
 # make all but with the DEV macro defined
 dev: ${SOURCES}
+	${CPPC} src/build.cpp -Iinclude -c -o build.o -DDEV
+	${CPPC} src/campaign.cpp -Iinclude -c -o campaign.o -DDEV
 	${CPPC} $^ -Iinclude -Llib -llua54 -lm -g -DDEV
 
 clean:
