@@ -1,6 +1,6 @@
 # Road Map
-## Better Save File (CURRENT)
-The save file will be better loaded preventing issues.
+## Bug Fixes
+Fix some bugs such as loading from save file and adding quit options to all menus.
 
-## Reworked Nodes
-Have unique data templates rather than node templates which makes node function creation easier.
+## Better API
+Give scripts better access to the functions available.
