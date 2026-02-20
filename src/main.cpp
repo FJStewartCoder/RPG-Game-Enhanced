@@ -375,8 +375,18 @@ void new_campaign() {
         menu.AddItem(item.first);
     }
 
+    // add the back item
+    menu.AddItem( 
+        MenuItem( "Back" )
+    );
+
     auto menu_res = menu.ShowList();
     const std::string campaign_choice = menu_res->name;
+
+    if ( campaign_choice == "Back" ) {
+        log_trace("User chose to back out of this menu");
+        return;
+    }
 
     std::string filename = get_savefile_name();
 
@@ -442,8 +452,18 @@ void load_campaign() {
         fclose(fp);
     }
 
+    // add the back item
+    savefile_menu.AddItem(
+        MenuItem( "Back" )
+    );
+
     auto menu_res = savefile_menu.ShowList();
     const std::string campaign_choice = menu_res->name;
+
+    if ( campaign_choice == "Back" ) {
+        log_trace("User chose to back out of this menu");
+        return;
+    }
 
     Campaign campaign;
     campaign.SetSavefile( campaign_choice );
@@ -485,8 +505,18 @@ void test_campaign() {
         );
     }
 
+    // add a quit option
+    menu.AddItem(
+        MenuItem( "Back" )
+    );
+
     auto menu_res = menu.ShowList();
     const std::string campaign_choice = menu_res->name;
+
+    if ( campaign_choice == "Back" ) {
+        log_trace("User chose to back out of this menu.");
+        return;
+    }
     
     if ( campaign.LoadCampaign(campaign_choice) ) {
         log_error("Loading campaign failed");
