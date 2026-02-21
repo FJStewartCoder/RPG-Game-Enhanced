@@ -137,7 +137,7 @@ int inject_table_functions( Campaign &campaign ) {
         [](
             sol::table table
         ) {
-            return ShowTable( table );
+            ShowTable( table );
         }
     );
 

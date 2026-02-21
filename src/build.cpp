@@ -216,7 +216,12 @@ void NodeManager::build_node(
             lua,
             node_type.unique_data_template,
             unique_data,
-            // THIS MAY BE SUBJECT TO CHANGE
+            /*
+            Won't be added because...
+            DEEP - You would be unable to have a list as a parameter
+            ADD_NEW - The script would not expect other data
+            ENFORCE_TYPES - Why restrict the freedom? The user can type check themselves
+            */
             CombineTable::OVERWRITE_EXISTING
         );
     }
