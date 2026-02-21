@@ -58,7 +58,10 @@ function environment()
     -- build_node("2", "", {-32769, -32769, -32769}, {}, "")
 
     make_connection({0, 0, 0}, {0, 1, 0}, "next", false, true)
-end
+
+    -- create the other nodes
+    blank()
+end 
 
 function blank()
     --  2 

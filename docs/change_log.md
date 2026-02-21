@@ -12,3 +12,7 @@ To the script API.
 
 Added validation to coordinates when passed in via make_connection or build_node.  
 Updated documentation to reflect new changes.
+
+## Version 1.0.2
+Added get_node in the script API.  
+Updated documentation to reflect changes.

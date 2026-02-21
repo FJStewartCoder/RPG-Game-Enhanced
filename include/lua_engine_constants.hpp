@@ -10,8 +10,8 @@
 
 
 namespace engine {
-    // version 1.0.1
-    const unsigned int VERSION = 101;
+    // version 1.0.2
+    const unsigned int VERSION = 102;
 
     namespace func {
         namespace extension {
@@ -31,7 +31,7 @@ namespace engine {
             // functions to environment creation
             const std::string BUILD_NODE = "build_node";
             const std::string ARBITRARY_CONNECTION = "make_connection";
-        }
+        };
 
         namespace scripts_api {
             // functions bound to menu creation
@@ -47,7 +47,11 @@ namespace engine {
                 const std::string SHOW = "show_table";
                 const std::string MERGE = "merge_table";
             };
-        }
+
+            namespace node {
+                const std::string GET_NODE = "get_node";
+            };
+        };
     };
 
     namespace player {

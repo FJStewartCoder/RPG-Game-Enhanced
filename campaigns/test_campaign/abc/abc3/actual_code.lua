@@ -64,4 +64,16 @@ function start_leave(data, player)
     -- play ground for merging tables
     table3 = merge_table( table1, table2, "oad" )
     show_table(table3)
+
+
+    -----------------------------------------------------------
+
+    node = get_node({10, 5, 2})
+    show_table( node )
+
+    node = get_node({0, 0, 0})
+    show_table( node )
+
+    node = get_node({1, 2, 0})
+    show_table( node )
 end

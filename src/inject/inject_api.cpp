@@ -7,6 +7,7 @@ extern "C" {
 }
 
 #include "table.hpp"
+#include "nodes.hpp"
 
 
 MenuItem table_to_item( const sol::table &table ) {
@@ -183,6 +184,47 @@ int inject_table_functions( Campaign &campaign ) {
     return 0;
 }
 
+int inject_node_functions( Campaign &campaign ) {
+    using namespace engine::func::scripts_api::node;
+
+    campaign.scripts_env.set_function(
+        GET_NODE,
+
+        [&campaign](
+            sol::table coords 
+        ) {
+            // the res
+            sol::table res = campaign.lua.create_table_with(
+                "type", "NONE",  // the type of the node
+                "unique_name", "",  // the unique name data
+                "exists", false,  // if the node requested exists
+                "value", campaign.lua.create_table()  // the unique data table
+            );
+
+            // get the node
+            node_t *found_node = 
+                campaign.nodeManager.get_node(
+                    parse_coordinate_table( coords )
+                );
+                
+            // check if the node exists
+            const bool node_exists = found_node != NULL;
+            
+            // if the node exist, set that it exists and pass in the unique data
+            if ( node_exists ) {
+                res["type"] = found_node->node_type;
+                res["unique_name"] = found_node->unique_name;
+                res["exists"] = true;
+                res["value"] = found_node->unique_data;
+            }
+            
+            // return the table
+            return res;
+        }
+    );
+
+    return 0;
+}
 
 int inject_api( Campaign &campaign ) {
     log_trace("Called function \"%s( env, VirtualEvent& )\"",
@@ -215,6 +257,7 @@ int inject_api( Campaign &campaign ) {
 
     inject_virtual_events( campaign.scripts_env, campaign.event );
     inject_table_functions( campaign );
+    inject_node_functions( campaign );
 
     return 0;
 }
