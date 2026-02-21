@@ -542,6 +542,47 @@ void test_campaign() {
 }
 #endif
 
+// adds the required directories if they do not exist
+void fix_file_structure() {
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
+    using namespace std;
+
+    const std::string dirs[] = {
+        engine::directories::MODULES,
+        engine::directories::CAMPAIGNS,
+        engine::directories::SAVEFILES
+    };
+
+    for ( const auto &item : dirs ) {
+        log_trace("Checking if directory \"%s\" exists", item.c_str());
+
+        const bool exists = filesystem::exists( item );
+
+        if ( exists ) { 
+            log_trace("Directory already exists");
+            continue;
+        }
+
+        log_trace("Creating directory");
+
+        const bool success = filesystem::create_directory( item );
+
+        if ( !success ) {
+            log_warn("Directory was not successfully created");
+        }
+        else {
+            log_trace("Directory was successfully created");
+        }
+    }
+
+    // if the user deleted the license, terminate them
+    if ( !filesystem::exists( "LICENSE" ) ) {
+        std::cout << "I can see that you deleted the LICENSE. Put it back." << std::endl;
+        exit( 1 );
+    }
+}
+
 int main_menu() {
     log_trace("Called function \"%s()\"", __FUNCTION__);
 
@@ -576,6 +617,8 @@ int main_menu() {
     );
 
     while ( true ) {
+        // each iteration, check the filesystem
+        fix_file_structure();
 
         auto res = menu.ShowList();
         const std::string choice = res->name;
@@ -608,6 +651,8 @@ int main_menu() {
 
     return 0;
 }
+
+// --------------------------------------------------------------------------------------
 
 bool test() {
     sol::state lua;
