@@ -739,7 +739,7 @@ Campaign::Campaign() {
 
     inject_core(core_env);
     inject_build_tools(*this);
-    inject_api(scripts_env, event);
+    inject_api(*this);
 
     // ---------------------------------------------------------------------------------------------------------------------------
 }

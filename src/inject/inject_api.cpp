@@ -118,12 +118,39 @@ int inject_virtual_events( sol::environment &scripts_env, VirtualEvents &event )
 }
 
 
-int inject_api(sol::environment scripts_env, VirtualEvents &event) {
+int inject_table_functions( Campaign &campaign ) {
+    using namespace engine::func::scripts_api::table;
+
+    // set copy_table to the copy function
+    campaign.scripts_env.set_function(
+        COPY,
+        [&campaign](
+            sol::table table
+        ) {
+            return CopyTable( campaign.lua, table );
+        }
+    );
+
+    // set show_table to the ShowTable function
+    campaign.scripts_env.set_function(
+        SHOW,
+        [](
+            sol::table table
+        ) {
+            return ShowTable( table );
+        }
+    );
+
+    return 0;
+}
+
+
+int inject_api( Campaign &campaign ) {
     log_trace("Called function \"%s( env, VirtualEvent& )\"",
         __FUNCTION__
     );
 
-    scripts_env.set_function(
+    campaign.scripts_env.set_function(
         engine::func::scripts_api::BASIC_MENU,
     
         [](
@@ -135,7 +162,7 @@ int inject_api(sol::environment scripts_env, VirtualEvents &event) {
         }
     );
 
-    scripts_env.set_function(
+    campaign.scripts_env.set_function(
         engine::func::scripts_api::ALTERNATE_MENU,
     
         [](
@@ -147,7 +174,8 @@ int inject_api(sol::environment scripts_env, VirtualEvents &event) {
         }
     );
 
-    inject_virtual_events( scripts_env, event );
+    inject_virtual_events( campaign.scripts_env, campaign.event );
+    inject_table_functions( campaign );
 
     return 0;
 }

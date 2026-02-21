@@ -7,9 +7,9 @@ It is just the normal roadmap but with a clearer direction for a developer. It w
 TODO or
 main.cpp @ 284
 
-### Better API
-Give scripts access to copy, merge and show table functions.
-+DOCS
+### Better API (CURRENT)
+Give scripts access to merge table functions.
++DOCS ( copy, show and merge )
 
 ## Considerations
 ### Unique Data Merge Strategy

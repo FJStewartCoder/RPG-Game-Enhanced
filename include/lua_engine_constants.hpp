@@ -40,7 +40,12 @@ namespace engine {
 
             namespace virtual_events {
                 const std::string QUIT = "quit";
-            }
+            };
+
+            namespace table {
+                const std::string COPY = "copy_table";
+                const std::string SHOW = "show_table";
+            };
         }
     };
 

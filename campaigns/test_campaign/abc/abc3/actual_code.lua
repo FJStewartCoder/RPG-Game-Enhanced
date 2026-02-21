@@ -1,5 +1,19 @@
 -- gets the player name
 function start(data, player)
+    new_table = {
+        name = "hello"
+    }
+
+    other_table = copy_table( new_table )
+    other_table.name = "not hello"
+
+    show_table(new_table)
+    show_table(other_table)
+
+
+    ----------------------------------------------------------------
+
+
     node = {
         name = "NO LONGER IMPLEMENTED"
     }

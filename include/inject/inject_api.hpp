@@ -5,8 +5,10 @@
 #include "sol/sol.hpp"
 #include "lua_engine_constants.hpp"
 
+#include "campaign.hpp"
 
-int inject_api(sol::environment scripts_env, VirtualEvents &event);
+
+int inject_api( Campaign &campaign );
 
 
 #endif // INJECT_API_HPP
