@@ -15,6 +15,3 @@ Give scripts access to copy, merge and show table functions.
 ### Unique Data Merge Strategy
 Consider changing the merge strategy for the unique data and template
 build.cpp @ line ~220
-
-### Parse Coordinate Table Validation
-Add validation for entering numbers too big or too small when parsing coordinates.

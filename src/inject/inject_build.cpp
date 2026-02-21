@@ -8,28 +8,46 @@ extern "C" {
 #include "build.hpp"
 #include "table.hpp"
 
+#include "custom_exception.hpp"
+
+// max and min are 32767 -32768 this is 0b0111 1111 1111 1111 and 0b1000 0000 0000 0000
+
+// the biggest possible short 0xffff >> 1 because all 1s except the first (left to right)
+const static inline int max_short = (short)(0xffff >> 1); 
+// min short is 0b 1000 0000 0000 0000
+const static inline int min_short = (short)(1 << 15);
+
+
+bool is_valid_short( int num ) {
+    return ( num <= max_short ) && ( num >= min_short );
+}
 
 coordinates_t parse_coordinate_table(sol::table &coords) {
     log_trace("Called function \"%s( table )\"", __FUNCTION__);
 
     // initialise x, y, and z
-    short x, y, z; 
+    int x, y, z; 
 
     // get the values from the table
     if ( IsList( coords ) ) {
         // if list, assume that the first 3 values are x, y, z
-        x = coords[1].get_or<short>( 0 );
-        y = coords[2].get_or<short>( 0 );
-        z = coords[3].get_or<short>( 0 );
+        x = coords[1].get_or( 0 );
+        y = coords[2].get_or( 0 );
+        z = coords[3].get_or( 0 );
     }
     else {
         // if dict-like, assume there are keys x, y, z
-        x = coords["x"].get_or<short>( 0 );
-        y = coords["y"].get_or<short>( 0 );
-        z = coords["z"].get_or<short>( 0 );
+        x = coords["x"].get_or( 0 );
+        y = coords["y"].get_or( 0 );
+        z = coords["z"].get_or( 0 );
     }
 
-    // create a coords but shoving the ints in
+    // if any are invalid, throw an exception
+    if ( !is_valid_short(x) ) { throw CustomException("x must be between 32767 and -32768"); }
+    if ( !is_valid_short(y) ) { throw CustomException("y must be between 32767 and -32768"); }
+    if ( !is_valid_short(z) ) { throw CustomException("z must be between 32767 and -32768"); }
+
+    // only valid shorts are not shoved in
     coordinates_t res = create_coords( x, y, z );
 
     log_debug("Parsed table to coords %s", coords_to_str(&res, true).c_str() );

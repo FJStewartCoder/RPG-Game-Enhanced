@@ -49,8 +49,18 @@ function environment()
     build_node("2", "", {0, 0, 1}, {}, "")
     build_node("2", "", {0, 0, -1}, {}, "")
 
-    make_connection({0, 0, 0}, {0, 1, 0}, "next", false, true)
+    -- max and min are 32767 -32768
+    build_node("2", "", {32767, 32767, 32767}, {}, "")
+    -- too big
+    -- build_node("2", "", {32768, 32768, 32768}, {}, "")
+    build_node("2", "", {-32768, -32768, -32768}, {}, "")
+    -- too small
+    -- build_node("2", "", {-32769, -32769, -32769}, {}, "")
 
+    make_connection({0, 0, 0}, {0, 1, 0}, "next", false, true)
+end
+
+function blank()
     --  2 
     -- 2S2
     --  2
