@@ -31,22 +31,25 @@ function build()
 end
 
 function extend()
-    extend_player({f = function ()
-        
-    end})
+
+    extend_player({
+        f = function () end,
+        name = "Different Name"
+    })
+
 end
 
 function environment()
     -- TEST IS BLOCKING WORKS ON ALL DIRECTIONS
-    build_node("Start", "The Beginning", 0, 0, 0, {}, "rudfbnp")
-    build_node("2", "", 1, 0, 0, {}, "")
-    build_node("2", "", -1, 0, 0, {}, "")
-    build_node("2", "", 0, 1, 0, {}, "")
-    build_node("2", "", 0, -1, 0, {}, "")
-    build_node("2", "", 0, 0, 1, {}, "")
-    build_node("2", "", 0, 0, -1, {}, "")
+    build_node("Start", "The Beginning", {0, 0, 0}, {}, "rudfbnp")
+    build_node("2", "", {1, 0, 0}, {}, "")
+    build_node("2", "", {-1, 0, 0}, {}, "")
+    build_node("2", "", {0, 1, 0}, {}, "")
+    build_node("2", "", {0, -1, 0}, {}, "")
+    build_node("2", "", {0, 0, 1}, {}, "")
+    build_node("2", "", {0, 0, -1}, {}, "")
 
-    make_connection(0, 0, 0, 0, 1, 0, "next", false, true)
+    make_connection({0, 0, 0}, {0, 1, 0}, "next", false, true)
 
     --  2 
     -- 2S2

@@ -7,8 +7,9 @@ It is just the normal roadmap but with a clearer direction for a developer. It w
 #### Fix TODOs
 Check all TODOs. Either fix or remove.
 
-inject_build @ 11, 37, 75, 123
 main.cpp @ 284
+
+MODIFY DOCS TO DISCUSS THE NEW COORDS SYSTEM IN API
 
 ### Documentation
 Add documentation to the entire program including better headers.

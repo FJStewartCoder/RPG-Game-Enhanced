@@ -10,7 +10,7 @@ build_env = {
 -- (H)ouse, (S)tart, (p)ath, (s)hop
 
 village = function ()
-    build_node("Path", "", 0, 0, 1, {}, "")
+    build_node("Path", "", {0, 0, 1}, {}, "")
     build_node(
         "Shop",
         "",
@@ -26,8 +26,8 @@ village = function ()
         "!l"
     )  -- only allow entrance left
 
-    build_node("Path", "", -1, 0, 0, {}, "")
-    build_node("Start", "", 0, 0, 0, {}, "")
+    build_node("Path", "", {-1, 0, 0}, {}, "")
+    build_node("Start", "", {0, 0, 0}, {}, "")
     build_node(
         "Shop",
         "",
@@ -53,7 +53,7 @@ village = function ()
         "!f"
     )  -- only allow entrace from the front
 
-    build_node("House", "", 0, 0, -1, {}, "!f")  -- only allow entrace from the front
+    build_node("House", "", {0, 0, -1}, {}, "!f")  -- only allow entrace from the front
 end,
 
 --  d

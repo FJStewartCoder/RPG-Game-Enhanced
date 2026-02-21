@@ -6,52 +6,48 @@ extern "C" {
 }
 
 #include "build.hpp"
+#include "table.hpp"
 
 
-// TODO: implement later
-// ABLE TO USE IsList from table.hpp
 coordinates_t parse_coordinate_table(sol::table &coords) {
     log_trace("Called function \"%s( table )\"", __FUNCTION__);
 
-    coordinates_t parsed_coords;
+    // initialise x, y, and z
+    short x, y, z; 
 
-    // initialise coordinates
-    init_coords(&parsed_coords);
-
-    const bool invalid_length = coords.size() != 3;
-
-    // return incomplete coordinates
-    if ( invalid_length ) {
-        return parsed_coords;
+    // get the values from the table
+    if ( IsList( coords ) ) {
+        // if list, assume that the first 3 values are x, y, z
+        x = coords[1].get_or<short>( 0 );
+        y = coords[2].get_or<short>( 0 );
+        z = coords[3].get_or<short>( 0 );
+    }
+    else {
+        // if dict-like, assume there are keys x, y, z
+        x = coords["x"].get_or<short>( 0 );
+        y = coords["y"].get_or<short>( 0 );
+        z = coords["z"].get_or<short>( 0 );
     }
 
-    // check if using x=, y=, z= system or a list of 3 ints
-    // then, parse each value to a short ( if over some boundry set as 0 )
-    for ( const auto &point : coords ) {
+    // create a coords but shoving the ints in
+    coordinates_t res = create_coords( x, y, z );
 
-    }
+    log_debug("Parsed table to coords %s", coords_to_str(&res, true).c_str() );
 
-    return parsed_coords;
+    return res;
 }
 
-// TODO: change below function to use the new table merge system
-int build_player_extension(sol::environment &env, sol::table extension) {
+int build_player_extension( Campaign &campaign, sol::table extension) {
     log_trace("Called function \"%s( env, table )\"", __FUNCTION__);
 
-    for ( const auto &item : extension ) {     
-        const std::string var = item.first.as<std::string>();
+    // get the template
+    auto player_template = campaign.core_env[engine::player::DATA].get<sol::table>();
 
-        log_info("Extend player called with extension: \"%s\"", var.c_str());
-        
-        const auto player_template = env[engine::player::DATA];
-        
-        if ( player_template[var] != sol::nil ) {
-            log_warn("Script attempted to overwrite property: \"%s\"", var.c_str());
-            continue;
-        }
-
-        player_template[var] = item.second;
-    }
+    // combine by only adding new properties
+    CombineTable::ToSource(
+        campaign.lua, player_template, extension,
+        CombineTable::ADD_NEW_PROPERTIES
+    );
 
     return 0;
 }
@@ -65,21 +61,18 @@ int inject_environment_tools( Campaign &campaign ) {
         [&campaign](
             std::string node_type,
             std::string location_name,
-            short x,
-            short y,
-            short z,
-            sol::table unique_data = sol::table(),
+            sol::table coords,
+            sol::table unique_data,
             std::string blocked = ""
         ) {
             // parse coords
-            // TODO: implement later
-            // const coordinates_t parsed_coords = parse_coordinate_table(coords);
+            const coordinates_t parsed_coords = parse_coordinate_table(coords);
 
             return campaign.nodeManager.build_node(
                 campaign.lua,
                 node_type,
                 location_name,
-                create_coords( x, y, z ),
+                parsed_coords,
                 unique_data,
                 blocked
             );
@@ -94,7 +87,7 @@ int inject_build_tools(Campaign &campaign) {
 
     // add the extend player function
     campaign.build_env.set_function(engine::func::api::EXTEND_PLAYER, [&campaign](sol::table extension) {
-        return build_player_extension(campaign.core_env, extension);
+        return build_player_extension( campaign, extension );
     });
 
     // add the add node function
@@ -120,21 +113,16 @@ int inject_build_tools(Campaign &campaign) {
     campaign.build_env.set_function(
         engine::func::api::ARBITRARY_CONNECTION,
 
-        // TODO: improve with parse coordinates once implemented
         [&campaign](
-            short x1,
-            short y1,
-            short z1,
-            short x2,
-            short y2,
-            short z2,
+            sol::table coords1,
+            sol::table coords2,
             std::string dir,
             bool one_way = false,
             bool override_blocking = false
         ) {
             return campaign.nodeManager.make_connection(
-                create_coords( x1, y1, z1 ),
-                create_coords( x2, y2, z2 ),
+                parse_coordinate_table( coords1 ),
+                parse_coordinate_table( coords2 ),
                 str_to_direction(dir),
                 one_way,
                 override_blocking
