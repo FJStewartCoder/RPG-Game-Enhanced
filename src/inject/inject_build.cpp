@@ -114,15 +114,15 @@ int inject_build_tools(Campaign &campaign) {
         engine::func::api::ARBITRARY_CONNECTION,
 
         [&campaign](
-            sol::table coords1,
-            sol::table coords2,
+            sol::table source_coords,
+            sol::table dest_coords,
             std::string dir,
             bool one_way = false,
             bool override_blocking = false
         ) {
             return campaign.nodeManager.make_connection(
-                parse_coordinate_table( coords1 ),
-                parse_coordinate_table( coords2 ),
+                parse_coordinate_table( source_coords ),
+                parse_coordinate_table( dest_coords ),
                 str_to_direction(dir),
                 one_way,
                 override_blocking

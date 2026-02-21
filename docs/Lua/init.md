@@ -102,14 +102,14 @@ The environment function is responsible for actually creating the world.
 `void build_node({
     string node_type,
     string location_name,
-    short x, y, z,
+    table coords,
     table unique_data,
     string blocked
 })`  
 
 **node_type** is the name of the node you want to build. Each node made with [`add_node()`](#adding-a-node) is available for use here.  
 **location_name** is the name of the location. It is used to show the user what the name of the location is seperately from the node type. This can be left blank.  
-**x**, **y**, **z** are the coordinates that the node will be built.  
+**coords** are the coordinates that the node will be built. These can be written as {**x**, **y**, **z**} or {x=..., y=..., z=...}.  
 **unique_data** is a table of data unique to this node. It is combined with the unique data template of the node type. This is passed to the on_land and on_leave functions.  
 **blocked** is a string of characters used to allow or disallow traversal between adjacent nodes. More can be read [here](#blocked-string).
 
@@ -126,7 +126,7 @@ x, y, z and t are also compatible with !
 `build_node(
     "Shop",
     "Bob's Shop",
-    1, 0, 5,
+    {1, 0, 5},
     {
         shop-name = "Fish Market"
     },
@@ -137,14 +137,15 @@ Will create a new node of type **Shop** at **(1, 0, 5)** with **unique data** wh
 ### Making Connections
 #### Usage
 `int make_connection(
-    int x1, y1, z1,
-    int x2, y2, z2,
+    table source_coords,
+    table dest_coords,
     string link,
     boolean one_way,
     boolean override_blocked
 )`  
-**x1**, **y1** and **x1** make up the coordinates of the **source** node.  
-**x2**, **y2** and **x2** make up the coordinates of the **destination** node.
+**source_coords** make up the coordinates of the **source** node.  
+**dest_coords** make up the coordinates of the **destination** node.  
+The coordinates can be written as either {**x**, **y**, **z**} or {x=..., y=..., z=...}.  
 
 **link** is the direction in which **destination** will be connected to **source**.  
 Link can be any of the following ( brackets indicate different combinations e.g [(a)b]c means a, ab and abc are availible):  
@@ -155,8 +156,8 @@ Link can be any of the following ( brackets indicate different combinations e.g 
 
 #### Example
 `make_connection(
-    0, 0, 0,
-    10, 5, 3,
+    {0, 0, 0},
+    {10, 5, 3},
     "next",
     false,
     false

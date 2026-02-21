@@ -138,7 +138,7 @@ function environment()
     build_node(
         "House",
         "Bob's House"
-        0, 0, 0,
+        {0, 0, 0},
         {
 
         },
@@ -171,7 +171,7 @@ function environment()
     build_node(
         "Path",
         "",
-        0, 0, 0,
+        {0, 0, 0},
         {
 
         },
@@ -181,7 +181,7 @@ function environment()
     build_node(
         "House",
         "Bob's House",
-        1, 0, 0,
+        {1, 0, 0},
         {
             owner = "Bob"
         },
@@ -191,7 +191,7 @@ function environment()
     build_node(
         "House",
         "Lucy's House",
-        -1, 0, 0,
+        {-1, 0, 0},
         {
             owner = "Lucy"
         },

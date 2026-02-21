@@ -14,7 +14,7 @@ village = function ()
     build_node(
         "Shop",
         "",
-        1, 0, 1,
+        {1, 0, 1},
 
         -- CAN MAKE USE OF TEMPLATE TO NOT INCLUDE KEYS
         {
@@ -31,7 +31,7 @@ village = function ()
     build_node(
         "Shop",
         "",
-        1, 0, 0,
+        {1, 0, 0},
         {
             name = "Weapons",
             items = {
@@ -46,7 +46,7 @@ village = function ()
     build_node(
         "House",
         "",
-        -1, 0, -1,
+        {-1, 0, -1},
         {
             name = "Bob"
         },
@@ -63,7 +63,7 @@ end,
 -- (V)illage, (d)ragon
 
 dragon = function ()
-    build_node("Fight", "", 0, 0, 2, {}, "")
+    build_node("Fight", "", {0, 0, 2}, {}, "")
 end
 
 }

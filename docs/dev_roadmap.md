@@ -3,13 +3,9 @@
 It is just the normal roadmap but with a clearer direction for a developer. It will be more technically detailed and may include sub-steps to each goal.
 
 ## Road Map
-### Polishing (CURRENT)
-#### Fix TODOs
-Check all TODOs. Either fix or remove.
-
+### Stuck System
+TODO or
 main.cpp @ 284
-
-MODIFY DOCS TO DISCUSS THE NEW COORDS SYSTEM IN API
 
 ### Documentation
 Add documentation to the entire program including better headers.
@@ -19,11 +15,11 @@ Finish README.md
 Give scripts access to copy, merge and show table functions.
 +DOCS
 
-### Considerations
-#### Gameloop From Save
+## Considerations
+### Gameloop From Save
 Consider not running the landing function when loading from save file.
 Currently undecided on this.
 
-#### Unique Data Merge Strategy
+### Unique Data Merge Strategy
 Consider changing the merge strategy for the unique data and template
 build.cpp @ line ~220
