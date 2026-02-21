@@ -10,8 +10,8 @@
 
 
 namespace engine {
-    // version 1.0.0
-    const unsigned int VERSION = 100;
+    // version 1.0.1
+    const unsigned int VERSION = 101;
 
     namespace func {
         namespace extension {
@@ -45,6 +45,7 @@ namespace engine {
             namespace table {
                 const std::string COPY = "copy_table";
                 const std::string SHOW = "show_table";
+                const std::string MERGE = "merge_table";
             };
         }
     };

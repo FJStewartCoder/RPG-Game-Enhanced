@@ -141,6 +141,45 @@ int inject_table_functions( Campaign &campaign ) {
         }
     );
 
+    // set show_table to the ShowTable function
+    campaign.scripts_env.set_function(
+        MERGE,
+        [&campaign](
+            sol::table source,
+            sol::table other,
+            std::string strategy 
+        ) {
+            // a = add new, o = overwrite, d = deep, t = preserve types
+            // aka TOAD or aodt I guess...
+
+            // the int interpretation of the string
+            int strategy_code = 0;
+
+            // iterate the characters in the strategy and |= the corrent strategy argument based on the character
+            for ( const auto &c : strategy ) {
+                switch ( c ) {
+                    case 't':
+                        strategy_code |= CombineTable::PRESERVE_TYPES;
+                        break;
+
+                    case 'o':
+                        strategy_code |= CombineTable::OVERWRITE_EXISTING;
+                        break;
+
+                    case 'a':
+                        strategy_code |= CombineTable::ADD_NEW_PROPERTIES;
+                        break;
+
+                    case 'd':
+                        strategy_code |= CombineTable::DEEP;
+                        break;
+                }
+            }
+
+            return CombineTable::ToNew( campaign.lua, source, other, strategy_code );
+        }
+    );
+
     return 0;
 }
 

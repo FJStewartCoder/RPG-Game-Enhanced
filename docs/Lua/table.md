@@ -30,4 +30,38 @@ Integers, float/doubles, booleans, strings and tables are supported.
 Other types may not be fully copied. They will be added to the table as their original type but this may be a reference.
 
 ## Merge Table
-...
+### Usage
+``` lua
+table merge_table( 
+    table source, 
+    table other,
+    string strategy
+)
+```
+**source** is that table that is used as the table to copy the data to.  
+**the original table is not modified*
+**other** is the table that will be merged into **source**.
+**strategy** is a string of characters used to define how to combine the tables.
+
+### Strategy String
+Include any of the below, lowercase characters to add to the strategy.
+
+Use **t** to enable [type checking](#preseve-type).  
+Use **o** to enable [overwriting](#overwrite-existing).  
+Use **a** to enable [adding new](#add-new-properties).  
+Use **d** to enable [deep](#deep).  
+
+## Merge Strategies
+### Preseve Type
+Preseve types will only **overwrite** data if the type matches. This is only active when overwriting data.
+
+### Overwrite Existing
+Overwrite existing will overwrite data in the **source** data if both **source** and **other** have data with the same key.  
+When overwriting the type will be checked if this option is enabled. If the type does not match, the default data will be kept.
+
+### Add New Properties
+Add new properties allows for adding data to **source** for a key that **other** has but **source** does not have. This is not affected by type checking.
+
+### Deep
+Deep will merge all tables within tables. This assumes both **source** and **other** have data at a similar key that is both the table type.  
+The strategy used to merge these tables will be the same that was used for the original tables.

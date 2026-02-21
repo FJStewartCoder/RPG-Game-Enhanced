@@ -42,4 +42,26 @@ function start_leave(data, player)
     player.position.x = 2
     player.position.y = 5
     player.position.z = 1
+
+    table1 = {
+        name = "hello",
+        bob = 3,
+        secret_toad = {
+            name = "Bob",
+            age = 5
+        }
+    }
+
+    table2 = {
+        name = 10,
+        bob = 7,
+        new_thing = "TOAD",
+        secret_toad = {
+            chicken = 123
+        }
+    }
+
+    -- play ground for merging tables
+    table3 = merge_table( table1, table2, "oad" )
+    show_table(table3)
 end
