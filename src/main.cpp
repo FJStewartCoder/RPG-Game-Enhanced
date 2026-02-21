@@ -52,7 +52,7 @@ enum class errors {
 node_directions get_player_input(node_t *node) {
     log_trace("Called function \"%s( node )\"", __FUNCTION__);
 
-    Menu menu("", "", "Select a direction");
+    Menu menu("Navigation", "", "Select a direction");
 
     // create a list of all of the directions you can move
     node_directions directions[8] = {
