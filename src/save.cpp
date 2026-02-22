@@ -4,6 +4,7 @@
 extern "C" {
     #include "log/log.h"
 }
+#include "settings.h"
 
 int Write::Var(FILE *fp, std::string var) {
     log_trace("Called function \"%s( FILE, %s )\"",

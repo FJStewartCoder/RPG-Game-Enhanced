@@ -33,7 +33,7 @@ log.o:
 	${CC} src/log/log.c -Iinclude/log -c -o $@
 
 nodes.o: src/nodes.cpp
-	${CPPC} $^ -Iinclude -c -o $@ -DREMOVE_ANNOYING_TRACE
+	${CPPC} $^ -Iinclude -c -o $@
 
 input.o: src/input.cpp
 	${CPPC} $^ -Iinclude -c -o $@
@@ -42,18 +42,13 @@ campaign.o: src/campaign.cpp
 	${CPPC} $^ -Iinclude -c -o $@
 
 table.o: src/table.cpp
-	${CPPC} $^ -Iinclude -c -o $@ -DREMOVE_ANNOYING_LOG
+	${CPPC} $^ -Iinclude -c -o $@
 
 SOURCES = src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o save.o ${INJECT} input.o campaign.o table.o
 
+# DEV mode can be enabled in settings.h
 all: ${SOURCES}
 	${CPPC} $^ -Iinclude -Llib -llua54 -lm -g
-
-# make all but with the DEV macro defined
-dev: ${SOURCES}
-	${CPPC} src/build.cpp -Iinclude -c -o build.o -DDEV
-	${CPPC} src/campaign.cpp -Iinclude -c -o campaign.o -DDEV
-	${CPPC} $^ -Iinclude -Llib -llua54 -lm -g -DDEV
 
 clean:
 	rm *.o

@@ -3,6 +3,7 @@
 extern "C" {
     #include "log/log.h"
 }
+#include "settings.h"
 
 #include "table.hpp"
 #include "custom_exception.hpp"
@@ -56,14 +57,14 @@ coordinates_t create_coords( short x, short y, short z ) {
 
 std::string coords_to_str( coordinates_t *coords, bool show_hash ) {
 
-#ifndef REMOVE_ANNOYING_TRACE
+#ifndef REMOVE_FREQUENT_LOGS 
     // THIS TRACE IS VERY ANNOYING
     log_trace("Called function \"%s( coords, %d )\"",
         __FUNCTION__,
         show_hash
     );
 
-#endif // REMOVE_ANNOYING_TRACE
+#endif // REMOVE_FREQUENT_LOGS
 
     // this currently is as such "(x, y, z"
     std::string res = "(" + std::to_string(coords->x) + ", " + std::to_string(coords->y) + ", " + std::to_string(coords->z);

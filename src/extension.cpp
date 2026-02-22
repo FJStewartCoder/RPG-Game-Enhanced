@@ -11,6 +11,7 @@
 extern "C" {
     #include "log/log.h"
 }
+#include "settings.h"
 
 // function to ensure that there are no matching globals
 int test_new_state(sol::environment &load_env, sol::environment extension) {

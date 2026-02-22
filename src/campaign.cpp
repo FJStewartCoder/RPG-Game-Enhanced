@@ -13,6 +13,7 @@
 extern "C" {
     #include "log/log.h"
 }
+#include "settings.h"
 
 #include "menus/menus.hpp"
 

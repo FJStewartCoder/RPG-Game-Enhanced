@@ -3,6 +3,7 @@
 extern "C" {
     #include "log/log.h"
 }
+#include "settings.h"
 
 
 int inject_core_player_data(sol::environment &env) {

@@ -16,6 +16,7 @@
 extern "C" {
     #include "log/log.h"
 }
+#include "settings.h"
 
 #include "menus/menus.hpp"
 
@@ -576,11 +577,15 @@ void fix_file_structure() {
         }
     }
 
+#ifdef FUNNY
+
     // if the user deleted the license, terminate them
     if ( !filesystem::exists( "LICENSE" ) ) {
         std::cout << "I can see that you deleted the LICENSE. Put it back." << std::endl;
         exit( 1 );
     }
+
+#endif  // FUNNY
 }
 
 int main_menu() {

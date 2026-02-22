@@ -3,6 +3,7 @@
 extern "C" {
     #include "log/log.h"
 }
+#include "settings.h"
 
 // checks if a lua state has a build function
 bool has_func(sol::environment &env, std::string func_name) {

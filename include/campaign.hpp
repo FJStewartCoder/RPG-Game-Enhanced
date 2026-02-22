@@ -10,9 +10,6 @@
 #include "save.hpp"
 
 
-#define MAX_FILE_SYSTEM_DEPTH 5
-
-
 enum class Ignore {
     BUILD = 1,
     EXTEND = 1 << 1,

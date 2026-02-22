@@ -5,6 +5,7 @@
 extern "C" {
     #include "log/log.h"
 }
+#include "settings.h"
 
 #include "table.hpp"
 #include "nodes.hpp"

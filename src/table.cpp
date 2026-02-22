@@ -3,6 +3,7 @@
 extern "C" {
     #include "log/log.h"
 }
+#include "settings.h"
 
 
 // COPY SCRIPTS -------------------------------------------------------------------------------
@@ -49,9 +50,9 @@ sol::table CopyTable( sol::state &lua, sol::table &table ) {
 // converts a sol object to a string
 std::string ObjectToString( const sol::object &obj ) {
 
-#ifndef REMOVE_ANNOYING_LOG
+#ifndef REMOVE_FREQUENT_LOGS 
     log_trace("Called function \"%s( sol::object )\"", __FUNCTION__);
-#endif
+#endif  // REMOVE_FREQUENT_LOGS
 
     const sol::type type = obj.get_type();
     std::string res = "";
@@ -98,25 +99,25 @@ std::string ObjectToString( const sol::object &obj ) {
             break;
     }
 
-#ifndef REMOVE_ANNOYING_LOG
+#ifndef REMOVE_FREQUENT_LOGS
     log_debug(
         "Returning object with type \"%s\" as string: %s",
         sol::type_name(NULL, type).c_str(),
         res.c_str()
     );
-#endif
+#endif  // REMOVE_FREQUENT_LOGS
 
     return res;
 }
 
 void ShowTableReal( sol::table &table, int depth ) {
 
-#ifndef REMOVE_ANNOYING_LOG
+#ifndef REMOVE_FREQUENT_LOGS
     log_trace("Called function \"%s( table, %d )\"",
         __FUNCTION__,
         depth
     );
-#endif
+#endif  // REMOVE_FREQUENT_LOGS
 
     for ( const auto &item : table ) {
         const auto key = item.first;
