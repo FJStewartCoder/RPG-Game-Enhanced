@@ -224,7 +224,7 @@ int Campaign::RunInit(std::string campaignPath, int ignore) {
     log_trace("Called function \"%s( %s, %s )\"",
         __FUNCTION__,
         campaignPath.c_str(),
-        ToBinary(ignore)
+        ToBinary(ignore).c_str()
     );
 
     const std::string initPath = campaignPath + "/" + engine::file::INIT;

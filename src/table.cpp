@@ -194,7 +194,7 @@ typedef struct {
 table_rules_t parse_rules( const int ruleset ) {
     log_trace("Called function \"%s( %s )\"",
         __FUNCTION__,
-        ToBinary( ruleset )
+        ToBinary( ruleset ).c_str()
     );
 
     // set all of the values as constant booleans
@@ -224,7 +224,7 @@ table_rules_t parse_rules( const int ruleset ) {
 int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &other, int ruleset ) {
     log_trace("Called function \"%s( table, table, %s )\"",
         __FUNCTION__,
-        ToBinary( ruleset )
+        ToBinary( ruleset ).c_str()
     );
 
     // get the rules
@@ -394,7 +394,7 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
 sol::table CombineTable::ToNew( sol::state &lua, sol::table &source, sol::table &other, int ruleset ) {
     log_trace("Called function \"%s( state&, table&, table&, %s )\"",
         __FUNCTION__,
-        ToBinary( ruleset )
+        ToBinary( ruleset ).c_str()
     );
 
     // create a new table
