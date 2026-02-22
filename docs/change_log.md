@@ -20,3 +20,4 @@ Updated documentation to reflect changes.
 ## Version 1.0.3
 Adding settings.h to change compilation settings.
 Added system to resolve the user getting stuck.
+Fixed Windows compilation.
