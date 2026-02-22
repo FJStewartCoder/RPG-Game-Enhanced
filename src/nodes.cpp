@@ -8,6 +8,8 @@ extern "C" {
 #include "table.hpp"
 #include "custom_exception.hpp"
 
+#include "to_binary.hpp"
+
 
 coordinates_t add_coords(coordinates_t a, coordinates_t b) {
     log_trace("Called function \"%s( %s, %s )\"",
@@ -171,10 +173,11 @@ node_errors traverse_node(node_t *(&node), node_directions direction) {
 // x, y, z and (t)eleport are for corresponding directions i.e x = lr, y = fb, z = ud and t = np
 
 int set_blocked_state( int &dest, node_directions dir, bool blocking_mode ) {
-    log_trace("Called function \"%s( %b, %b (%s), %d )\"",
+    log_trace("Called function \"%s( %s, %s (%s), %d )\"",
         __FUNCTION__,
-        dest,
-        dir, dir_to_string( dir ).c_str(),
+        ToBinary( dest ),
+        ToBinary( dir ),
+        dir_to_string( dir ).c_str(),
         blocking_mode
     );
 
@@ -282,9 +285,9 @@ int str_to_blocked_nodes( std::string str ) {
 }
 
 bool is_dir_blocked( int blocked_str, node_directions dir ) {
-    log_trace("Called function \"%s( %b, %d (%s) )\"",
+    log_trace("Called function \"%s( %s, %d (%s) )\"",
         __FUNCTION__,
-        blocked_str,
+        ToBinary( blocked_str ),
         dir, dir_to_string( dir ).c_str()
     );
 

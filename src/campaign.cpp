@@ -35,6 +35,8 @@ extern "C" {
 
 #include "table.hpp"
 
+#include "to_binary.hpp"
+
 
 // CODE STARTS HERE --------------------------------------------------------------------------
 
@@ -219,10 +221,10 @@ int Campaign::RunFunctionIfExists(sol::environment &env, std::string funcName) {
 
 // returns 0 for good or 1 for bad result
 int Campaign::RunInit(std::string campaignPath, int ignore) {
-    log_trace("Called function \"%s( %s, %b )\"",
+    log_trace("Called function \"%s( %s, %s )\"",
         __FUNCTION__,
         campaignPath.c_str(),
-        ignore
+        ToBinary(ignore)
     );
 
     const std::string initPath = campaignPath + "/" + engine::file::INIT;

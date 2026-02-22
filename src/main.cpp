@@ -40,6 +40,7 @@ extern "C" {
 
 #include "table.hpp"
 
+#include "to_binary.hpp"
 
 
 // all errors in a namespace
@@ -764,6 +765,9 @@ bool test() {
 }
 
 int main() {
+    std::cout << ToBinaryCopy( 123 ) << std::endl;
+    return 0;
+
     // open the log file
     FILE *fp = fopen("log.txt", "w");
 

@@ -5,6 +5,8 @@ extern "C" {
 }
 #include "settings.h"
 
+#include "to_binary.hpp"
+
 
 // COPY SCRIPTS -------------------------------------------------------------------------------
 
@@ -190,9 +192,9 @@ typedef struct {
 } table_rules_t;
 
 table_rules_t parse_rules( const int ruleset ) {
-    log_trace("Called function \"%s( %b )\"",
+    log_trace("Called function \"%s( %s )\"",
         __FUNCTION__,
-        ruleset
+        ToBinary( ruleset )
     );
 
     // set all of the values as constant booleans
@@ -220,9 +222,9 @@ table_rules_t parse_rules( const int ruleset ) {
 }
 
 int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &other, int ruleset ) {
-    log_trace("Called function \"%s( table, table, %b )\"",
+    log_trace("Called function \"%s( table, table, %s )\"",
         __FUNCTION__,
-        ruleset
+        ToBinary( ruleset )
     );
 
     // get the rules
@@ -390,9 +392,9 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
 }
 
 sol::table CombineTable::ToNew( sol::state &lua, sol::table &source, sol::table &other, int ruleset ) {
-    log_trace("Called function \"%s( state&, table&, table&, %b )\"",
+    log_trace("Called function \"%s( state&, table&, table&, %s )\"",
         __FUNCTION__,
-        ruleset
+        ToBinary( ruleset )
     );
 
     // create a new table
