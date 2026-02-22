@@ -44,7 +44,7 @@ campaign.o: src/campaign.cpp
 table.o: src/table.cpp
 	${CPPC} $^ -Iinclude -c -o $@
 
-SOURCES = src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o save.o ${INJECT} input.o campaign.o table.o
+SOURCES = src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o save.o ${INJECT} input.o campaign.o table.o lua54.dll
 
 # DEV mode can be enabled in settings.h
 all: ${SOURCES}

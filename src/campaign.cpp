@@ -378,7 +378,7 @@ int Campaign::LoadDirectory( std::string campaignPath, int initIgnore ) {
                 }
 
                 // get the directory path
-                const std::string dirpath = std::filesystem::canonical( file );
+                const std::string dirpath = std::filesystem::canonical( file ).generic_string();
 
                 // queue the item
                 dirPair newItem(dirpath, currentDir.second + 1);
@@ -396,7 +396,7 @@ int Campaign::LoadDirectory( std::string campaignPath, int initIgnore ) {
             ) {
 
                 // get the file path and load it
-                const std::string filepath = std::filesystem::canonical( file );
+                const std::string filepath = std::filesystem::canonical( file ).generic_string();
 
                 log_trace("File \"%s\" is being loaded as a script", filepath.c_str());
 
@@ -449,7 +449,7 @@ std::unordered_map<std::string, std::string> Campaign::GetCampaigns() {
     log_trace("Campaigns directory found.");
 
     for ( const auto &item : campaigns_dir ) {
-        const std::string cur_filename = item.path().filename();
+        const std::string cur_filename = item.path().filename().generic_string();
 
         log_trace("Analysing \"%s\"", cur_filename.c_str());
 
@@ -465,7 +465,7 @@ std::unordered_map<std::string, std::string> Campaign::GetCampaigns() {
         const bool campaign_has_init = std::filesystem::exists(init_file_path);
 
         // the current campaign name is the name of the directory
-        std::string campaign_name = item.path().filename();
+        std::string campaign_name = item.path().filename().generic_string();
 
         if ( campaign_has_init ) {
             log_trace("Campaign has init file.");
@@ -504,7 +504,7 @@ std::unordered_map<std::string, std::string> Campaign::GetCampaigns() {
             log_trace("Adding campaign with name: \"%s\"", campaign_name.c_str());
             
             // map the campaign name to the full file path to the directory
-            campaigns[campaign_name] = std::filesystem::canonical(item.path());
+            campaigns[campaign_name] = std::filesystem::canonical(item.path()).generic_string();
         }
         else {
             log_error("Can not add this campaign; another campaign already has this name.");

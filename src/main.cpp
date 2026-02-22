@@ -504,7 +504,7 @@ void load_campaign() {
             continue;
         }
 
-        FILE *fp = fopen( file.path().c_str(), "rb" );
+        FILE *fp = fopen( file.path().generic_string().c_str(), "rb" );
         if ( fp == NULL ) {
             fclose(fp);
             continue;
@@ -519,7 +519,7 @@ void load_campaign() {
 
         savefile_menu.AddItem(
             MenuItem(
-                file.path().filename(),
+                file.path().filename().generic_string(),
                 "Campaign: " + meta.campaign_name
             )
         );
