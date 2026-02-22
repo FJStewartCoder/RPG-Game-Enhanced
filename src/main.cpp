@@ -187,6 +187,65 @@ bool handle_script_movement(Campaign &campaign, node_t *(&cur_node), sol::table 
     return true;
 }
 
+// returns true is stuck was handled
+// returns false if user chose to quit
+bool handle_stuck( node_t *(&cur_node), NodeManager &node_manager ) {
+    /* If the user is unable to move, inform the user.
+       If they choose to unstuck, move the player back to the start. ( let them know this may not be the intentions of the campaign )
+       If they choose to continue, run the leaving function and re-land on the same node.
+       If they choose to quit, quit.
+       Repeat */
+
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
+    log_error("Player has become stuck");
+
+    Menu stuck_menu(
+        "Stuck", "You are unable to move",
+        "What would you like to do"
+    );
+
+    stuck_menu.AddItem( MenuItem(
+        "Continue",
+        "Will continue to the leaving function; you will land back here"
+    ) );
+
+    stuck_menu.AddItem( MenuItem(
+        "Move To Start",
+        "Move the player to (0, 0, 0); This may not be in the spirit of the campaign"
+    ) );
+
+    stuck_menu.AddItem( MenuItem(
+        "Quit", "", true
+    ) );
+
+    // get the user's choice
+    auto res = stuck_menu.ShowAliasList();
+    std::string choice = res->name;
+
+    log_trace( "Player chose \"%s\"", choice.c_str() );
+
+    // quit if quit
+    if ( choice == "Quit" ) {
+        return false;
+    }
+
+    // move the player back to (0, 0, 0)
+    if ( choice == "Move To Start" ) {
+        node_t *new_pos = node_manager.get_node({0, 0, 0});
+
+        if ( new_pos != NULL ) {
+            std::cout << "You have been moved back to the start" << std::endl;
+            cur_node = new_pos;
+        }
+
+        log_error("Start position (0, 0, 0) does not exist?");
+    }
+
+    // all other options return true
+    return true;
+}
+
 void sync_player_position(node_t *cur_node, sol::table &player_data) {
     log_trace("Called function \"%s( node, table )\"", __FUNCTION__);
 
@@ -204,7 +263,7 @@ int gameloop(Campaign &campaign, node_t *start_node) {
 
     sol::environment &core_env = campaign.core_env;
 
-    // reassign the name
+    // reassign the node
     node_t *cur_node = start_node;
 
     // the running state
@@ -232,7 +291,7 @@ int gameloop(Campaign &campaign, node_t *start_node) {
     // else:
     //     check if possible to move
     //     if can't move:
-    //         quit gameloop
+    //         handle stuck
     //
     //     ask direction ( if we did this first the start would not work )
     // sync lua and c++ position
@@ -281,26 +340,30 @@ int gameloop(Campaign &campaign, node_t *start_node) {
         bool ask_user_for_direction = !handle_script_movement(campaign, cur_node, player_data);
         
         if ( ask_user_for_direction ) {
+            // if the player becomes stuck, handle it
             if ( can_traverse(cur_node) == NODE_ERROR ) {
-                // TODO: potentially create a similar unstuck system like before instead of just quitting
-                log_fatal("Player is stuck");
-                break;
+                // false means to quit
+                if ( !handle_stuck( cur_node, campaign.nodeManager ) ) { return 0; }
             }
 
-            // get the direction that the player want to move.
-            node_directions chosen_direction = get_player_input(cur_node);
+            // otherwise, move as normal
+            // if player becomes unstuck, do not run this
+            else {
+                // get the direction that the player want to move.
+                node_directions chosen_direction = get_player_input(cur_node);
 
-            // quit if chosen to quit
-            if ( chosen_direction == NODE_QUIT ) {
-                return 0;
-            }
+                // quit if chosen to quit
+                if ( chosen_direction == NODE_QUIT ) {
+                    return 0;
+                }
 
-            // actually traverse
-            node_errors res = traverse_node(cur_node, chosen_direction);
+                // actually traverse
+                node_errors res = traverse_node(cur_node, chosen_direction);
 
-            // if there is an error when attempting to log
-            if ( res == NODE_ERROR ) {
-                log_error("Node traversal failed.");
+                // if there is an error when attempting to log
+                if ( res == NODE_ERROR ) {
+                    log_error("Node traversal failed.");
+                }
             }
         }
 

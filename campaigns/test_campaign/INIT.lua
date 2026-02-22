@@ -57,7 +57,13 @@ function environment()
     -- too small
     -- build_node("2", "", {-32769, -32769, -32769}, {}, "")
 
-    make_connection({0, 0, 0}, {0, 1, 0}, "next", false, true)
+    make_connection(
+        {0, 0, 0},
+        {0, 1, 0},
+        "next",
+        true,  --one way
+        true  --bypass blocks
+    )
 
     -- create the other nodes
     blank()

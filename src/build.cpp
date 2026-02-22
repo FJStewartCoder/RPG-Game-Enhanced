@@ -287,8 +287,13 @@ node_t *NodeManager::get_node(coordinates_t coords) {
         coords_to_str( &coords, true ).c_str()
     );
 
+    // fixes a bug where the coords are not initialised properly which breaks the hash
+    coordinates_t processed_coords = create_coords(
+        coords.x, coords.y, coords.z
+    );
+
     // get the hash
-    const coord_hash hash = coords.hash;
+    const coord_hash hash = processed_coords.hash;
 
     // search for the hash
     auto search_res = environment.find(hash);
@@ -298,7 +303,7 @@ node_t *NodeManager::get_node(coordinates_t coords) {
 
     if ( !node_found ) {
         log_error("Node with coordinates %s does not exist",
-            coords_to_str( &coords, true ).c_str()
+            coords_to_str( &processed_coords, true ).c_str()
         );
 
         return NULL;
@@ -308,7 +313,7 @@ node_t *NodeManager::get_node(coordinates_t coords) {
     node_t* node = search_res->second;
 
     log_trace("Node with coordinates %s exists",
-        coords_to_str( &coords, true ).c_str()
+        coords_to_str( &processed_coords, true ).c_str()
     );
 
     // return the found node
