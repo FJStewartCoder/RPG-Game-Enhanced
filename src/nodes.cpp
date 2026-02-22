@@ -175,8 +175,8 @@ node_errors traverse_node(node_t *(&node), node_directions direction) {
 int set_blocked_state( int &dest, node_directions dir, bool blocking_mode ) {
     log_trace("Called function \"%s( %s, %s (%s), %d )\"",
         __FUNCTION__,
-        ToBinary( dest ),
-        ToBinary( dir ),
+        ToBinary( dest ).c_str(),
+        ToBinary( dir ).c_str(),
         dir_to_string( dir ).c_str(),
         blocking_mode
     );
@@ -287,7 +287,7 @@ int str_to_blocked_nodes( std::string str ) {
 bool is_dir_blocked( int blocked_str, node_directions dir ) {
     log_trace("Called function \"%s( %s, %d (%s) )\"",
         __FUNCTION__,
-        ToBinary( blocked_str ),
+        ToBinary( blocked_str ).c_str(),
         dir, dir_to_string( dir ).c_str()
     );
 
