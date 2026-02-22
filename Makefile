@@ -48,7 +48,7 @@ SOURCES = src/main.cpp nodes.o log.o build.o build_help.o extension.o menus.o sa
 
 # DEV mode can be enabled in settings.h
 all: ${SOURCES}
-	${CPPC} $^ -Iinclude -Llib -llua54 -lm -g
+	${CPPC} $^ -Iinclude -Llib -llua54 -lm -g -o RPenGine
 
 clean:
 	rm *.o
