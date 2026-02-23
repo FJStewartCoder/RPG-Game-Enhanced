@@ -36,4 +36,5 @@ This is in the format:
     int y,
     int z
 }
-```
+```  
+Available directions are "Right", "Left", "Up", "Down", "Forward", "Back", "Next" and "Previous".
