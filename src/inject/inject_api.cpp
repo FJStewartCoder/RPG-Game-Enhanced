@@ -202,7 +202,7 @@ int get_all_node_connections( sol::state &lua, sol::table &table, node_t *node )
     };
 
     for ( const auto &dir : all_dirs ) {
-        const std::string dir_string = dir_to_string( dir );
+        const std::string dir_string = dir_to_string( dir, true );
 
         log_debug(
             "Checking connection in direction %s",

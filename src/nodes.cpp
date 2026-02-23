@@ -262,13 +262,13 @@ int str_to_blocked_nodes( std::string str ) {
                 break; 
 
             case 'y':
-                set_blocked_state( res, NODE_FORWARD, blocking_mode );
-                set_blocked_state( res, NODE_BACK, blocking_mode );
+                set_blocked_state( res, NODE_UP, blocking_mode );
+                set_blocked_state( res, NODE_DOWN, blocking_mode );
                 break;
 
             case 'z':
-                set_blocked_state( res, NODE_UP, blocking_mode );
-                set_blocked_state( res, NODE_DOWN, blocking_mode );
+                set_blocked_state( res, NODE_FORWARD, blocking_mode );
+                set_blocked_state( res, NODE_BACK, blocking_mode );
                 break; 
 
             case 't':
@@ -295,7 +295,8 @@ bool is_dir_blocked( int blocked_str, node_directions dir ) {
 }
 
 // converts a direction to a string
-const std::string dir_to_string( node_directions direction ) {
+// lower decides if lower case
+const std::string dir_to_string( node_directions direction, bool lower ) {
     log_trace("Called function \"%s( %d )\"",
         __FUNCTION__,
         direction
@@ -305,43 +306,53 @@ const std::string dir_to_string( node_directions direction ) {
 
     switch ( direction ) {
         case NODE_LEFT:
-            res = "Left";
+            if ( lower ) { res = "left"; }
+            else { res = "Left"; }
             break;
 
         case NODE_RIGHT:
-            res = "Right";
+            if (lower) { res = "right"; }
+            else { res = "Right"; }
             break;
 
         case NODE_UP:
-            res = "Up";
+            if (lower) { res = "up"; }
+            else { res = "Up"; }
             break;
         
         case NODE_DOWN:
-            res = "Down";
+            if (lower) { res = "down"; }
+            else { res = "Down"; }
             break;
 
         case NODE_FORWARD:
-            res = "Forward";
+            if (lower) { res = "forward"; } 
+            else { res = "Forward"; }
             break;
 
         case NODE_BACK:
-            res = "Back";
+            if (lower) { res = "back"; } 
+            else { res = "Back"; }
             break;
 
         case NODE_NEXT:
-            res = "Next";
+            if (lower) { res = "next"; } 
+            else { res = "Next"; }
             break;
 
         case NODE_PREV:
-            res = "Previous";
+            if (lower) { res = "previous"; } 
+            else { res = "Previous"; }
             break;
 
         case NODE_QUIT:
-            res = "Quit";
+            if (lower) { res = "quit"; } 
+            else { res = "Quit"; }
             break;
 
         case NODE_NONE:
-            res = "None";
+            if (lower) { res = "none"; } 
+            else { res = "None"; }
             break;
         
         default:

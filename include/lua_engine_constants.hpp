@@ -10,8 +10,8 @@
 
 
 namespace engine {
-    // version 1.0.2
-    const unsigned int VERSION = 102;
+    // version 1.0.4
+    const unsigned int VERSION = 104;
 
     namespace func {
         namespace extension {

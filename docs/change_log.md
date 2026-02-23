@@ -21,3 +21,8 @@ Updated documentation to reflect changes.
 Adding settings.h to change compilation settings.
 Added system to resolve the user getting stuck.
 Fixed Windows compilation.
+
+## Version 1.0.4
+Updated get_node to now show connections.
+Made x, y, z more consistent throughout the program.
+Fixed README.md

@@ -119,7 +119,7 @@ The characters: l, r, u, d, f, b, n and p can be used to block the directions: l
 By using any of these characters in the blocked string will block a connection from being possible in that direction.  
 Use the ! character to invert the effect. By default ! will block all direction and each character will unblock a direction.  
 Some special characters are available as aliases of other character strings.  
-x, y, z and t ( t for teleport directions ) are used as such. x = lr, y = fb, z = ud and t = np.  
+x, y, z and t ( t for teleport directions ) are used as such. x = lr, y = ud, z = fb and t = np.  
 x, y, z and t are also compatible with !
 
 #### Example

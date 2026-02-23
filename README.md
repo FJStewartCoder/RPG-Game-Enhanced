@@ -15,8 +15,5 @@ Thank you for using the engine.
 The engine requires Lua 5.4 or lower to function as intended. Install suitable Lua development binaries and replace [include/lua](include/lua) with the include directory.  
 Replace the library in [lib](lib) with the one provided and include the .dll
 
-Compiling for Windows has been difficult. Some formats are GCC exclusive.  
-A basic engine is provided for playing campaigns; However, DEV mode is currently exclusive to Linux.  
-
 ### Linux
 Run the Makefile.

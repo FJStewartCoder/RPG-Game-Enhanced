@@ -37,4 +37,4 @@ This is in the format:
     int z
 }
 ```  
-Available directions are "Right", "Left", "Up", "Down", "Forward", "Back", "Next" and "Previous".
+Available directions are "right", "left", "up", "down", "forward", "back", "next" and "previous".
