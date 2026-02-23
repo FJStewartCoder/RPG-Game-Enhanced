@@ -150,7 +150,7 @@ node_errors traverse_node(node_t *(&node), node_directions direction) {
 
     node_errors res = NODE_OK;
 
-    node_t *next = get_node_in_direction( *node, direction );
+    node_t *next = get_node_in_direction( node, direction );
 
     res = can_traverse_direction(next);
 
@@ -352,40 +352,40 @@ const std::string dir_to_string( node_directions direction ) {
     return res;
 }
 
-node_t *get_node_in_direction( node_t &node, node_directions dir ) {
+node_t *get_node_in_direction( node_t *node, node_directions dir ) {
     node_t *res = NULL;
 
     switch ( dir ) {
         case NODE_LEFT:
-            res = node.left;
+            res = node->left;
             break;
 
         case NODE_RIGHT:
-            res = node.right;
+            res = node->right;
             break;
 
         case NODE_UP:
-            res = node.up;
+            res = node->up;
             break;
 
         case NODE_DOWN:
-            res = node.down;
+            res = node->down;
             break;
 
         case NODE_FORWARD:
-            res = node.forward;
+            res = node->forward;
             break;
 
         case NODE_BACK:
-            res = node.back;
+            res = node->back;
             break;
 
         case NODE_NEXT:
-            res = node.next;
+            res = node->next;
             break;
 
         case NODE_PREV:
-            res = node.previous;
+            res = node->previous;
             break;
     }
 

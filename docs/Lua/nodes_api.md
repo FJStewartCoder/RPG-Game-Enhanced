@@ -17,7 +17,8 @@ The function returns a table with some data which can be seen below.
     constant bool exists,
     constant string type,
     constant string unique_name,
-    table value
+    table value,
+    table connections
 }
 ```
 
@@ -26,3 +27,13 @@ The function returns a table with some data which can be seen below.
 **unique_name** is the name that identifies this specific node. This is by default "" if the node is not found.  
 **value** is the unique data table for this node. This is a blank table by default, if the node is not found.  
 **modifying these values will update the data at this node for this session; however, unique data is not saved*
+
+**connections** is table that tells you each connection that the node has.
+This is in the format:  
+``` lua
+"direction" = {
+    int x,
+    int y,
+    int z
+}
+```

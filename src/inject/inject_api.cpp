@@ -185,7 +185,55 @@ int inject_table_functions( Campaign &campaign ) {
     return 0;
 }
 
+int get_all_node_connections( sol::state &lua, sol::table &table, node_t *node ) {
+    log_trace("Called function \"%s( state&, table&, node )\"",
+        __FUNCTION__
+    );
+
+    const node_directions all_dirs[] = {
+        NODE_LEFT,
+        NODE_RIGHT,
+        NODE_UP,
+        NODE_DOWN,
+        NODE_FORWARD,
+        NODE_BACK,
+        NODE_NEXT,
+        NODE_PREV
+    };
+
+    for ( const auto &dir : all_dirs ) {
+        const std::string dir_string = dir_to_string( dir );
+
+        log_debug(
+            "Checking connection in direction %s",
+            dir_string.c_str()
+        );
+
+        node_t *connected = get_node_in_direction( node, dir );
+        const bool node_exists = connected != NULL;
+
+        // if the node does not exist continue
+        if ( !node_exists ) { continue; }
+
+        // create the table
+        sol::table coords_table = lua.create_table_with(
+            "x", connected->coords.x,
+            "y", connected->coords.y,
+            "z", connected->coords.z
+        );
+
+        // assign the table to the direction name
+        table[dir_string] = coords_table;
+    }
+
+    return 0;
+}
+
 int inject_node_functions( Campaign &campaign ) {
+    log_trace("Called function \"%s( Campaign& )\"",
+        __FUNCTION__
+    );
+
     using namespace engine::func::scripts_api::node;
 
     campaign.scripts_env.set_function(
@@ -199,7 +247,8 @@ int inject_node_functions( Campaign &campaign ) {
                 "type", "NONE",  // the type of the node
                 "unique_name", "",  // the unique name data
                 "exists", false,  // if the node requested exists
-                "value", campaign.lua.create_table()  // the unique data table
+                "value", campaign.lua.create_table(),  // the unique data table
+                "connections", campaign.lua.create_table()  // a list of all of the connections the node has
             );
 
             // get the node
@@ -217,6 +266,10 @@ int inject_node_functions( Campaign &campaign ) {
                 res["unique_name"] = found_node->unique_name;
                 res["exists"] = true;
                 res["value"] = found_node->unique_data;
+                
+                // temp table as reference
+                sol::table t = res["connections"];
+                get_all_node_connections( campaign.lua, t, found_node );
             }
             
             // return the table
@@ -228,7 +281,7 @@ int inject_node_functions( Campaign &campaign ) {
 }
 
 int inject_api( Campaign &campaign ) {
-    log_trace("Called function \"%s( env, VirtualEvent& )\"",
+    log_trace("Called function \"%s( Campaign& )\"",
         __FUNCTION__
     );
 

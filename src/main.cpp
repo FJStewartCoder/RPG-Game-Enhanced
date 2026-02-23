@@ -74,7 +74,7 @@ node_directions get_player_input(node_t *node) {
         const node_directions dir = directions[i];
 
         // get the node in a specific direction
-        node_t *node_in_dir = get_node_in_direction( *node, dir );
+        node_t *node_in_dir = get_node_in_direction( node, dir );
 
         // if the new node is null, don't add it to the menu
         if ( node_in_dir == NULL ) {
