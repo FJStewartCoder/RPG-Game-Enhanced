@@ -321,13 +321,13 @@ int Campaign::LoadDirectory( std::string campaignPath, int initIgnore ) {
     );
 
     // ignore typename
-    std::filesystem::__cxx11::directory_iterator campaignsDir;
+    std::filesystem::directory_iterator campaignsDir;
 
     // create a directory iterator to iterate through the files and directories
     try {
         campaignsDir = std::filesystem::directory_iterator(campaignPath);
     }
-    catch ( const std::filesystem::__cxx11::filesystem_error &error ) {
+    catch ( const std::filesystem::filesystem_error &error ) {
         log_error("Campaigns directory \"%s\" does not exist.", campaignPath.c_str());
         return 1;
     }
@@ -436,12 +436,12 @@ std::unordered_map<std::string, std::string> Campaign::GetCampaigns() {
     std::unordered_map<std::string, std::string> campaigns;
 
     // ignore typename
-    std::filesystem::__cxx11::directory_iterator campaigns_dir;
+    std::filesystem::directory_iterator campaigns_dir;
 
     try {
         campaigns_dir = std::filesystem::directory_iterator(engine::directories::CAMPAIGNS);
     }
-    catch ( const std::filesystem::__cxx11::filesystem_error &error ) {
+    catch ( const std::filesystem::filesystem_error &error ) {
         log_error("Campaigns directory does not exist.");
         return campaigns;
     }

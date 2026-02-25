@@ -485,7 +485,7 @@ void new_campaign() {
 void load_campaign() {
     log_trace("Called function \"%s()\"", __FUNCTION__);
 
-    std::filesystem::__cxx11::directory_iterator savefiles;
+    std::filesystem::directory_iterator savefiles;
 
     try {
         savefiles = std::filesystem::directory_iterator(engine::directories::SAVEFILES);
@@ -764,7 +764,51 @@ bool test() {
     return 0;
 }
 
+std::string parse_version_number() {
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
+    std::string res = "";
+    std::string ver_str = std::to_string(engine::VERSION);
+
+    const auto str_len = ver_str.length();
+
+    for ( int i = 0; i < str_len - 1; i++ ) {
+        const char c = ver_str[i];
+        res += c;
+        res += '.';
+    }
+
+    res += ver_str[str_len - 1];
+
+    return res;
+}
+
+// shows information about the build and version
+void show_build_information() {
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
+    std::string build = "";
+    std::string less_logs = "";
+
+#ifdef DEV
+    build = "Developer Build";
+#endif  // DEV
+
+#ifdef REMOVE_FREQUENT_LOGS
+    less_logs = "**Reduced Logging**\n";
+#endif  // REMOVE_FREQUENT_LOGS
+
+    printf(
+        "RPenGine %s\nv%s\n%s\n",
+        build.c_str(),
+        parse_version_number().c_str(),
+        less_logs.c_str()
+    );
+}
+
 int main() {
+    show_build_information();
+
     // open the log file
     FILE *fp = fopen("log.txt", "w");
 
