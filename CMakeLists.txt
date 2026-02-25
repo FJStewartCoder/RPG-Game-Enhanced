@@ -64,6 +64,7 @@ if (WIN32)
 else()
     target_link_libraries(
         ${PROJECT_NAME}
-        liblua54.a
+        PRIVATE liblua54.a
+        PRIVATE liblua54.so 
     )
 endif()
