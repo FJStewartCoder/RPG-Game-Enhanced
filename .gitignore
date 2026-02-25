@@ -4,3 +4,5 @@ log.txt
 savefiles/*
 *.exe
 RPenGine
+build
+out

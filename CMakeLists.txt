@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.3)
+cmake_minimum_required(VERSION 4.2.3)
 set (CMAKE_CXX_STANDARD 17)
 
 project(RPenGine)
@@ -10,6 +10,25 @@ include_directories(
     "include/menus"
     "include/inject"
 )
+
+set(LUA_INCLUDES "lauxlib.h;lua.h;lua.hpp;luaconf.h;lualib.h")
+
+foreach( inc IN LISTS LUA_INCLUDES )
+    file( REMOVE include/lua/${inc} )
+endforeach()
+
+# copy the correct includes for the platform
+if(WIN32)
+    set(LUA_INCLUDE_COPY_FROM "lua_includes/windows")
+else()
+    set(LUA_INCLUDE_COPY_FROM "lua_includes/linux")
+endif()
+
+message("Lua includes are being taken from: \"${LUA_INCLUDE_COPY_FROM}\"")
+
+foreach( inc IN LISTS LUA_INCLUDES )
+    file( COPY_FILE ${LUA_INCLUDE_COPY_FROM}/${inc} include/lua/${inc})
+endforeach()
 
 add_executable(
     ${PROJECT_NAME}
@@ -32,23 +51,19 @@ add_executable(
     src/menus/menus.cpp
 )
 
+target_link_directories(
+    ${PROJECT_NAME}
+    PUBLIC find_library(lib)
+)
+
 if (WIN32)
-    add_library(
-        LUALIB
-        SHARED
-        lua54.dll
+    target_link_libraries(
+        ${PROJECT_NAME}
+        lua54.lib
     )
 else()
-    add_library(
-        LUALIB
-        SHARED
-        lua54.dll
+    target_link_libraries(
+        ${PROJECT_NAME}
+        liblua54.a
     )
 endif()
-
-set_target_properties(LUALIB PROPERTIES LINKER_LANGUAGE CXX)
-
-target_link_libraries(
-    ${PROJECT_NAME}
-    "C:/Users/finla/Downloads/RPG-Game-Enhanced/lib/lua54.lib"
-)
