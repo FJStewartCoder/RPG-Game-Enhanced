@@ -807,8 +807,6 @@ void show_build_information() {
 }
 
 int main() {
-    show_build_information();
-
     // open the log file
     FILE *fp = fopen("log.txt", "w");
 
@@ -820,6 +818,8 @@ int main() {
 #ifndef DEV
     log_set_quiet(true);
 #endif // DEV
+
+    show_build_information();
 
     main_menu();
 
