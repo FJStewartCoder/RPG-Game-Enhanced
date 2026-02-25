@@ -26,3 +26,7 @@ Fixed Windows compilation.
 Updated get_node to now show connections.
 Made x, y, z more consistent throughout the program.
 Fixed README.md
+
+## Version 1.0.5
+Improved compilation
+Build information is not shown on launch
