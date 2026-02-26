@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 4.2.3)
 set (CMAKE_CXX_STANDARD 17)
 
+# OPTIONAL STATIC COMPILATION
+# set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
+
 project(RPenGine)
 
 include_directories(
