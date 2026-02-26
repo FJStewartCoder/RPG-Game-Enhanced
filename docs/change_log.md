@@ -30,3 +30,6 @@ Fixed README.md
 ## Version 1.0.5
 Improved compilation
 Build information is not shown on launch
+
+## Version 1.0.6
+Small fixes to init file
