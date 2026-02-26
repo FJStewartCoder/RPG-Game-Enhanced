@@ -172,7 +172,7 @@ void NodeManager::build_node(
             );
             
             // the value recieved from the passed-in unique data
-            auto recieved_value = unique_data[ idx ];
+            sol::object recieved_value = unique_data[ idx ];
 
             log_debug(
                 "Recieved unique data, at idx: %d = %s",

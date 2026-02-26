@@ -96,6 +96,7 @@ void Campaign::deleteInit() {
         engine::func::extension::ENVIRONMENT,
         engine::func::extension::EXTEND,
         engine::settings::CAMPAIGN_NAME,
+        engine::settings::MODULES
     };
 
     for ( const auto &item : initVars ) {

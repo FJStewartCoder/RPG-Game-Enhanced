@@ -245,7 +245,7 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
                 ObjectToString( val ).c_str()
             );
 
-            const auto otherVal = other[key];
+            const sol::object otherVal = other[key];
             const bool otherHasKey = otherVal.valid();
 
             // if the other table does not have the same key, continue to next item 

@@ -1,3 +1,7 @@
+MODULES = {
+    "123"
+}
+
 function build()
     new_node_type("5", thingorsomething, thingorsomething, {})
 end
