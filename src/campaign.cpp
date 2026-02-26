@@ -148,6 +148,9 @@ int Campaign::LoadInitSettings(std::string campaignPath) {
     if ( res != 0 ) {
         log_error("Init file failed to load");
 
+        // delete init vars
+        deleteInit();
+
         // return bad
         return 1;
     } 
@@ -182,6 +185,9 @@ int Campaign::LoadInitSettings(std::string campaignPath) {
     else {
         log_trace("Setting \"%s\" was not found", engine::settings::MODULES.c_str());
     }
+
+    // delete init vars
+    deleteInit();
 
     // return ok
     return 0;
