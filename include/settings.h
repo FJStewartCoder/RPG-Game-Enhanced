@@ -20,6 +20,9 @@
 // ENABLED THE OPTION TO BLOCK THE GAME'S FUNCTION IF YOU DO NOT HAVE A LICENSE
 #define FUNNY
 
+// DISABLED LOGGING DURING TESTING
+#define DISABLE_TESTING_LOGS
+
 
 // DEFINITIONS -------------------------------------------------------------------
 

@@ -19,6 +19,8 @@ extern "C" {
     #include "log/log.h"
 }
 
+#include "settings.h"
+
 
 bool Test::Table() {
     log_trace("Called function \"%s()\"", __FUNCTION__);
@@ -32,7 +34,8 @@ bool Test::Table() {
 
     sol::table t2 = lua.create_table_with(
         "a", 3,
-        "b", 4
+        "b", 7,
+        "c", 5
     );
 
     bool res = CompareTable( t1, t2 );
@@ -79,6 +82,11 @@ bool Test::Table() {
 bool Test::All() {
     log_trace("Called function \"%s()\"", __FUNCTION__);
 
+#ifdef DISABLE_TESTING_LOGS
+    log_set_quiet(true);
+    std::cout << "[LOGGING DISABLED]" << std::endl;
+#endif
+
     bool res = true;
     
     // funcs is a list of pointers to functions that return bools
@@ -90,6 +98,11 @@ bool Test::All() {
     for ( const auto &func : funcs ) {
         res = res && func();
     }
+
+#ifdef DEV 
+    // re-enable logging if dev mode
+    log_set_quiet(false);
+#endif
 
     return res;
 }

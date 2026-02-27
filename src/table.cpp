@@ -22,14 +22,24 @@ bool CompareSingleTable( sol::table &t1, sol::table &t2 ) {
         const sol::object otherVal = t2[key];
 
         // if the t2 is missing a key, they are not the same
-        if ( !otherVal.valid() ) { return false; }
+        if ( !otherVal.valid() ) { 
+            log_debug(
+                "t2 does not have key %s",
+                ObjectToString( otherVal )
+            );
+
+            return false;
+        }
 
         // get the type
         const sol::type valType = val.get_type();
         const sol::type otherValType = val.get_type();
 
         // if the types are different the data is not the same
-        if ( valType != otherValType ) { return false; }
+        if ( valType != otherValType ) {
+            log_debug("Types do not match; the tables are not the same");
+            return false;
+        }
 
         // if one is table and both are same type then both are table
         if ( valType == sol::type::table ) {
@@ -41,7 +51,8 @@ bool CompareSingleTable( sol::table &t1, sol::table &t2 ) {
             if ( !CompareTable(valRef, otherRef) ) { return false; }
         }
         // if not tables but same type just compare
-        else if ( val != otherVal ) { 
+        else if ( val != otherVal ) {
+            log_debug("Values are not the same");
             return false;
         }
     }

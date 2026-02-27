@@ -33,3 +33,8 @@ Build information is not shown on launch
 
 ## Version 1.0.6
 Small fixes to init file
+
+## Version 1.1.0
+Updated README.md to correctly show compilation
+Added validation to the save file version
+Added function to compare two tables
