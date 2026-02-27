@@ -670,6 +670,14 @@ int Campaign::LoadFromFile() {
         return 1;
     }
 
+    // if the version of the savefile is greater than the current version
+    if ( metadata.version > engine::VERSION ) {
+        log_error("Savefile version is greater than the current version.");
+
+        fclose(fp);
+        return 1;
+    }
+
     CAMPAIGN_NAME = metadata.campaign_name;
 
     // load the campaign
