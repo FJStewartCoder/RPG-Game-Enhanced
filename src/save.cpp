@@ -492,10 +492,13 @@ struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
                 break;
             
             default:
-                log_warn("Data attempting to be read is of a type not implemented");
+                log_error("Data attempting to be read is of a type not implemented");
+                error = 1;
         }
 
         if ( error != 0 ) {
+            log_error("An error has occurred");
+
             res.error = 1;
             return res;
         }
