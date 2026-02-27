@@ -11,9 +11,6 @@ Thank you for using the engine.
 *don't delete the license; you have been warned*
 
 ## Compiling
-### Windows
-The engine requires Lua 5.4 or lower to function as intended. Install suitable Lua development binaries and replace [include/lua](include/lua) with the include directory.  
-Replace the library in [lib](lib) with the one provided and include the .dll
-
-### Linux
-Run the Makefile.
+`cmake -S . -B build`  
+Will build the game engine.  
+Move RPenGine from the build folder into the main folder to ensure that the game engine starts.
