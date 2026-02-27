@@ -89,6 +89,12 @@ namespace engine {
         const char BOOLEAN = 'b';
         const char TABLE = 't';
     };
+
+    // gets the version as a string
+    const std::string version_string();
+
+    // check is ver is compatible with the current version
+    const bool is_version_compatible(int ver);
 };
 
 enum class VirtualEvents {

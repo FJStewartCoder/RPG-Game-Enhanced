@@ -55,6 +55,7 @@ add_executable(
     src/menus/menus.cpp
 
     src/test.cpp
+    src/lua_engine_constants.cpp
 )
 
 target_link_directories(

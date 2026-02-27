@@ -670,6 +670,14 @@ int Campaign::LoadFromFile() {
         return 1;
     }
 
+    // if the version of the savefile is not compatible
+    if ( !engine::is_version_compatible( metadata.version ) ) {
+        log_error("Savefile version is not compatible with the current version.");
+
+        fclose(fp);
+        return 1;
+    }
+
     CAMPAIGN_NAME = metadata.campaign_name;
 
     // load the campaign
