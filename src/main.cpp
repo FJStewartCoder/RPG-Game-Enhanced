@@ -764,25 +764,6 @@ bool test() {
     return 0;
 }
 
-std::string parse_version_number() {
-    log_trace("Called function \"%s()\"", __FUNCTION__);
-
-    std::string res = "";
-    std::string ver_str = std::to_string(engine::VERSION);
-
-    const auto str_len = ver_str.length();
-
-    for ( int i = 0; i < str_len - 1; i++ ) {
-        const char c = ver_str[i];
-        res += c;
-        res += '.';
-    }
-
-    res += ver_str[str_len - 1];
-
-    return res;
-}
-
 // shows information about the build and version
 void show_build_information() {
     log_trace("Called function \"%s()\"", __FUNCTION__);
@@ -801,7 +782,7 @@ void show_build_information() {
     printf(
         "RPenGine %s\nv%s\n%s\n",
         build.c_str(),
-        parse_version_number().c_str(),
+        engine::version_string().c_str(),
         less_logs.c_str()
     );
 }

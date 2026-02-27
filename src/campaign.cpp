@@ -670,9 +670,9 @@ int Campaign::LoadFromFile() {
         return 1;
     }
 
-    // if the version of the savefile is greater than the current version
-    if ( metadata.version > engine::VERSION ) {
-        log_error("Savefile version is greater than the current version.");
+    // if the version of the savefile is not compatible
+    if ( !engine::is_version_compatible( metadata.version ) ) {
+        log_error("Savefile version is not compatible with the current version.");
 
         fclose(fp);
         return 1;
