@@ -33,14 +33,12 @@ extern "C" {
 #include "inject/inject_build.hpp"
 
 #include "save.hpp"
-
 #include "input.hpp"
-
 #include "campaign.hpp"
-
 #include "table.hpp"
-
 #include "to_binary.hpp"
+
+#include "test.hpp"
 
 
 // all errors in a namespace
@@ -677,6 +675,13 @@ int main_menu() {
             "Test a campaign without a save file"
         )
     );
+
+    menu.AddItem(
+        MenuItem(
+            "Unit Tests",
+            "Run all of the unit tests"
+        )
+    );
 #endif
 
     menu.AddItem(
@@ -707,6 +712,10 @@ int main_menu() {
         else if ( choice == "Test Campaign" ) {
             test_campaign();
         }
+
+        else if ( choice == "Unit Tests" ) {
+            Test::All();
+        }
 #endif
 
         else if ( choice == "Quit" ){
@@ -722,47 +731,6 @@ int main_menu() {
 }
 
 // --------------------------------------------------------------------------------------
-
-bool test() {
-    sol::state lua;
-
-    lua["a"] = lua.create_table();
-    sol::table a = lua["a"];
-
-    a["b"] = 5;
-    a["c"] = lua.create_table();
-    a["c"]["d"] = "hello";
-
-    sol::table b = CopyTable(lua, a);
-
-    b["c"]["d"] = 45;
-    b["b"] = 8;
-
-    a["e"] = "THIS DOES NOT EXIST IN B";
-
-    ShowTable(a);
-    std::cout << std::endl;
-    ShowTable(b);
-
-    sol::table c = CombineTable::ToNew( lua, b, a, CombineTable::OVERWRITE_EXISTING | CombineTable::ADD_NEW_PROPERTIES | CombineTable::DEEP | CombineTable::PRESERVE_TYPES );
-
-    std::cout << "FINAL TABLES [a, b, c]:" << std::endl;
-    ShowTable(a);
-    std::cout << std::endl;
-    ShowTable(b);
-    std::cout << std::endl;
-    ShowTable(c);
-
-    CombineTable::ToSource( lua, a, b, CombineTable::OVERWRITE_EXISTING );
-
-    std::cout << "After combining to source" << std::endl;
-
-    ShowTable(a);
-    std::cout << std::endl;
-    ShowTable(b);
-
-    return 0;
-}
 
 std::string parse_version_number() {
     log_trace("Called function \"%s()\"", __FUNCTION__);
