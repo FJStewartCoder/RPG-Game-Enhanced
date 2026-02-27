@@ -41,12 +41,12 @@ bool Test::Table() {
     bool res = CompareTable( t1, t2 );
     std::cout << res << std::endl;
 
-    lua["a"] = lua.create_table();
-    sol::table a = lua["a"];
-
-    a["b"] = 5;
-    a["c"] = lua.create_table();
-    a["c"]["d"] = "hello";
+    sol::table a = lua.create_table_with(
+        "b", 5,
+        "c", lua.create_table_with(
+            "d", "hello"
+        )
+    );
 
     sol::table b = CopyTable(lua, a);
 
@@ -75,6 +75,25 @@ bool Test::Table() {
     ShowTable(a);
     std::cout << std::endl;
     ShowTable(b);
+
+    sol::table d = lua.create_table_with(
+        "a", lua.create_table()
+    );
+
+    sol::table e = CopyTable( lua, d );
+    
+    e["a"] = lua.create_table_with(
+        1, "hello",
+        2, "heloo2",
+        3, "hello4"
+    );
+
+    sol::table f = CombineTable::ToNew( lua, d, e, CombineTable::OVERWRITE_EXISTING | CombineTable::PRESERVE_TYPES );
+    ShowTable( f );
+
+    d["a"]["b"] = "B";
+    f = CombineTable::ToNew( lua, d, e, CombineTable::OVERWRITE_EXISTING | CombineTable::PRESERVE_TYPES );
+    ShowTable( f );
 
     return true;
 }

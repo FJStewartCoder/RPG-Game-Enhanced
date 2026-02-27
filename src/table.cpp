@@ -328,13 +328,43 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
             const sol::type valType = val.get_type();
             const sol::type otherValType = otherVal.get_type();
 
+            // convert both of the values to tables if they are tables
+            sol::table valAsTable;
+            sol::table otherAsTable;
+
+            bool valIsDict = false;
+            bool otherIsDict = false;
+
+            // check if both of the values are lists or not
+            if ( valType == sol::type::table ) { 
+                valAsTable = val;
+                valIsDict = !IsList(valAsTable);
+
+                log_debug(
+                    "Value is table with type \"%s\"",
+                    (valIsDict) ? "DICTIONARY" : "LIST"
+                );
+            }
+            if ( otherValType == sol::type::table ) {
+                otherAsTable = otherVal;
+                otherIsDict = !IsList(otherAsTable);
+
+                log_debug(
+                    "Other value is table with type \"%s\"",
+                    (otherIsDict) ? "DICTIONARY" : "LIST"
+                );
+            }
+
             log_debug(
                 "VAL has type %s and OTHER_VAL has type %s",
                 sol::type_name(NULL, valType).c_str(),
                 sol::type_name(NULL, otherValType).c_str()
             );
 
-            const bool typeMatches = ( valType == otherValType );
+            // if both tables are tables of the same type, will be true
+            // if both are table of different type, will be false
+            // if both are not tables, will evaluate as usual because second statement will be true
+            const bool typeMatches = ( valType == otherValType ) && ( valIsDict == otherIsDict );
 
             // if we want to preserve types and they do not match, continue
             // this is invalid
@@ -362,36 +392,35 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
             log_trace("Other value is a table");
 
             // table handling from here
-            // THERE ARE TWO SCENARIOS: both tables or only other is a table
+            // THERE ARE FOUR SCENARIOS:
+            // both tables (both dict, both list, one of each) or only other is a table
+            
+            // if both are dict and wants to deep combine, deep combine
+            // both have same type, one is dict which means both are. and user wants to deep combine.
+            const bool bothDictAndDeepCombine = ( typeMatches && valIsDict && rules.deep_combine );
 
-            // make a copy to be used as a reference
-            sol::table otherAsTable = otherVal;
+            if ( bothDictAndDeepCombine ) {
+                log_trace("Deep combining tables");
 
-            // if type does not match, then only other is a table
-            // or, we don't want to deep combine
-            // so just make a copy and assign
-            if ( !typeMatches || !rules.deep_combine ) {
-                log_trace("Either value is not a table or not deep combining");
+                // if we want to deep combine and both are table, combine using same rules
+                CombineTable::ToSource( lua, valAsTable, otherAsTable, ruleset );
 
-                log_debug(
-                    "Copying other table to source at key: %s",
-                    ObjectToString(key).c_str()
-                );
-
-                source[key] = CopyTable( lua, otherAsTable );
-                // continue since there is no more processing
+                // continue to next value
                 continue;
             }
+            
+            // SINCE BOTH ARE NOT DICTIONARIES
+            // deep copying is not possible so copy the table (other is a table)
 
-            // final scenario is both are tables that want to be deep combined
+            // so just make a copy and assign
+            log_trace("Either value is not a table or not deep combining");
 
-            log_trace("Deep combining tables");
+            log_debug(
+                "Copying other table to source at key: %s",
+                ObjectToString(key).c_str()
+            );
 
-            // temporary value to be used as a reference
-            sol::table valAsTable = val;
-
-            // if we want to deep combine and both are table, combine using same rules
-            CombineTable::ToSource( lua, valAsTable, otherAsTable, ruleset );
+            source[key] = CopyTable( lua, otherAsTable );
         }
 
         log_trace("Finished overwriting existing properties");

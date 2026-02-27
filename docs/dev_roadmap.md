@@ -3,9 +3,11 @@
 It is just the normal roadmap but with a clearer direction for a developer. It will be more technically detailed and may include sub-steps to each goal.
 
 ## Road Map
-### Better Tables (CURRENT)
+### Better Tables (CURRENT, TESTED)
 Better table combination (only deep combine dictionary-like tables instead of list type tables)
 +update docs for api
+
+Update uses of combine table to now be appropriate for this.
 
 ### Testing
 Add testing to the entire program
