@@ -334,7 +334,7 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
                 sol::type_name(NULL, otherValType).c_str()
             );
 
-            const bool typeMatches = (valType == otherValType );
+            const bool typeMatches = ( valType == otherValType );
 
             // if we want to preserve types and they do not match, continue
             // this is invalid
