@@ -2,6 +2,9 @@
 #define TEST_HPP
 
 namespace Test {
+    // tests table functions
+    bool Table();
+
     bool All();
 }
 

@@ -20,8 +20,23 @@ extern "C" {
 }
 
 
-bool Test::All() {
+bool Test::Table() {
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
     sol::state lua;
+
+    sol::table t1 = lua.create_table_with(
+        "a", 3,
+        "b", 7
+    );
+
+    sol::table t2 = lua.create_table_with(
+        "a", 3,
+        "b", 4
+    );
+
+    bool res = CompareTable( t1, t2 );
+    std::cout << res << std::endl;
 
     lua["a"] = lua.create_table();
     sol::table a = lua["a"];
@@ -58,5 +73,23 @@ bool Test::All() {
     std::cout << std::endl;
     ShowTable(b);
 
-    return 0;
+    return true;
+}
+
+bool Test::All() {
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
+    bool res = true;
+    
+    // funcs is a list of pointers to functions that return bools
+    bool (*funcs[])() = {
+        Test::Table
+    };
+
+    // iterate functions and call them
+    for ( const auto &func : funcs ) {
+        res = res && func();
+    }
+
+    return res;
 }

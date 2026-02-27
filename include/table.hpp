@@ -3,6 +3,8 @@
 
 #include "sol/sol.hpp"
 
+bool CompareTable( sol::table &t1, sol::table &t2 );
+
 sol::table CopyTable( sol::state &lua, sol::table &table );
 
 std::string ObjectToString( const sol::object &obj );

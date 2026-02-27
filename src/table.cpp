@@ -7,6 +7,55 @@ extern "C" {
 
 #include "to_binary.hpp"
 
+// COMPARE SCRIPTS ----------------------------------------------------------------------------
+
+// check t1 compared to t2 but not the other way around
+bool CompareSingleTable( sol::table &t1, sol::table &t2 ) {
+    log_trace("Called function \"%s( table, table )\"", __FUNCTION__);
+
+    for ( const auto &item : t1 ) {
+        // get the key
+        const auto key = item.first;
+
+        // get both values
+        const auto val = item.second;
+        const sol::object otherVal = t2[key];
+
+        // if the t2 is missing a key, they are not the same
+        if ( !otherVal.valid() ) { return false; }
+
+        // get the type
+        const sol::type valType = val.get_type();
+        const sol::type otherValType = val.get_type();
+
+        // if the types are different the data is not the same
+        if ( valType != otherValType ) { return false; }
+
+        // if one is table and both are same type then both are table
+        if ( valType == sol::type::table ) {
+            // get both new values are references
+            sol::table valRef = val;
+            sol::table otherRef = otherVal;
+
+            // if the subtables are different then return false
+            if ( !CompareTable(valRef, otherRef) ) { return false; }
+        }
+        // if not tables but same type just compare
+        else if ( val != otherVal ) { 
+            return false;
+        }
+    }
+
+    // if we don't return false at any other point, they must be the same
+    return true;
+}
+
+bool CompareTable( sol::table &t1, sol::table &t2 ) {
+    log_trace("Called function \"%s( table, table )\"", __FUNCTION__);
+
+    // get the result of both ways around
+    return CompareSingleTable( t1, t2 ) && CompareSingleTable( t2, t1 );
+}
 
 // COPY SCRIPTS -------------------------------------------------------------------------------
 
