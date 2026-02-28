@@ -219,11 +219,10 @@ void NodeManager::build_node(
             unique_data,
             /*
             Won't be added because...
-            DEEP - You would be unable to have a list as a parameter
             ADD_NEW - The script would not expect other data
             ENFORCE_TYPES - Why restrict the freedom? The user can type check themselves
             */
-            CombineTable::OVERWRITE_EXISTING
+            CombineTable::OVERWRITE_EXISTING | CombineTable::DEEP
         );
     }
 
