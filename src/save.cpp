@@ -506,3 +506,152 @@ struct Read::TableReturn Read::Table(FILE *fp, sol::state &lua) {
 
     return res;
 }
+
+
+char TypeCharacter( sol::object &obj ) {
+    log_trace("Called function \"%s( object )\"", __FUNCTION__);
+
+    const sol::type type = obj.get_type();
+
+    char res = engine::save::NIL;
+
+    switch ( type ) {
+        case sol::type::string:
+            res = engine::save::STRING;
+            break;
+
+        case sol::type::number:
+            res = engine::save::FLOAT;
+
+            if ( obj.is<int>() ) {
+                res = engine::save::INT;
+            }
+
+            break;
+        
+        case sol::type::boolean:
+            res = engine::save::BOOLEAN;
+            break;
+
+        case sol::type::table:
+            res = engine::save::TABLE;
+            break;
+        
+        case sol::type::nil:
+            res = engine::save::NIL;
+            break;
+        
+        default:
+            log_error("This object type does not a corresponding character");
+            break;
+    }
+
+    return res;
+}
+
+void WriteV2::String( FILE *fp, sol::object &obj ) {
+    log_trace("Called function \"%s( FILE, object )\"", __FUNCTION__);
+
+    std::string val = obj.as<std::string>();
+    int str_len = val.length();
+
+    // write the string length then the string
+    fwrite(&str_len, sizeof(int), 1, fp);
+    fwrite(val.c_str(), sizeof(char), str_len, fp);
+}
+
+void WriteV2::Int( FILE *fp, sol::object &obj ) {
+    log_trace("Called function \"%s( FILE, object )\"", __FUNCTION__);
+
+    int val = obj.as<int>();
+    fwrite( &val, sizeof(int), 1, fp );
+}
+
+void WriteV2::Float( FILE *fp, sol::object &obj ) {
+    log_trace("Called function \"%s( FILE, object )\"", __FUNCTION__);
+
+    float val = obj.as<float>();
+    fwrite( &val, sizeof(float), 1, fp );
+}
+
+void WriteV2::Boolean( FILE *fp, sol::object &obj ) {
+    log_trace("Called function \"%s( FILE, object )\"", __FUNCTION__);
+
+    bool val = obj.as<bool>();
+
+    const char TRUE = 1;
+    const char FALSE = 0;
+
+    if ( val ) { fwrite( &TRUE, sizeof(char), 1, fp ); }
+    else { fwrite( &FALSE, sizeof(char), 1, fp ); }
+}
+
+void WriteV2::Table( FILE *fp, sol::object &obj ) {
+    log_trace("Called function \"%s( FILE, object )\"", __FUNCTION__);
+
+    const sol::table table = obj;
+
+    // get the length of the table and write it
+    int table_length = 0;
+    for ( const auto &item : table ) { table_length++; }
+    fwrite(&table_length, sizeof(int), 1, fp);
+
+    for ( const auto item : table ) {
+        sol::object key = item.first;
+        sol::object val = item.second;
+
+        // write the var then the key, var is as a var
+        WriteV2::Write( fp, key, true );
+        WriteV2::Write( fp, val, false );
+    }
+}
+
+int WriteV2::Write( FILE *fp, sol::object &obj, bool isVar ) {
+    log_trace(
+        "Called function \"%s( FILE, object, %d )\"", 
+        __FUNCTION__,
+        isVar
+    );
+
+    // write the var character to the file
+    if ( isVar ) { fputc('v', fp); }
+
+    // get the character that corresponds to the type
+    char typeChar = TypeCharacter( obj );
+
+    // write the character for the type
+    fputc(typeChar, fp);
+
+    // write the data to the file
+    switch ( typeChar ) {
+        case engine::save::STRING:
+            WriteV2::String( fp, obj );
+            break;
+
+        case engine::save::INT:
+            WriteV2::Int( fp, obj );
+            break;
+
+        case engine::save::FLOAT:
+            WriteV2::Float( fp, obj );
+            break;
+        
+        case engine::save::BOOLEAN:
+            WriteV2::Boolean( fp, obj );
+            break;
+
+        case engine::save::TABLE:
+            WriteV2::Table( fp, obj );
+            break;
+        
+        case engine::save::NIL:
+            // don't do anything
+            break;
+    }
+
+    return 0;
+}
+
+sol::object ReadV2::Read( FILE *fp, sol::state &lua ) {
+
+}

@@ -66,4 +66,18 @@ namespace Read {
     struct TableReturn Table(FILE *fp, sol::state &lua);
 }
 
+namespace WriteV2 {
+    void String( FILE *fp, sol::object &obj );
+    void Int( FILE *fp, sol::object &obj );
+    void Float( FILE *fp, sol::object &obj );
+    void Boolean( FILE *fp, sol::object &obj );
+    void Table( FILE *fp, sol::object &obj );
+
+    int Write( FILE *fp, sol::object &obj, bool isVar = false );
+}
+
+namespace ReadV2 {
+    sol::object Read( FILE *fp, sol::state &lua );
+}
+
 #endif  // SAVE_HPP

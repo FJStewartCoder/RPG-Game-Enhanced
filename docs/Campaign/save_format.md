@@ -70,3 +70,15 @@ For a variable named "abc" and data {
     "age" = 24
 }:
 3 (as bytes) abct2 (as bytes) 4 (as bytes) names9 (as bytes) Eva Smith3 (as bytes) agei24 (as bytes)
+
+## Version 2 Format
+### Introduction
+All of the data types are the same as before, but instead there is a new variable system.
+
+### New Variables
+Instead of writing variables as strings, write them as any type prefixed by 'v'
+
+So, an int key of 3 would be:  
+vi3 (as bytes)
+
+This allows compatibility of alternate table keys

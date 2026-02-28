@@ -82,6 +82,7 @@ namespace engine {
     namespace save {
         const std::string FILE_MAGIC = "RPenGineFILE";
 
+        const char VARIABLE = 'v';
         const char NIL = 'n';
         const char STRING = 's';
         const char INT = 'i';
