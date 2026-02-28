@@ -2,6 +2,9 @@
 #define TEST_HPP
 
 namespace Test {
+    // tests combining tables
+    bool CombineTable();
+
     // tests table functions
     bool Table();
 

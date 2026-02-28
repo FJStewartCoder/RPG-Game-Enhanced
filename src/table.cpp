@@ -445,13 +445,13 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
             // one dict, one list
             // only other is table
 
-            // we can only deep combine if both are dictionaries and the user wants to
+            // we can only deep combine if source is dict and other is compatible and the user wants to
             // otherwise we must copy
             
             // *scriptly dict
             const bool jColeAndDeepCombine = ( 
+                typeMatches &&
                 GetTableType( val ) == TableType::DICTIONARY &&
-                GetTableType( otherVal ) == TableType::DICTIONARY &&
                 rules.deep_combine
             );
 

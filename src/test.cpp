@@ -22,6 +22,248 @@ extern "C" {
 #include "settings.h"
 
 
+bool Test::CombineTable() {
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
+    /*
+    ALL BELOW ASSUME OVERWRITE, PRESERVE TYPES AND DEEP
+
+    (TEST) BOTH EMPTY -> Copy one to the other
+    (TEST) BOTH LIST -> Copy other list to source
+    (TEST) BOTH DICT -> Deep combine if deep else copy other to source
+
+    (TEST) ONE EMPTY, ONE LIST -> Copy list to source
+    (TEST) ONE EMPTY, ONE DICT -> Copy dict to source
+
+    (TEST) ONE DICT, ONE LIST -> Do nothing because type is different 
+    (TEST) ONE LIST, ONE DICT -> Do nothing because type is different 
+
+    ONE DICT, ONE EMPTY -> Deep combine otherwise copy other to source
+    ONE LIST, ONE EMPTY -> Copy empty list over original
+    */
+
+    sol::state lua;
+
+    sol::table source;
+    sol::table other;
+    sol::table result;
+    sol::table expected;
+
+    std::string res;
+
+    // -------------------------------------------------------------------------------------------
+
+    source = lua.create_table_with(
+        "a", lua.create_table()
+    );
+    other = lua.create_table_with(
+        "a", lua.create_table()
+    );
+    result = CombineTable::ToNew(
+        lua, source, other,
+        CombineTable::OVERWRITE_EXISTING | CombineTable::DEEP | CombineTable::PRESERVE_TYPES
+    );
+
+    expected = lua.create_table_with(
+        "a", lua.create_table()
+    );
+
+    res = ( CompareTable( result, expected ) ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    // -------------------------------------------------------------------------------------------
+
+    source = lua.create_table_with(
+        "a", lua.create_table()
+    );
+    source["a"][1] = "hello";
+    source["a"][2] = "abc";
+
+    other = lua.create_table_with(
+        "a", lua.create_table()
+    );
+    other["a"][1] = "not hello";
+    other["a"][2] = "not abc";
+
+    result = CombineTable::ToNew(
+        lua, source, other,
+        CombineTable::OVERWRITE_EXISTING | CombineTable::DEEP | CombineTable::PRESERVE_TYPES
+    );
+
+    expected = lua.create_table_with(
+        "a", lua.create_table_with(
+            1, "not hello",
+            2, "not abc"
+        )
+    );
+
+    res = ( CompareTable( result, expected ) ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    // -------------------------------------------------------------------------------------------
+
+    source = lua.create_table_with(
+        "a", lua.create_table_with(
+            "b", 4,
+            "c", "SEA"
+        )
+    );
+
+    other = lua.create_table_with(
+        "a", lua.create_table_with(
+            "b", 7,
+            "c", 123978
+        )
+    );
+
+    result = CombineTable::ToNew(
+        lua, source, other,
+        CombineTable::OVERWRITE_EXISTING | CombineTable::DEEP | CombineTable::PRESERVE_TYPES
+    );
+
+    expected = lua.create_table_with(
+        "a", lua.create_table_with(
+            "b", 7,
+            "c", "SEA"
+        )
+    );
+
+    res = ( CompareTable( result, expected ) ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    // -------------------------------------------------------------------------------------------
+
+    source = lua.create_table_with(
+        "a", lua.create_table()
+    );
+
+    other = lua.create_table_with(
+        "a", lua.create_table_with(
+            1, "bob",
+            2, "not bob"
+        )
+    );
+
+    result = CombineTable::ToNew(
+        lua, source, other,
+        CombineTable::OVERWRITE_EXISTING | CombineTable::DEEP | CombineTable::PRESERVE_TYPES
+    );
+
+    expected = CopyTable( lua, other );
+
+    res = ( CompareTable( result, expected ) ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    // -------------------------------------------------------------------------------------------
+
+    source = lua.create_table_with(
+        "a", lua.create_table()
+    );
+
+    other = lua.create_table_with(
+        "a", lua.create_table_with(
+            "b", 7,
+            "c", 123978
+        )
+    );
+
+    result = CombineTable::ToNew(
+        lua, source, other,
+        CombineTable::OVERWRITE_EXISTING | CombineTable::DEEP | CombineTable::PRESERVE_TYPES
+    );
+
+    expected = CopyTable( lua, other );
+
+    res = ( CompareTable( result, expected ) ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    // -------------------------------------------------------------------------------------------
+
+    source = lua.create_table_with(
+        "a", lua.create_table_with(
+            1, 7,
+            2, 123978
+        )
+    );
+
+    other = lua.create_table_with(
+        "a", lua.create_table_with(
+            "b", 7,
+            "c", 123978
+        )
+    );
+
+    result = CombineTable::ToNew(
+        lua, source, other,
+        CombineTable::OVERWRITE_EXISTING | CombineTable::DEEP | CombineTable::PRESERVE_TYPES
+    );
+
+    expected = CopyTable( lua, source );
+
+    res = ( CompareTable( result, expected ) ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    // -------------------------------------------------------------------------------------------
+
+    result = CombineTable::ToNew(
+        lua, other, source,
+        CombineTable::OVERWRITE_EXISTING | CombineTable::DEEP | CombineTable::PRESERVE_TYPES
+    );
+
+    expected = CopyTable( lua, other );
+
+    res = ( CompareTable( result, expected ) ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    // -------------------------------------------------------------------------------------------
+    
+    source = lua.create_table_with(
+        "a", lua.create_table_with(
+            "b", 4,
+            "c", "SEA"
+        )
+    );
+
+    other = lua.create_table_with(
+        "a", lua.create_table()
+    );
+
+    result = CombineTable::ToNew(
+        lua, source, other,
+        CombineTable::OVERWRITE_EXISTING | CombineTable::DEEP | CombineTable::PRESERVE_TYPES
+    );
+
+    expected = CopyTable( lua, source );
+
+    res = ( CompareTable( result, expected ) ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    // -------------------------------------------------------------------------------------------
+    
+    source = lua.create_table_with(
+        "a", lua.create_table_with(
+            1, "bob",
+            2, "someone else"
+        )
+    );
+
+    other = lua.create_table_with(
+        "a", lua.create_table()
+    );
+
+    result = CombineTable::ToNew(
+        lua, source, other,
+        CombineTable::OVERWRITE_EXISTING | CombineTable::DEEP | CombineTable::PRESERVE_TYPES
+    );
+
+    expected = CopyTable( lua, other );
+
+    res = ( CompareTable( result, expected ) ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    return true;
+}
+
 bool Test::Table() {
     log_trace("Called function \"%s()\"", __FUNCTION__);
 
@@ -151,12 +393,18 @@ bool Test::All() {
     
     // funcs is a list of pointers to functions that return bools
     bool (*funcs[])() = {
+        Test::CombineTable,
         Test::Table
     };
 
+    size_t i = 1;
+
     // iterate functions and call them
     for ( const auto &func : funcs ) {
+        printf("-- Test Set %d --\n", i);
         res = res && func();
+        i++;
+        printf("\n");
     }
 
 #ifdef DEV 
