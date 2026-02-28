@@ -77,7 +77,33 @@ namespace WriteV2 {
 }
 
 namespace ReadV2 {
-    sol::object Read( FILE *fp, sol::state &lua );
+    struct Item {
+        char type = engine::save::NIL;
+        bool isVar = false;
+
+        union {
+            std::string strVal;
+            int intVal;
+            float floatVal;
+            bool boolVal;
+            char charVal;
+        };
+    };
+
+    struct TableReturn {
+        // allocated memory for all values read from the table
+        std::vector<struct Item> items;
+        std::vector<struct TableReturn> tables;
+
+        // the value is the final table
+        sol::table value;
+        // any error
+        int error;
+    }; 
+
+    struct ReadV2::Item Read( FILE *fp );
+
+    struct ReadV2::TableReturn Table(FILE *fp, sol::state &lua);
 }
 
 #endif  // SAVE_HPP

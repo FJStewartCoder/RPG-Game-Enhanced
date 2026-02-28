@@ -652,6 +652,142 @@ int WriteV2::Write( FILE *fp, sol::object &obj, bool isVar ) {
     return 0;
 }
 
-sol::object ReadV2::Read( FILE *fp, sol::state &lua ) {
+struct ReadV2::TableReturn ReadV2::Table(FILE *fp, sol::state &lua) {
+    log_trace("Called function \"%s( FILE, state )\"", __FUNCTION__);
 
+    ReadV2::TableReturn res;
+
+    // initialiase some return variables
+    res.value = lua.create_table();
+    res.error = 0;
+
+    // create a reference to the res' value
+    sol::table &dest = res.value;
+
+    int table_length;
+
+    fread(&table_length, sizeof(int), 1, fp);
+
+    log_debug("Reading table of length %d", table_length);
+
+    if ( feof(fp) || ferror(fp) ) { 
+        res.error = 1;
+        return res;
+    }
+
+    // iterate table length items
+    for ( int i = 0; i < table_length; i++ ) {
+        const bool isVar = fgetc( fp ) == engine::save::VARIABLE;
+
+        if ( !isVar ) { 
+            res.error = 1;
+            return res;
+        }
+
+        // add one blank item to the back of the array
+        res.vars.push_back("");
+        
+        // write to the new heap memory
+        if ( Read::Var(fp, res.vars.back()) ) {
+            res.error = 1;
+            return res;
+        };
+
+        // reference to the current variable
+        std::string &var = res.vars.back();
+        
+        log_debug("IN TABLE - Var recieved is %s. Total vars = %d", var.c_str(), res.vars.size());
+        for ( const auto v : res.vars ) {
+            log_debug("VAR: %s", v.c_str());
+        }
+
+        // return values for a possible table or bool
+        bool bool_var;
+        struct ReadV2::TableReturn table_var;
+
+        char type;
+        
+        if ( Read::Type(fp, type) ) {
+            res.error = 1;
+            return res;
+        }
+
+        int error = 0;
+
+        switch ( type ) {
+            case engine::save::STRING:
+                // push a blank value to the heap
+                res.strs.push_back("");
+                error = Read::String(fp, res.strs.back());
+
+                log_debug("Setting table data at \"%s\" to \"%s\"", var.c_str(), res.strs.back().c_str());
+
+                dest[var] = res.strs.back();
+                break;
+
+            case engine::save::INT:
+                // add the value to the heap
+                res.ints.push_back(0);
+                error = Read::Int(fp, res.ints.back());
+
+                log_debug("Setting table data at \"%s\" to %d", var.c_str(), res.ints.back());
+                
+                dest[var] = res.ints.back();
+                break;
+            
+            case engine::save::FLOAT:
+                // add the value to the heap
+                res.floats.push_back(0);
+                error = Read::Float(fp, res.floats.back());
+
+                log_debug("Setting table data at \"%s\" to %lf", var.c_str(), res.floats.back());
+                
+                dest[var] = res.floats.back();
+                break;
+            
+            case engine::save::BOOLEAN:
+                // push a blank value and load the new value into this location
+                error = Read::Boolean(fp, bool_var);
+                res.bools.push_back(bool_var);
+
+                log_debug("Setting table data at \"%s\" to %d", var.c_str(), res.bools.back());
+
+                // needs to be cast to bool otherwise it is considered "userdata"
+                dest[var] = (bool)res.bools.back();
+                break;
+            
+            case engine::save::NIL:
+                error = Read::Nil(fp);
+
+                log_debug("Setting table data at \"%s\" to nil", var.c_str());
+
+                dest[var] = sol::nil;
+                break;
+            
+            case engine::save::TABLE:
+                table_var = Read::Table(fp, lua);
+                error = table_var.error;
+
+                // add the value to the heap
+                res.tables.push_back(table_var);
+
+                log_debug("Setting table data at \"%s\" to table", var.c_str());
+
+                dest[var] = res.tables.back().value;
+                break;
+            
+            default:
+                log_error("Data attempting to be read is of a type not implemented");
+                error = 1;
+        }
+
+        if ( error != 0 ) {
+            log_error("An error has occurred");
+
+            res.error = 1;
+            return res;
+        }
+    }
+
+    return res;
 }
