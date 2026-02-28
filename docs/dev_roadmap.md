@@ -5,9 +5,6 @@ It is just the normal roadmap but with a clearer direction for a developer. It w
 ## Road Map
 ### Better Tables (CURRENT, TESTED)
 Better table combination (only deep combine dictionary-like tables instead of list type tables)
-NEEDS FIXING AGAIN
-What if original data type is table but new is empty, we do need to deep combine this because it could be an inventory
-JUST DEEP COMBINE IF BOTH ARE TABLES. NEED TO GO THROUGH ALL POSSIBLE SCENARIOS (ADD TESTS FOR EACH ONE)
 +update docs for api
 
 Update uses of combine table to now be appropriate for this.
