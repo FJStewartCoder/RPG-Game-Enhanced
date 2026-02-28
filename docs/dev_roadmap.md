@@ -3,16 +3,10 @@
 It is just the normal roadmap but with a clearer direction for a developer. It will be more technically detailed and may include sub-steps to each goal.
 
 ## Road Map
-### Better Tables (CURRENT, TESTED)
-Better table combination (only deep combine dictionary-like tables instead of list type tables)
-+update docs for api
-
-Update uses of combine table to now be appropriate for this.
-build.cpp @ 216 - 226
-campaign.cpp @ 716 - 720
-+ updates does for where these are combined
-+ relevant to unique data combined into the template (NOW DEEP COMBINES TABLES BECAUSE LISTS NOW WORK AS INTENDED)
-+ relevant to how data is reloaded
+### Better Save
+Save a sol::object rather than per type.
+Allows vars to be any type but prefixed with 'v'
+Ensure old functions are kept for backwards compatibility
 
 ### Testing
 Add testing to the entire program

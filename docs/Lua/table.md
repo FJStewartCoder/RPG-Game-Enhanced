@@ -51,6 +51,31 @@ Use **o** to enable [overwriting](#overwrite-existing).
 Use **a** to enable [adding new](#add-new-properties).  
 Use **d** to enable [deep](#deep).  
 
+### Important
+In Lua a table can either be list-like. That is, there are only consecutive numeric keys starting at 1.  
+A table can also be dictionary-like. That is, keys can be of any type in no order.  
+Another wierd point is that an empty table has neither of these specified types.
+
+Anything that is not a list is considered to be dictionary-like.  
+
+**Lists** and **Dictionaries** are distinguished when combining.  
+This means that these are considered to be seperate types, when preserving types.
+
+Deep combination only works when both tables are dictionary-like. However, an empty type is considered to be either.
+
+For **DEEP** combination only, the following is how the system works (format is **source**, **other**):  
+Both **DICTIONARY** -> Deep Combine.  
+Both **LIST** -> **other** will overwrite **source**.  
+Both **EMPTY** -> **other** will overwrite **source**.  
+
+**DICTIONARY**, **LIST** -> (Incompatible types when preserving) **other** will overwrite **source**.  
+**LIST**, **DICTIONARY** -> (Incompatible types when preserving) **other** will overwrite **source**.  
+
+**EMPTY**, **DICTIONARY/LIST** -> (Compatible types when preserving) **other** will overwrite **source**.  
+
+**LIST**, **EMPTY** -> (Compatible types when preserving) **other** will overwrite **source**.  
+**DICTIONARY**, **EMPTY** -> (Compatible types when preserving) **other** will be deep combined with **source**.  
+
 ## Merge Strategies
 ### Preseve Type
 Preseve types will only **overwrite** data if the type matches. This is only active when overwriting data.

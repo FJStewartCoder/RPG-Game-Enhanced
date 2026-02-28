@@ -62,8 +62,8 @@ Arguments can either be a list or dictionary-like. Dictionary-like is prefered f
 **one risk of using list is inconsitency. ONLY use this approach with templates with either one or two keys*  
 \*\**despite examples showing more keys/value pairs are possible, it does not actually work*  
 
-Arguments are merged into the template by only overwriting existing parameters. This is a shallow merge.  
-This means that tables in the main table are entirely overwriten rather than continuing the merge within each table.  
+Arguments are merged into the template by only overwriting existing parameters. This is a deep merge.  
+This means that tables in the main table also get merged using the same strategy into each other.
 Also, you can not add new parameters but only overwrite existing ones.  
 Additionally, types are not maintained. This means it is possible to overwrite strings with integers etc.
 
