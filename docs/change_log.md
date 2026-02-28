@@ -38,3 +38,4 @@ Small fixes to init file
 Updated README.md to correctly show compilation
 Added validation to the save file version
 Added function to compare two tables
+Fixed combine table function to now consider the type of the table

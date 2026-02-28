@@ -11,7 +11,18 @@ std::string ObjectToString( const sol::object &obj );
 
 void ShowTable( sol::table &table );
 
-// checks if a table is a list or dictionary like
+enum class TableType {
+    LIST,  // list being defined as all consecutive numeric keys starting at 1
+    DICTIONARY,  // not a list
+    UNDETERMINED,  // the table is empty
+    NONE  // it's not even table
+};
+
+// gets the type of the table
+TableType GetTableType( const sol::table &table );
+
+// just a GetTableType wrapper
+// if undetermined, then this will show true
 bool IsList( const sol::table &table );
 
 namespace CombineTable {

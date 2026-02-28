@@ -27,6 +27,31 @@ bool Test::Table() {
 
     sol::state lua;
 
+    TableType type = TableType::NONE;
+    sol::table aa = lua.create_table_with();
+
+    type = GetTableType( aa );
+    
+    std::string res = ( type == TableType::UNDETERMINED ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    aa[1] = "hello";
+    aa[2] = "thing";
+
+    type = GetTableType( aa );
+    
+    res = ( type == TableType::LIST ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    aa["asdf"] = "asdf";
+
+    type = GetTableType( aa );
+    
+    res = ( type == TableType::DICTIONARY ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    // ---------------------------------------------------------------------------------
+
     sol::table t1 = lua.create_table_with(
         "a", 3,
         "b", 7
@@ -38,8 +63,8 @@ bool Test::Table() {
         "c", 5
     );
 
-    bool res = CompareTable( t1, t2 );
-    std::cout << res << std::endl;
+    bool compRes = CompareTable( t1, t2 );
+    std::cout << compRes << std::endl;
 
     sol::table a = lua.create_table_with(
         "b", 5,
@@ -94,6 +119,22 @@ bool Test::Table() {
     d["a"]["b"] = "B";
     f = CombineTable::ToNew( lua, d, e, CombineTable::OVERWRITE_EXISTING | CombineTable::PRESERVE_TYPES );
     ShowTable( f );
+
+    sol::table g = lua.create_table_with(
+        "a", lua.create_table()
+    );
+
+    sol::table h = CopyTable(lua, g);
+    h["a"]["b"] = 10;
+    h["a"]["c"] = "dvsjhk";
+
+    sol::table i = CombineTable::ToNew(
+        lua, g, h, CombineTable::OVERWRITE_EXISTING | CombineTable::PRESERVE_TYPES
+    );
+
+    sol::table expected = CopyTable(lua, h);
+    std::string testRes = CompareTable( h, i ) ? "Passed" : "Failed"; 
+    std::cout << "Test " << testRes << std::endl;
 
     return true;
 }

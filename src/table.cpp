@@ -25,7 +25,7 @@ bool CompareSingleTable( sol::table &t1, sol::table &t2 ) {
         if ( !otherVal.valid() ) { 
             log_debug(
                 "t2 does not have key %s",
-                ObjectToString( otherVal )
+                ObjectToString( otherVal ).c_str()
             );
 
             return false;
@@ -213,33 +213,48 @@ void ShowTable( sol::table &table ) {
 
 // HELPER SCRIPTS -----------------------------------------------------------------------------
 
-// iterate each key to look for the pattern 1, 2, 3, 4, 5, ...
-bool IsList( const sol::table &table ) {
+TableType GetTableType( const sol::table &table ) {
     log_trace("Called function \"%s( table )\"", __FUNCTION__);
+
+    // invalid table is not a table
+    if ( !table.valid() ) { return TableType::NONE; }
 
     // the expected first value of the pair to be a list
     size_t expected = 1;
 
+    // iterate each key to look for the pattern 1, 2, 3, 4, 5, ...
     for ( const auto &item : table ) {
         const auto key = item.first;
 
         // if the key is not an index (int), then it is not a list
-        if ( !key.is<int>() ) {
-            return false;
-        }
+        if ( !key.is<int>() ) { return TableType::DICTIONARY; }
 
         // if the indexes do not match up, it is not a list
         // this is because it is possible to create a dictionary-like with ints as keys
-        if ( item.first.as<int>() != expected ) {
-            return false;
-        }
+        if ( item.first.as<int>() != expected ) { return TableType::DICTIONARY; }
 
         // increment the expected index
         expected++;
     }
 
-    // if every item passes, it is a list
-    return true;
+    // if we get to the end, it is either a list (because its not a dict)
+    // or there were never any items
+    // check if expected is still 1 (would have been incremented otherwise)
+
+    const bool isEmpty = expected == 1;
+
+    if ( isEmpty ) { return TableType::UNDETERMINED; }
+
+    // if not empty, must be a list
+    return TableType::LIST;
+}
+
+bool IsList( const sol::table &table ) {
+    log_trace("Called function \"%s( table )\"", __FUNCTION__);
+
+    TableType type = GetTableType( table );
+
+    return type == TableType::LIST || type == TableType::UNDETERMINED; 
 }
 
 // COMBINATION SCRIPTS ------------------------------------------------------------------------
@@ -279,6 +294,68 @@ table_rules_t parse_rules( const int ruleset ) {
         preserve_types,
         deep_combine
     };
+}
+
+bool TypeMatches( const sol::object &obj1, const sol::object &obj2 ) {
+    log_trace(
+        "Called function \"%s( %s, %s )\"",
+        __FUNCTION__,
+        ObjectToString( obj1 ).c_str(),
+        ObjectToString( obj2 ).c_str()
+    );
+
+    const sol::type obj1Type = obj1.get_type();
+    const sol::type obj2Type = obj2.get_type();
+
+    log_debug(
+        "Object 1 has type %s and Object 2 has type %s",
+        sol::type_name(NULL, obj1Type).c_str(),
+        sol::type_name(NULL, obj2Type).c_str()
+    );
+
+    // if the types are different then false
+    if ( obj1Type != obj2Type ) {
+        log_debug("Types do not match");
+        return false;
+    }
+
+    // types must match if we are here
+
+    // types are not tables so no additional processing
+    if ( obj1Type != sol::type::table ) {
+        log_debug("Types are not tables and match");
+        return true;
+    }
+
+    sol::table obj1Table = obj1;
+    sol::table obj2Table = obj2;
+
+    TableType obj1TableType = GetTableType(obj1Table);
+    TableType obj2TableType = GetTableType(obj2Table);
+
+    // type matches so return true
+    if ( obj1TableType == obj2TableType ) { 
+        log_debug("Table types match");
+        return true;
+    }
+
+    // final scenarios are:
+    // DICT, LIST
+    // LIST, DICT
+    // UNKNOWN, OTHER
+
+    // if one is undetermined, that means that they match ( because other is not also undetermined )
+    // otherwise it is a permutation of dict and list
+    bool res = obj1TableType == TableType::UNDETERMINED || obj2TableType == TableType::UNDETERMINED;
+
+    if ( res ) {
+        log_debug("Table types are similar");
+        return true;
+    }
+    else {
+        log_debug("Table types do not match");
+        return false;
+    }
 }
 
 int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &other, int ruleset ) {
@@ -328,43 +405,8 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
             const sol::type valType = val.get_type();
             const sol::type otherValType = otherVal.get_type();
 
-            // convert both of the values to tables if they are tables
-            sol::table valAsTable;
-            sol::table otherAsTable;
-
-            bool valIsDict = false;
-            bool otherIsDict = false;
-
-            // check if both of the values are lists or not
-            if ( valType == sol::type::table ) { 
-                valAsTable = val;
-                valIsDict = !IsList(valAsTable);
-
-                log_debug(
-                    "Value is table with type \"%s\"",
-                    (valIsDict) ? "DICTIONARY" : "LIST"
-                );
-            }
-            if ( otherValType == sol::type::table ) {
-                otherAsTable = otherVal;
-                otherIsDict = !IsList(otherAsTable);
-
-                log_debug(
-                    "Other value is table with type \"%s\"",
-                    (otherIsDict) ? "DICTIONARY" : "LIST"
-                );
-            }
-
-            log_debug(
-                "VAL has type %s and OTHER_VAL has type %s",
-                sol::type_name(NULL, valType).c_str(),
-                sol::type_name(NULL, otherValType).c_str()
-            );
-
-            // if both tables are tables of the same type, will be true
-            // if both are table of different type, will be false
-            // if both are not tables, will evaluate as usual because second statement will be true
-            const bool typeMatches = ( valType == otherValType ) && ( valIsDict == otherIsDict );
+            // check if the types are equivalent
+            const bool typeMatches = TypeMatches( val, otherVal );
 
             // if we want to preserve types and they do not match, continue
             // this is invalid
@@ -389,17 +431,35 @@ int CombineTable::ToSource( sol::state &lua, sol::table &source, sol::table &oth
                 continue;
             }
 
+            // other value is a table so convert to a table to be used as a reference
             log_trace("Other value is a table");
+            sol::table otherAsTable = otherVal;
 
             // table handling from here
-            // THERE ARE FOUR SCENARIOS:
-            // both tables (both dict, both list, one of each) or only other is a table
-            
-            // if both are dict and wants to deep combine, deep combine
-            // both have same type, one is dict which means both are. and user wants to deep combine.
-            const bool bothDictAndDeepCombine = ( typeMatches && valIsDict && rules.deep_combine );
+            // THERE ARE SEVERAL SCENARIOS:
+            // both dict
+            // both list
+            // both empty
+            // one dict, one empty
+            // one list, one empty
+            // one dict, one list
+            // only other is table
 
-            if ( bothDictAndDeepCombine ) {
+            // we can only deep combine if both are dictionaries and the user wants to
+            // otherwise we must copy
+            
+            // *scriptly dict
+            const bool jColeAndDeepCombine = ( 
+                GetTableType( val ) == TableType::DICTIONARY &&
+                GetTableType( otherVal ) == TableType::DICTIONARY &&
+                rules.deep_combine
+            );
+
+            if ( jColeAndDeepCombine ) {
+                // convert val to a table to be used as a reference
+                // it must now be a table
+                sol::table valAsTable = val;
+
                 log_trace("Deep combining tables");
 
                 // if we want to deep combine and both are table, combine using same rules
