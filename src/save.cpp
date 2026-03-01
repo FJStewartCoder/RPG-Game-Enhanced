@@ -6,6 +6,9 @@ extern "C" {
 }
 #include "settings.h"
 
+#include "table.hpp"
+
+
 int Write::Var(FILE *fp, std::string var) {
     log_trace("Called function \"%s( FILE, %s )\"",
         __FUNCTION__,
@@ -652,6 +655,74 @@ int WriteV2::Write( FILE *fp, sol::object &obj, bool isVar ) {
     return 0;
 }
 
+struct ReadV2::Item ReadV2::Read( FILE *fp ) {
+    struct ReadV2::Item res;
+
+    // get the type character and check if the data is valid
+    char typeChar = fgetc( fp );
+
+    if ( feof(fp) || ferror(fp) ) {
+        log_error("File has unexpectedly errored");
+        res.valid = false;
+
+        return res;
+    }
+
+    // set the type to variable and get another character for actual type
+    if ( typeChar == engine::save::VARIABLE ) {
+        res.isVar = true;
+        typeChar = fgetc( fp );
+    }
+
+    // set the type
+    res.type = typeChar;
+
+    int readRes = 0;
+
+    // read the data as specified by the type character
+    switch ( typeChar ) {
+        case engine::save::STRING:
+            readRes = Read::String( fp, res.value.strVal );
+            break;
+
+        case engine::save::INT:
+            readRes = Read::Int( fp, res.value.intVal );
+            break;
+
+        case engine::save::FLOAT:
+            readRes = Read::Float( fp, res.value.floatVal );
+            break;
+        
+        case engine::save::BOOLEAN:
+            readRes = Read::Boolean( fp, res.value.boolVal );
+            break;
+
+        case engine::save::TABLE:
+            log_warn("This function can not read tables. Please call ReadV2::Table after this.");
+            break;
+        
+        case engine::save::NIL:
+            // don't do anything
+            break;
+
+        default:
+            // not a type character we recognise
+            res.valid = false;
+            break;
+    }
+
+    // check if the read value is valid
+    const bool readValid = readRes == 0;
+
+    // tell the programmer that the item is valid
+    res.valid = readValid;
+
+    // return the item
+    return res;
+}
+
+// WHEN WRITING THIS, ENSURE THAT IF SOME OPTION IS ENABLED, DON'T CARE IF THE VAR IS ACTUALLY A VAR TYPE BECAUSE IT ISN'T IN OLDER VERSIONS
+// MAYBE JUST HAVE A WARNING
 struct ReadV2::TableReturn ReadV2::Table(FILE *fp, sol::state &lua) {
     log_trace("Called function \"%s( FILE, state )\"", __FUNCTION__);
 
@@ -677,114 +748,128 @@ struct ReadV2::TableReturn ReadV2::Table(FILE *fp, sol::state &lua) {
 
     // iterate table length items
     for ( int i = 0; i < table_length; i++ ) {
-        const bool isVar = fgetc( fp ) == engine::save::VARIABLE;
+        ReadV2::Item key = ReadV2::Read( fp );
 
-        if ( !isVar ) { 
+        // if the key is invalid, return error
+        if ( !key.valid ) {
             res.error = 1;
             return res;
         }
 
-        // add one blank item to the back of the array
-        res.vars.push_back("");
-        
-        // write to the new heap memory
-        if ( Read::Var(fp, res.vars.back()) ) {
-            res.error = 1;
-            return res;
-        };
-
-        // reference to the current variable
-        std::string &var = res.vars.back();
-        
-        log_debug("IN TABLE - Var recieved is %s. Total vars = %d", var.c_str(), res.vars.size());
-        for ( const auto v : res.vars ) {
-            log_debug("VAR: %s", v.c_str());
+        // warning if the key is not a variable
+        if ( !key.isVar ) {
+            log_warn("Read key is not a variable");
         }
 
-        // return values for a possible table or bool
-        bool bool_var;
-        struct ReadV2::TableReturn table_var;
+        // push the key to the vector
+        res.items.push_back( key );
 
-        char type;
-        
-        if ( Read::Type(fp, type) ) {
-            res.error = 1;
-            return res;
-        }
+        // reference to the item
+        auto valueRef = dest[ "temp" ];
 
-        int error = 0;
-
-        switch ( type ) {
+        switch ( key.type ) {
             case engine::save::STRING:
-                // push a blank value to the heap
-                res.strs.push_back("");
-                error = Read::String(fp, res.strs.back());
-
-                log_debug("Setting table data at \"%s\" to \"%s\"", var.c_str(), res.strs.back().c_str());
-
-                dest[var] = res.strs.back();
+                dest[ res.items.back().value.strVal ] = "TEMP";
+                valueRef = dest[ res.items.back().value.strVal ];
                 break;
 
             case engine::save::INT:
-                // add the value to the heap
-                res.ints.push_back(0);
-                error = Read::Int(fp, res.ints.back());
-
-                log_debug("Setting table data at \"%s\" to %d", var.c_str(), res.ints.back());
-                
-                dest[var] = res.ints.back();
+                dest[ res.items.back().value.intVal ] = "TEMP";
+                valueRef = dest[ res.items.back().value.intVal ];
                 break;
             
             case engine::save::FLOAT:
-                // add the value to the heap
-                res.floats.push_back(0);
-                error = Read::Float(fp, res.floats.back());
-
-                log_debug("Setting table data at \"%s\" to %lf", var.c_str(), res.floats.back());
-                
-                dest[var] = res.floats.back();
+                dest[ res.items.back().value.floatVal ] = "TEMP";
+                valueRef = dest[ res.items.back().value.floatVal ];
                 break;
             
             case engine::save::BOOLEAN:
-                // push a blank value and load the new value into this location
-                error = Read::Boolean(fp, bool_var);
-                res.bools.push_back(bool_var);
+                dest[ res.items.back().value.boolVal ] = "TEMP";
+                valueRef = dest[ res.items.back().value.boolVal ];
+                break;
 
-                log_debug("Setting table data at \"%s\" to %d", var.c_str(), res.bools.back());
+            // other types are not available as keys
+            default:
+                res.error = 1;
+                break;
+        }
 
-                // needs to be cast to bool otherwise it is considered "userdata"
-                dest[var] = (bool)res.bools.back();
+        // check that there was not an error when loading the key
+        if ( res.error ) {
+            log_error("An error occured when loading the key");
+            return res;
+        }
+
+        // read the value
+        ReadV2::Item value = ReadV2::Read( fp );
+
+        // if the value is a variable ( it shouldn't be if it is a value )
+        // or the value is invalid, return error
+        if ( value.isVar || !value.valid ) {
+            log_error("An error occured when loading the value");
+
+            res.error = 1;
+            return res;
+        }
+
+        // handle tables differently to other types
+        if ( value.type == engine::save::TABLE ) {
+            ReadV2::TableReturn readTable = ReadV2::Table( fp, lua );
+
+            if ( readTable.error ) {
+                log_error("An error occured when reading inner table");
+
+                res.error = 1;
+                return res;
+            }
+
+            // add the value and assign it
+            res.tables.push_back( readTable );
+            valueRef = res.tables.back();
+
+            log_trace("Successfully read inner table");
+
+            // loop back to the start
+            continue;
+        }
+
+        // add the item to the back of the list of items
+        res.items.push_back( value );
+
+        switch ( value.type ) {
+            case engine::save::STRING:
+                valueRef = res.items.back().value.strVal;
+                break;
+
+            case engine::save::INT:
+                valueRef = res.items.back().value.intVal;
+                break;
+            
+            case engine::save::FLOAT:
+                valueRef = res.items.back().value.floatVal;
+                break;
+            
+            case engine::save::BOOLEAN:
+                valueRef = res.items.back().value.boolVal;
                 break;
             
             case engine::save::NIL:
-                error = Read::Nil(fp);
-
-                log_debug("Setting table data at \"%s\" to nil", var.c_str());
-
-                dest[var] = sol::nil;
-                break;
-            
-            case engine::save::TABLE:
-                table_var = Read::Table(fp, lua);
-                error = table_var.error;
-
-                // add the value to the heap
-                res.tables.push_back(table_var);
-
-                log_debug("Setting table data at \"%s\" to table", var.c_str());
-
-                dest[var] = res.tables.back().value;
+                valueRef = sol::nil;
                 break;
             
             default:
                 log_error("Data attempting to be read is of a type not implemented");
-                error = 1;
+                res.error = 1;
         }
 
-        if ( error != 0 ) {
-            log_error("An error has occurred");
+        log_debug(
+            "Read data %s = %s",
+            "VAR",
+            ObjectToString( valueRef ).c_str()
+        );
 
-            res.error = 1;
+        if ( res.error ) {
+            log_error("An error has occurred");
             return res;
         }
     }

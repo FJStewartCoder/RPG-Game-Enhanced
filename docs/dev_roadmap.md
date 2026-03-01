@@ -10,8 +10,7 @@ Ensure old functions are kept for backwards compatibility
 
 Apply use of new functions where used.
 
-NEED TO NOW BE ABLE TO READ
-NEED TO TEST
+PLEASE TEST
 
 ### Campaign Improvements
 Add gameloop to the campaign. So, it does not need to be run externally.

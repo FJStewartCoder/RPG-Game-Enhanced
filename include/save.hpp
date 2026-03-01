@@ -78,16 +78,24 @@ namespace WriteV2 {
 
 namespace ReadV2 {
     struct Item {
+        // the type and some other data
         char type = engine::save::NIL;
         bool isVar = false;
+        bool valid = true;
 
-        union {
+        // the actual value as a struct 
+        struct {
+            // since this has a wierd initialiser, it can not be in the union
+            // jobs amiright
             std::string strVal;
-            int intVal;
-            float floatVal;
-            bool boolVal;
-            char charVal;
-        };
+
+            union {
+                int intVal;
+                float floatVal;
+                bool boolVal;
+                char charVal;
+            };
+        } value;
     };
 
     struct TableReturn {
