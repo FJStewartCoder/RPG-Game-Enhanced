@@ -4,13 +4,8 @@ It is just the normal roadmap but with a clearer direction for a developer. It w
 
 ## Road Map
 ### Better Save (CURRENT)
-Save a sol::object rather than per type.
-Allows vars to be any type but prefixed with 'v'
-Ensure old functions are kept for backwards compatibility
-
+campaign.cpp @ line 717
 Apply use of new functions where used.
-
-PLEASE TEST
 
 ### Campaign Improvements
 Add gameloop to the campaign. So, it does not need to be run externally.

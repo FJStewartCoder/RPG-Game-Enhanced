@@ -720,8 +720,50 @@ struct ReadV2::Item ReadV2::Read( FILE *fp ) {
     return res;
 }
 
+std::string ItemToString( ReadV2::Item &item ) {
+    std::string res = "";
+
+    if ( !item.valid ) {
+        return "<INVALID>";
+    }
+
+    if ( item.isVar ) {
+        res += "[VAR] ";
+    }
+
+    switch ( item.type ) {
+        case engine::save::STRING:
+            res += item.value.strVal;
+            break;
+
+        case engine::save::INT:
+            res += std::to_string(item.value.intVal);
+            break;
+        
+        case engine::save::FLOAT:
+            res += std::to_string(item.value.floatVal);
+            break;
+        
+        case engine::save::BOOLEAN:
+            res += std::to_string(item.value.boolVal);
+            break;
+        
+        case engine::save::NIL:
+            res += "NIL";
+            break;
+        
+        default:
+            res += "<UNKNOWN>";
+            break;
+    }
+
+    return res;
+}
+
 template <typename T>
 int Assign( sol::table &t, struct ReadV2::Item key, T &value ) {
+    log_trace("Called function \"%s( table&, key, value )\"", __FUNCTION__);
+
     int res = 0;
 
     // switch the type of the key
@@ -861,14 +903,12 @@ struct ReadV2::TableReturn ReadV2::Table(FILE *fp, sol::state &lua) {
                 log_error("Data attempting to be read is of a type not implemented");
                 res.error = 1;
         }
-
-        /*
+        
         log_debug(
-            "Read data %s = %s",
-            "VAR",
-            ObjectToString( valueRef ).c_str()
+            "Got %s = %s",
+            ItemToString(key).c_str(),
+            ItemToString(value).c_str()
         );
-        */
 
         if ( res.error ) {
             log_error("An error has occurred");

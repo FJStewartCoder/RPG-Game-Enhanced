@@ -687,25 +687,36 @@ int Campaign::LoadFromFile() {
         return 1;
     }
 
-    // read the table and var
+    // var is the name of the player data table according to the file
     std::string var;
-    char type;
+    sol::table readPlayerData;
 
-    if ( Read::Var(fp, var) ) {
-        fclose(fp);
-        return 1;
+    if ( metadata.version < 110 ) {
+        // read the table and var
+        char type;
+
+        if ( Read::Var(fp, var) ) {
+            fclose(fp);
+            return 1;
+        }
+
+        if ( Read::Type(fp, type) ) {
+            fclose(fp);
+            return 1;
+        }
+
+        auto player_data = Read::Table(fp, lua);
+
+        if ( player_data.error != 0 ) {
+            fclose(fp);
+            return 1;
+        }
+
+        readPlayerData = player_data.value;
     }
+    // TODO: implement new load system
+    else {
 
-    if ( Read::Type(fp, type) ) {
-        fclose(fp);
-        return 1;
-    }
-
-    auto player_data = Read::Table(fp, lua);
-
-    if ( player_data.error != 0 ) {
-        fclose(fp);
-        return 1;
     }
 
     // get the default table
@@ -717,12 +728,12 @@ int Campaign::LoadFromFile() {
         CombineTable::DEEP | CombineTable::PRESERVE_TYPES | CombineTable::OVERWRITE_EXISTING | CombineTable::ADD_NEW_PROPERTIES;
 
     // combine the tables to the source of default table
-    CombineTable::ToSource( lua, default_table, player_data.value, combination_rules );
+    CombineTable::ToSource( lua, default_table, readPlayerData, combination_rules );
 
 #ifdef DEV
     // show the player table and final table
     log_debug("The saved table is shown below:");
-    ShowTable( player_data.value );
+    ShowTable( readPlayerData );
     std::cout << std::endl;
 
     log_debug("The processed and loaded table is shown below:");
