@@ -21,6 +21,13 @@ bool CompareSingleTable( sol::table &t1, sol::table &t2 ) {
         const auto val = item.second;
         const sol::object otherVal = t2[key];
 
+        log_debug(
+            "Got key=%s and values %s, %s",
+            ObjectToString(key).c_str(),
+            ObjectToString(val).c_str(),
+            ObjectToString(otherVal).c_str()
+        );
+
         // if the t2 is missing a key, they are not the same
         if ( !otherVal.valid() ) { 
             log_debug(
@@ -34,6 +41,12 @@ bool CompareSingleTable( sol::table &t1, sol::table &t2 ) {
         // get the type
         const sol::type valType = val.get_type();
         const sol::type otherValType = val.get_type();
+
+        log_debug(
+            "Types are %s and %s",
+            sol::type_name( NULL, valType ).c_str(),
+            sol::type_name( NULL, valType ).c_str()
+        );
 
         // if the types are different the data is not the same
         if ( valType != otherValType ) {

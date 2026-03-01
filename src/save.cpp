@@ -720,6 +720,37 @@ struct ReadV2::Item ReadV2::Read( FILE *fp ) {
     return res;
 }
 
+template <typename T>
+int Assign( sol::table &t, struct ReadV2::Item key, T &value ) {
+    int res = 0;
+
+    // switch the type of the key
+    switch ( key.type ) {
+        case engine::save::STRING:
+            t[ key.value.strVal ] = value;
+            break;
+
+        case engine::save::INT:
+            t[ key.value.intVal ] = value;
+            break;
+        
+        case engine::save::FLOAT:
+            t[ key.value.floatVal ] = value;
+            break;
+        
+        case engine::save::BOOLEAN:
+            t[ key.value.boolVal ] = value;
+            break;
+
+        // other types are not available as keys
+        default:
+            res = 1;
+            break;
+    }
+
+    return res;
+}
+
 // WHEN WRITING THIS, ENSURE THAT IF SOME OPTION IS ENABLED, DON'T CARE IF THE VAR IS ACTUALLY A VAR TYPE BECAUSE IT ISN'T IN OLDER VERSIONS
 // MAYBE JUST HAVE A WARNING
 struct ReadV2::TableReturn ReadV2::Table(FILE *fp, sol::state &lua) {
@@ -763,36 +794,6 @@ struct ReadV2::TableReturn ReadV2::Table(FILE *fp, sol::state &lua) {
         // push the key to the vector
         res.items.push_back( key );
 
-        // reference to the item
-        auto valueRef = dest[ "temp" ];
-
-        switch ( key.type ) {
-            case engine::save::STRING:
-                dest[ res.items.back().value.strVal ] = "TEMP";
-                valueRef = dest[ res.items.back().value.strVal ];
-                break;
-
-            case engine::save::INT:
-                dest[ res.items.back().value.intVal ] = "TEMP";
-                valueRef = dest[ res.items.back().value.intVal ];
-                break;
-            
-            case engine::save::FLOAT:
-                dest[ res.items.back().value.floatVal ] = "TEMP";
-                valueRef = dest[ res.items.back().value.floatVal ];
-                break;
-            
-            case engine::save::BOOLEAN:
-                dest[ res.items.back().value.boolVal ] = "TEMP";
-                valueRef = dest[ res.items.back().value.boolVal ];
-                break;
-
-            // other types are not available as keys
-            default:
-                res.error = 1;
-                break;
-        }
-
         // check that there was not an error when loading the key
         if ( res.error ) {
             log_error("An error occured when loading the key");
@@ -824,7 +825,7 @@ struct ReadV2::TableReturn ReadV2::Table(FILE *fp, sol::state &lua) {
 
             // add the value and assign it
             res.tables.push_back( readTable );
-            valueRef = res.tables.back();
+            Assign( dest, key, res.tables.back().value );
 
             log_trace("Successfully read inner table");
 
@@ -837,23 +838,23 @@ struct ReadV2::TableReturn ReadV2::Table(FILE *fp, sol::state &lua) {
 
         switch ( value.type ) {
             case engine::save::STRING:
-                valueRef = res.items.back().value.strVal;
+                res.error = Assign( dest, key, res.items.back().value.strVal );
                 break;
 
             case engine::save::INT:
-                valueRef = res.items.back().value.intVal;
+                res.error = Assign( dest, key, res.items.back().value.intVal );
                 break;
             
             case engine::save::FLOAT:
-                valueRef = res.items.back().value.floatVal;
+                res.error = Assign( dest, key, res.items.back().value.floatVal );
                 break;
             
             case engine::save::BOOLEAN:
-                valueRef = res.items.back().value.boolVal;
+                res.error = Assign( dest, key, res.items.back().value.boolVal );
                 break;
             
             case engine::save::NIL:
-                valueRef = sol::nil;
+                res.error = Assign( dest, key, sol::nil );
                 break;
             
             default:
@@ -861,11 +862,13 @@ struct ReadV2::TableReturn ReadV2::Table(FILE *fp, sol::state &lua) {
                 res.error = 1;
         }
 
+        /*
         log_debug(
             "Read data %s = %s",
             "VAR",
             ObjectToString( valueRef ).c_str()
         );
+        */
 
         if ( res.error ) {
             log_error("An error has occurred");
