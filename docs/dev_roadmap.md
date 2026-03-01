@@ -7,6 +7,8 @@ It is just the normal roadmap but with a clearer direction for a developer. It w
 campaign.cpp @ line 717
 Apply use of new functions where used.
 
+Save every N gameloops
+
 ### Campaign Improvements
 Add gameloop to the campaign. So, it does not need to be run externally.
 Add a setting in INIT to allow for specification of the start node.
