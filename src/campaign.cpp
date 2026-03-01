@@ -636,8 +636,13 @@ int Campaign::SaveToFile() {
 
     Write::TypelessString(fp, CAMPAIGN_NAME);
 
-    Write::Var(fp, engine::player::DATA);
-    Write::Table(fp, core_env[engine::player::DATA]);
+    // write the variable character
+    fputc(engine::save::VARIABLE, fp);
+    Write::String(fp, engine::player::DATA);
+
+    // write the player table
+    sol::table player_table = core_env[engine::player::DATA];
+    WriteV2::Write(fp, player_table);
 
     // inform the user that the campaign has been saved successfully
     log_info("Successfully saved campaign");
@@ -714,9 +719,27 @@ int Campaign::LoadFromFile() {
 
         readPlayerData = player_data.value;
     }
-    // TODO: implement new load system
+    // read using the new method
     else {
+        ReadV2::Item varItem = ReadV2::Read( fp );
+        if ( !varItem.valid ) { 
+            fclose(fp);
+            return 1;
+        }
 
+        var = varItem.value.strVal;
+
+        // read the type character to the void
+        ReadV2::Read( fp );
+
+        auto player_data = ReadV2::Table(fp, lua);
+
+        if ( player_data.error != 0 ) {
+            fclose(fp);
+            return 1;
+        }
+
+        readPlayerData = player_data.value;
     }
 
     // get the default table

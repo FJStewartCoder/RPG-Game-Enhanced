@@ -557,6 +557,8 @@ void WriteV2::String( FILE *fp, sol::object &obj ) {
     std::string val = obj.as<std::string>();
     int str_len = val.length();
 
+    log_debug("Writing string \"%s\" to file", val.c_str());
+
     // write the string length then the string
     fwrite(&str_len, sizeof(int), 1, fp);
     fwrite(val.c_str(), sizeof(char), str_len, fp);
@@ -566,6 +568,9 @@ void WriteV2::Int( FILE *fp, sol::object &obj ) {
     log_trace("Called function \"%s( FILE, object )\"", __FUNCTION__);
 
     int val = obj.as<int>();
+
+    log_debug("Writing int %d to file", val);
+
     fwrite( &val, sizeof(int), 1, fp );
 }
 
@@ -573,6 +578,9 @@ void WriteV2::Float( FILE *fp, sol::object &obj ) {
     log_trace("Called function \"%s( FILE, object )\"", __FUNCTION__);
 
     float val = obj.as<float>();
+
+    log_debug("Writing float %f to file", val);
+
     fwrite( &val, sizeof(float), 1, fp );
 }
 
@@ -584,8 +592,14 @@ void WriteV2::Boolean( FILE *fp, sol::object &obj ) {
     const char TRUE = 1;
     const char FALSE = 0;
 
-    if ( val ) { fwrite( &TRUE, sizeof(char), 1, fp ); }
-    else { fwrite( &FALSE, sizeof(char), 1, fp ); }
+    if ( val ) {
+        log_debug("Writing bool TRUE to file");
+        fwrite( &TRUE, sizeof(char), 1, fp );
+    }
+    else {
+        log_debug("Writing bool FALSE to file");
+        fwrite( &FALSE, sizeof(char), 1, fp );
+    }
 }
 
 void WriteV2::Table( FILE *fp, sol::object &obj ) {
@@ -654,7 +668,51 @@ int WriteV2::Write( FILE *fp, sol::object &obj, bool isVar ) {
     return 0;
 }
 
+std::string ItemToString( ReadV2::Item &item ) {
+    log_trace("Called function \"%s( item& )\"", __FUNCTION__);
+
+    std::string res = "";
+
+    if ( !item.valid ) {
+        return "<INVALID>";
+    }
+
+    if ( item.isVar ) {
+        res += "[VAR] ";
+    }
+
+    switch ( item.type ) {
+        case engine::save::STRING:
+            res += item.value.strVal;
+            break;
+
+        case engine::save::INT:
+            res += std::to_string(item.value.intVal);
+            break;
+        
+        case engine::save::FLOAT:
+            res += std::to_string(item.value.floatVal);
+            break;
+        
+        case engine::save::BOOLEAN:
+            res += std::to_string(item.value.boolVal);
+            break;
+        
+        case engine::save::NIL:
+            res += "NIL";
+            break;
+        
+        default:
+            res += "<UNKNOWN>";
+            break;
+    }
+
+    return res;
+}
+
 struct ReadV2::Item ReadV2::Read( FILE *fp ) {
+    log_trace("Called function \"%s( FILE )\"", __FUNCTION__);
+
     struct ReadV2::Item res;
 
     // get the type character and check if the data is valid
@@ -705,10 +763,15 @@ struct ReadV2::Item ReadV2::Read( FILE *fp ) {
             break;
 
         default:
+            log_error("Type is not valid");
+
             // not a type character we recognise
             res.valid = false;
             break;
     }
+
+    // if invalid, return before next validity check
+    if ( !res.valid ) { return res; }
 
     // check if the read value is valid
     const bool readValid = readRes == 0;
@@ -716,47 +779,9 @@ struct ReadV2::Item ReadV2::Read( FILE *fp ) {
     // tell the programmer that the item is valid
     res.valid = readValid;
 
+    log_debug("Got data %s", ItemToString( res ).c_str());
+
     // return the item
-    return res;
-}
-
-std::string ItemToString( ReadV2::Item &item ) {
-    std::string res = "";
-
-    if ( !item.valid ) {
-        return "<INVALID>";
-    }
-
-    if ( item.isVar ) {
-        res += "[VAR] ";
-    }
-
-    switch ( item.type ) {
-        case engine::save::STRING:
-            res += item.value.strVal;
-            break;
-
-        case engine::save::INT:
-            res += std::to_string(item.value.intVal);
-            break;
-        
-        case engine::save::FLOAT:
-            res += std::to_string(item.value.floatVal);
-            break;
-        
-        case engine::save::BOOLEAN:
-            res += std::to_string(item.value.boolVal);
-            break;
-        
-        case engine::save::NIL:
-            res += "NIL";
-            break;
-        
-        default:
-            res += "<UNKNOWN>";
-            break;
-    }
-
     return res;
 }
 
@@ -915,6 +940,8 @@ struct ReadV2::TableReturn ReadV2::Table(FILE *fp, sol::state &lua) {
             return res;
         }
     }
+
+    log_trace("Finished reading table");
 
     return res;
 }
