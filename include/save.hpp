@@ -4,6 +4,9 @@
 #include <sol/sol.hpp>
 #include <iostream>
 
+#include "lua_engine_constants.hpp"
+
+
 namespace Write {
     int Var(FILE *fp, std::string var);
 

@@ -8,6 +8,8 @@ namespace Test {
     // tests table functions
     bool Table();
 
+    bool Save();
+
     bool All();
 }
 

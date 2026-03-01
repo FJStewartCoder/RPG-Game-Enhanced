@@ -21,7 +21,7 @@
 #define FUNNY
 
 // DISABLED LOGGING DURING TESTING
-#define DISABLE_TESTING_LOGS
+// #define DISABLE_TESTING_LOGS
 
 
 // DEFINITIONS -------------------------------------------------------------------

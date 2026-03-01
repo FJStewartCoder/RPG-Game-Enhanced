@@ -381,6 +381,43 @@ bool Test::Table() {
     return true;
 }
 
+bool Test::Save() {
+    sol::state lua;
+
+    sol::table a = lua.create_table_with(
+        "a", "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        "b", 123,
+        "c", 123.456,
+        "d", true,
+        "e", false,
+        "f", lua.create_table_with(
+            1, "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            2, 123,
+            3, 123.456,
+            4, true,
+            5, false
+        )
+    );
+
+    FILE *fp = fopen( "test_save_file.txt", "wb" );
+    WriteV2::Write( fp, a, false );
+    fclose(fp);
+
+    fp = fopen( "test_save_file.txt", "rb" );
+    // read the type of the variable
+    fgetc(fp);
+    ReadV2::TableReturn t = ReadV2::Table( fp, lua );
+    fclose(fp);
+
+    ShowTable( t.value );
+    std::cout << std::endl;
+    ShowTable( a );
+
+    std::cout << CompareTable( t.value, a ) << std::endl;
+
+    return true;
+}
+
 bool Test::All() {
     log_trace("Called function \"%s()\"", __FUNCTION__);
 
@@ -394,7 +431,8 @@ bool Test::All() {
     // funcs is a list of pointers to functions that return bools
     bool (*funcs[])() = {
         Test::CombineTable,
-        Test::Table
+        Test::Table,
+        Test::Save
     };
 
     size_t i = 1;
