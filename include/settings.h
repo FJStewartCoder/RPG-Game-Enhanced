@@ -21,7 +21,7 @@
 #define FUNNY
 
 // DISABLED LOGGING DURING TESTING
-// #define DISABLE_TESTING_LOGS
+#define DISABLE_TESTING_LOGS
 
 
 // DEFINITIONS -------------------------------------------------------------------
@@ -29,6 +29,9 @@
 
 // the max recursive depth to search when loading a directory
 #define MAX_FILE_SYSTEM_DEPTH 5
+
+// number of gameloops before a save is made
+#define LOOPS_BEFORE_SAVE 2
 
 
 #endif  // SETTINGS_H

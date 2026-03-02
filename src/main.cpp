@@ -268,6 +268,10 @@ int gameloop(Campaign &campaign, node_t *start_node) {
     // the running state
     bool running = true;
 
+    // the number of current loops that have occured
+    // used to save every n game loops
+    size_t loop_count = 0;
+
     // get a reference to all of the node types
     TYPE_MAP &node_types = campaign.nodeManager.get_all_node_types();
 
@@ -399,6 +403,21 @@ int gameloop(Campaign &campaign, node_t *start_node) {
 
         handle_script_movement(campaign, cur_node, player_data);
         sync_player_position(cur_node, player_data);
+
+        log_debug(
+            "Currently at loop %d/%d before saving.",
+            loop_count + 1,
+            LOOPS_BEFORE_SAVE
+        );
+
+        // if at loop the last loop before becoming 0 again, save the campaign
+        if ( loop_count == (LOOPS_BEFORE_SAVE - 1) ) {
+            log_trace("Trying to save");
+            campaign.SaveToFile();
+        }
+
+        // increment the loop count
+        loop_count = (loop_count + 1) % LOOPS_BEFORE_SAVE;
     }
 
     return 0;
