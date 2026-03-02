@@ -40,4 +40,7 @@ Added validation to the save file version
 Added function to compare two tables  
 Fixed combine table function to now consider the type of the table  
 Updates documentation to reflect new changes  
-Testing in developer build
+Testing in developer build  
+Better saving allows for lists to be saved  
+Campaign saves more often  
+Fixed IsList and similar functions  

@@ -22,6 +22,88 @@ extern "C" {
 #include "settings.h"
 
 
+bool Test::TableCategorisation() {
+    log_trace("Called function \"%s()\"", __FUNCTION__);
+
+    /*
+    TEST EMPTY - SHOULD SAY EMPTY
+    TEST DICT - SHOULD SAY DICT
+    TEST ORDERED LIST ( 1, 2, 3, 4, 5... ) - SHOULD SAY LIST
+    TEST UNORDERED LIST ( 5, 3, 1, 4, 2... ) - SHOULD ALSO SAY LIST
+    */
+
+    sol::state lua;
+    TableType t;
+    std::string res;
+    
+    // ---------------------------------------------------------------------
+
+    sol::table a = lua.create_table();
+    t = GetTableType( a );
+
+    res = ( t == TableType::UNDETERMINED ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    // ---------------------------------------------------------------------
+
+    sol::table b = lua.create_table_with(
+        "a", "A",
+        "b", "B"
+    );
+    t = GetTableType( b );
+
+    res = ( t == TableType::DICTIONARY ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    // ---------------------------------------------------------------------
+
+    sol::table c = lua.create_table_with(
+        1, "A",
+        2, "B"
+    );
+    t = GetTableType( c );
+
+    // ShowTable(c);
+
+    res = ( t == TableType::LIST ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    // ---------------------------------------------------------------------
+
+    sol::table d = lua.create_table_with(
+        5, "E",
+        2, "B",
+        3, "C",
+        1, "A",
+        4, "D"
+    );
+    t = GetTableType( d );
+
+    //  ShowTable(d);
+
+    res = ( t == TableType::LIST ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    // ---------------------------------------------------------------------
+
+    sol::table e = lua.create_table_with(
+        5, "E",
+        2, "B",
+        3, "C",
+        "a", "A",  // one rogue value
+        1, "A",
+        4, "D"
+    );
+    t = GetTableType( e );
+
+    // ShowTable(e);
+
+    res = ( t == TableType::DICTIONARY ) ? "Passed" : "Failed";
+    std::cout << "Test " << res << std::endl;
+
+    return true;
+}
+
 bool Test::CombineTable() {
     log_trace("Called function \"%s()\"", __FUNCTION__);
 
@@ -430,6 +512,7 @@ bool Test::All() {
     
     // funcs is a list of pointers to functions that return bools
     bool (*funcs[])() = {
+        Test::TableCategorisation,
         Test::CombineTable,
         Test::Table,
         Test::Save

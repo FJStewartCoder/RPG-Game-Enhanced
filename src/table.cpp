@@ -235,16 +235,12 @@ TableType GetTableType( const sol::table &table ) {
     // the expected first value of the pair to be a list
     size_t expected = 1;
 
-    // iterate each key to look for the pattern 1, 2, 3, 4, 5, ...
+    // iterate the length of the array and check if the table has the key for i
     for ( const auto &item : table ) {
-        const auto key = item.first;
+        const auto val = table[expected];
 
-        // if the key is not an index (int), then it is not a list
-        if ( !key.is<int>() ) { return TableType::DICTIONARY; }
-
-        // if the indexes do not match up, it is not a list
-        // this is because it is possible to create a dictionary-like with ints as keys
-        if ( item.first.as<int>() != expected ) { return TableType::DICTIONARY; }
+        // if the key doesn't exist it must be dictionary
+        if ( !val.valid() ) { return TableType::DICTIONARY; }
 
         // increment the expected index
         expected++;
